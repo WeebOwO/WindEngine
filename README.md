@@ -2,7 +2,7 @@
 A personal game engine which mainly for learning purpose! Hopefully I don't end up with a graphic engine 😂.
 
 ## Build
-this project is using [xmake](https://xmake.io/) to manage, after download xmake, you can run commands below to build this project.
+This project is using [xmake](https://xmake.io/) to manage, after download xmake, you can run commands below to build this project.
 
 ```
 xmake 

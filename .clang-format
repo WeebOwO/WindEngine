@@ -1,0 +1,22 @@
+BasedOnStyle: LLVM
+
+Language: Cpp
+IndentWidth: 4
+
+# AlignSetting
+AlignAfterOpenBracket: Align
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+AlignEscapedNewlines: DontAlign
+PointerAlignment: Left
+ReferenceAlignment: Left
+AccessModifierOffset: -4
+
+#AllowSetting
+AllowShortIfStatementsOnASingleLine: Always
+AllowShortBlocksOnASingleLine: Always
+AllowShortEnumsOnASingleLine: true
+AllowShortLambdasOnASingleLine: All
+
+#Other
+ColumnLimit: 100
