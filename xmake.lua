@@ -11,7 +11,7 @@ after_build(function (target)
     if is_mode("release") then
         build_path = "$(buildir)/windows/x64/release/"
     else
-        build_path = "third_party/binary/debug/"
+        build_path = "$(buildir)/windows/x64/debug/"
     end
     os.cp("shaders/compiled_shader/**.spv", build_path)
 end)
