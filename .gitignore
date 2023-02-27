@@ -3,4 +3,7 @@
 .vscode/
 .xmake/
 build/
+shaders/compiled_shader/
 compile_commands.json
+compile.bat
+
