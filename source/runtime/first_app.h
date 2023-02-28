@@ -24,10 +24,10 @@ public:
     void run();
 
 private:
-    void createPipelineLayout();
-    void createPipeline();
-    void createCommandBuffers();
-    void drawFrame();
+    void CreatePipelineLayout();
+    void CreatePipeline();
+    void CreateCommandBuffers();
+    void DrawFrame();
 
     LveWindow                    m_lveWindow{WIDTH, HEIGHT, "Hello Vulkan!"};
     LveDevice                    m_lveDevice{m_lveWindow};

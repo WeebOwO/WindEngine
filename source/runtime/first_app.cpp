@@ -7,9 +7,9 @@
 namespace lve {
 
 FirstApp::FirstApp() {
-    createPipelineLayout();
-    createPipeline();
-    createCommandBuffers();
+    CreatePipelineLayout();
+    CreatePipeline();
+    CreateCommandBuffers();
 }
 
 FirstApp::~FirstApp() { vkDestroyPipelineLayout(m_lveDevice.device(), m_pipelineLayout, nullptr); }
@@ -17,13 +17,13 @@ FirstApp::~FirstApp() { vkDestroyPipelineLayout(m_lveDevice.device(), m_pipeline
 void FirstApp::run() {
     while (!m_lveWindow.ShouldClose()) {
         glfwPollEvents();
-        drawFrame();
+        DrawFrame();
     }
 
     vkDeviceWaitIdle(m_lveDevice.device());
 }
 
-void FirstApp::createPipelineLayout() {
+void FirstApp::CreatePipelineLayout() {
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType                  = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount         = 0;
@@ -36,7 +36,7 @@ void FirstApp::createPipelineLayout() {
     }
 }
 
-void FirstApp::createPipeline() {
+void FirstApp::CreatePipeline() {
     PipelineConfigInfo pipelineConfig{};
     LvePipeline::DefaultPipelineConfigInfo(pipelineConfig, m_lveSwapChain.width(),
                                            m_lveSwapChain.height());
@@ -46,7 +46,7 @@ void FirstApp::createPipeline() {
                                                   "simple_shader.frag.spv", pipelineConfig);
 }
 
-void FirstApp::createCommandBuffers() {
+void FirstApp::CreateCommandBuffers() {
     m_commandBuffers.resize(m_lveSwapChain.ImageCount());
 
     VkCommandBufferAllocateInfo allocInfo{};
@@ -93,7 +93,7 @@ void FirstApp::createCommandBuffers() {
         }
     }
 }
-void FirstApp::drawFrame() {
+void FirstApp::DrawFrame() {
     uint32_t imageIndex;
     auto     result = m_lveSwapChain.AcquireNextImage(&imageIndex);
     if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
