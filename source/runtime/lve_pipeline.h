@@ -9,54 +9,49 @@
 namespace lve {
 
 struct PipelineConfigInfo {
-  PipelineConfigInfo() = default;
-  PipelineConfigInfo(const PipelineConfigInfo&) = delete;
-  PipelineConfigInfo& operator=(const PipelineConfigInfo&) = delete;
+    PipelineConfigInfo()                                     = default;
+    PipelineConfigInfo(const PipelineConfigInfo&)            = delete;
+    PipelineConfigInfo& operator=(const PipelineConfigInfo&) = delete;
 
-  VkViewport viewport;
-  VkRect2D scissor;
-  VkPipelineViewportStateCreateInfo viewportInfo;
-  VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
-  VkPipelineRasterizationStateCreateInfo rasterizationInfo;
-  VkPipelineMultisampleStateCreateInfo multisampleInfo;
-  VkPipelineColorBlendAttachmentState colorBlendAttachment;
-  VkPipelineColorBlendStateCreateInfo colorBlendInfo;
-  VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
-  VkPipelineLayout pipelineLayout = nullptr;
-  VkRenderPass renderPass = nullptr;
-  uint32_t subpass = 0;
+    VkViewport                             viewport;
+    VkRect2D                               scissor;
+    VkPipelineViewportStateCreateInfo      viewportInfo;
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
+    VkPipelineRasterizationStateCreateInfo rasterizationInfo;
+    VkPipelineMultisampleStateCreateInfo   multisampleInfo;
+    VkPipelineColorBlendAttachmentState    colorBlendAttachment;
+    VkPipelineColorBlendStateCreateInfo    colorBlendInfo;
+    VkPipelineDepthStencilStateCreateInfo  depthStencilInfo;
+    VkPipelineLayout                       pipelineLayout = nullptr;
+    VkRenderPass                           renderPass     = nullptr;
+    uint32_t                               subpass        = 0;
 };
 
 class LvePipeline {
- public:
-  LvePipeline(
-      LveDevice& device,
-      const std::string& vertFilepath,
-      const std::string& fragFilepath,
-      const PipelineConfigInfo& configInfo);
-  ~LvePipeline();
+public:
+    LvePipeline(LveDevice& device, const std::string& vertFilepath, const std::string& fragFilepath,
+                const PipelineConfigInfo& configInfo);
+    ~LvePipeline();
 
-  LvePipeline(const LvePipeline&) = delete;
-  void operator=(const LvePipeline&) = delete;
+    LvePipeline(const LvePipeline&)    = delete;
+    void operator=(const LvePipeline&) = delete;
 
-  void bind(VkCommandBuffer commandBuffer);
+    void Bind(VkCommandBuffer commandBuffer);
 
-  static void defaultPipelineConfigInfo(
-      PipelineConfigInfo& configInfo, uint32_t width, uint32_t height);
+    static void DefaultPipelineConfigInfo(PipelineConfigInfo& configInfo, uint32_t width,
+                                          uint32_t height);
 
- private:
-  static std::vector<char> readFile(const std::string& filepath);
+private:
+    static std::vector<char> ReadFile(const std::string& filepath);
 
-  void createGraphicsPipeline(
-      const std::string& vertFilepath,
-      const std::string& fragFilepath,
-      const PipelineConfigInfo& configInfo);
+    void CreateGraphicsPipeline(const std::string& vertFilepath, const std::string& fragFilepath,
+                                const PipelineConfigInfo& configInfo);
 
-  void createShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule);
+    void CreateShaderModule(const std::vector<char>& code, VkShaderModule* shaderModule);
 
-  LveDevice& lveDevice;
-  VkPipeline graphicsPipeline;
-  VkShaderModule vertShaderModule;
-  VkShaderModule fragShaderModule;
+    LveDevice&     m_lveDevice;
+    VkPipeline     m_graphicsPipeline;
+    VkShaderModule m_vertShaderModule;
+    VkShaderModule m_fragShaderModule;
 };
-}  // namespace lve
+} // namespace lve
