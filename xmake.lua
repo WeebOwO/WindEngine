@@ -21,9 +21,9 @@ target("runtime")
     add_files("source/runtime/**.cpp")
     add_packages("glfw", "glad", "vulkansdk")
     
-target("editor")
+target("sandbox")
     set_kind("binary") 
-    add_files("source/*.cpp")
+    add_files("source/sandbox/**.cpp")
     add_packages("glfw", "glad", "vulkansdk")
     add_deps("runtime")
 
