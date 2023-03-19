@@ -1,22 +1,16 @@
 #include "context.h"
 
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 
+#include "GLFW/glfw3.h"
+#include "runtime/base/misc.h"
 
-#include "misc.h"
-#include "runtime/context.h"
+static std::vector<const char*> extensions = {};
+static std::vector<const char*> layers = {"VK_LAYER_KHRONOS_validation"};
 
 namespace wind {
-std::unique_ptr<RenderContext> RenderContext::m_instance = nullptr;
-
-RenderContext::RenderContext() noexcept {
-    CreateInstance();
-    PickupPhysicalDevice();
-    QueryQueueFamilyIndices();
-    CreateDevice();
-    GetQueue();
-}
 
 void RenderContext::CreateInstance() {
     vk::InstanceCreateInfo createinfo {};
@@ -25,14 +19,14 @@ void RenderContext::CreateInstance() {
     appInfo.setApiVersion(VK_MAKE_VERSION(1, 0, 3));
     createinfo.setPApplicationInfo(&appInfo);
 
-    std::vector<const char*> layers = {"VK_LAYER_KHRONOS_validation"};
     RemoveNosupportedElems<const char*, vk::LayerProperties>(
         layers, vk::enumerateInstanceLayerProperties(),
         [](const char* e1, const vk::LayerProperties& e2) {
             return std::strcmp(e1, e2.layerName) == 0;
         });
+
     createinfo.setPEnabledLayerNames(layers);
-    
+
     vkInstance = vk::createInstance(createinfo);
 }
 
@@ -48,10 +42,6 @@ void RenderContext::PickupPhysicalDevice() {
     std::cout << physicalDevice.getProperties().deviceName << "\n";
 }
 
-void RenderContext::Init() { m_instance.reset(new RenderContext); }
-
-void RenderContext::Quit() { m_instance.reset(); }
-
 void RenderContext::CreateDevice() {
     vk::DeviceCreateInfo      createInfo;
     vk::DeviceQueueCreateInfo queueCreateInfo;
@@ -62,6 +52,7 @@ void RenderContext::CreateDevice() {
                    .setQueueFamilyIndex(queueIndices.graphicsQueueIndex.value());
 
     createInfo.setQueueCreateInfos(queueCreateInfo);
+              
     device = physicalDevice.createDevice(createInfo);
 }
 
@@ -78,6 +69,6 @@ void RenderContext::QueryQueueFamilyIndices() {
 
 void RenderContext::GetQueue() {
     graphicsQueue = device.getQueue(queueIndices.graphicsQueueIndex.value(), 0);   
-}   
+}    
 
 } // namespace wind

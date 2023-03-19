@@ -4,7 +4,6 @@
 #include <functional>
 #include <vector>
 
-
 namespace wind {
 template <typename T, typename U>
 void RemoveNosupportedElems(std::vector<T>& elems, const std::vector<U>& supportedElems,
