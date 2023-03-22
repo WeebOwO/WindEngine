@@ -1,4 +1,4 @@
-#include "context.h"
+#include "runtime/render/context.h"
 
 #include <iostream>
 #include <stdexcept>
@@ -9,10 +9,10 @@
 #include "GLFW/glfw3.h"
 #include "runtime/base/misc.h"
 
-
 static std::vector<const char*> layers = {"VK_LAYER_KHRONOS_validation"};
 
 namespace wind {
+std::unique_ptr<RenderContext> RenderContext::instance = nullptr;
 
 RenderContext::RenderContext(GLFWwindow* window) noexcept {
     CreateInstance();
@@ -92,7 +92,6 @@ void RenderContext::QueryQueueFamilyIndices() {
         ++i;
     }
 }
-
 
 std::vector<const char*> RenderContext::GetRequiredExtensions() {
     uint32_t glfwEextensionsCnt = 0;

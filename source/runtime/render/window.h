@@ -4,13 +4,16 @@
 #include <string>
 #include <string_view>
 
+
 namespace wind {
 class Window {
 public:
+    friend class Renderer;
     Window(uint32_t width, uint32_t height, std::string_view title);
     ~Window();
     auto GetWindow() { return m_window; }
-
+    auto width() {return m_windowInfo.width;}
+    auto height() {return m_windowInfo.height;}
 private:
     struct WindowInfo {
         uint32_t    width, height;

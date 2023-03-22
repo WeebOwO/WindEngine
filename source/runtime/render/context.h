@@ -24,6 +24,13 @@ public:
     };
 
     ~RenderContext();
+    
+    static void Init(GLFWwindow* window) {instance = std::make_unique<RenderContext>(window);}
+  
+    static RenderContext& GetInstace() {
+        assert(instance);
+        return *instance;
+    }
 
     vk::Instance       vkInstance;
     vk::PhysicalDevice physicalDevice;
@@ -34,7 +41,6 @@ public:
     vk::Queue          presentQueue;
 
     QueueIndices queueIndices;
-
 private:
     std::vector<const char*> GetRequiredExtensions();
     void                     CreateInstance();
@@ -44,6 +50,8 @@ private:
     void                     QueryQueueFamilyIndices();
     void                     CreateSwapChain();
     void                     GetQueue();
+    
+    static std::unique_ptr<RenderContext> instance;
 };
 
 }; // namespace wind
