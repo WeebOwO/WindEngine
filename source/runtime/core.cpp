@@ -4,41 +4,30 @@
 #include <chrono>
 #include <memory>
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
+#include "runtime/render/window.h"
 #include "runtime/render/renderer.h"
 
-constexpr int WIDTH  = 1920;
-constexpr int HEIGHT = 1080;
+static constexpr uint32_t WIDTH  = 1920;
+static constexpr uint32_t HEIGHT = 1080;
 
 namespace wind {
 class EngineImpl {
 public:
-    EngineImpl() {
-        glfwInit();
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        m_window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan Engine", nullptr, nullptr);
-        glfwSetWindowUserPointer(m_window, this);  
+    EngineImpl(): m_window(WIDTH, HEIGHT, "Vulkan Engine") {    
         m_renderer = std::make_unique<Renderer>(m_window);
     }
 
-    ~EngineImpl() { glfwDestroyWindow(m_window); }
+    ~EngineImpl() = default;
 
     void Run() {
-        auto               startTime = std::chrono::high_resolution_clock::now();
-        auto               previous  = std::chrono::high_resolution_clock::now();
-        decltype(previous) current;
-        float              delta;
-
-        while (!glfwWindowShouldClose(m_window)) {    
+        while (!glfwWindowShouldClose(m_window.GetWindow())) {    
             LogicTick();
             RenderTick();
         }
     }
 
 private:
-    GLFWwindow* m_window;
+    Window m_window;
     std::unique_ptr<Renderer> m_renderer;
     void RenderTick() {}
     void LogicTick() { glfwPollEvents(); }

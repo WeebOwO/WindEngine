@@ -16,16 +16,11 @@ public:
     PERMIT_COPY(RenderContext);
     PERMIT_MOVE(RenderContext);
 
-    RenderContext(GLFWwindow* window) noexcept {
-        CreateInstance();
-        PickupPhysicalDevice();
-        QueryQueueFamilyIndices();
-        CreateDevice();
-        GetQueue();
-    }
+    RenderContext(GLFWwindow* window) noexcept;
     struct QueueIndices final {
         std::optional<uint32_t> graphicsQueueIndex;
-        bool                    IsComplete() { return graphicsQueueIndex.value(); }
+        std::optional<uint32_t> presentQueueIndex;
+        bool IsComplete() { return graphicsQueueIndex.value() && presentQueueIndex.value(); }
     };
 
     ~RenderContext();
@@ -33,18 +28,22 @@ public:
     vk::Instance       vkInstance;
     vk::PhysicalDevice physicalDevice;
     vk::Device         device;
-    vk::Queue          graphicsQueue;
     vk::SurfaceKHR     surface;
+
+    vk::Queue          graphicsQueue;
+    vk::Queue          presentQueue;
 
     QueueIndices queueIndices;
 
 private:
-    void CreateInstance();
-    void PickupPhysicalDevice();
-    void CreateDevice();
-    void QueryQueueFamilyIndices();
-    void CreateSwapChain();
-    void GetQueue();
+    std::vector<const char*> GetRequiredExtensions();
+    void                     CreateInstance();
+    void                     PickupPhysicalDevice();
+    void                     CreateDevice();
+    void                     CreateSuface(GLFWwindow* window);
+    void                     QueryQueueFamilyIndices();
+    void                     CreateSwapChain();
+    void                     GetQueue();
 };
 
 }; // namespace wind

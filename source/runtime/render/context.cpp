@@ -3,14 +3,25 @@
 #include <iostream>
 #include <stdexcept>
 #include <vector>
+#include <unordered_set>
+#include <format>
 
 #include "GLFW/glfw3.h"
 #include "runtime/base/misc.h"
 
-static std::vector<const char*> extensions = {};
+
 static std::vector<const char*> layers = {"VK_LAYER_KHRONOS_validation"};
 
 namespace wind {
+
+RenderContext::RenderContext(GLFWwindow* window) noexcept {
+    CreateInstance();
+    PickupPhysicalDevice();
+    CreateSuface(window);
+    QueryQueueFamilyIndices();
+    CreateDevice();
+    GetQueue();
+}
 
 void RenderContext::CreateInstance() {
     vk::InstanceCreateInfo createinfo {};
@@ -25,13 +36,16 @@ void RenderContext::CreateInstance() {
             return std::strcmp(e1, e2.layerName) == 0;
         });
 
-    createinfo.setPEnabledLayerNames(layers);
+    auto extensions = GetRequiredExtensions();
+    createinfo.setPEnabledLayerNames(layers)
+              .setPEnabledExtensionNames(extensions);
 
     vkInstance = vk::createInstance(createinfo);
 }
 
 RenderContext::~RenderContext() {
     device.destroy();
+    vkInstance.destroySurfaceKHR(surface);
     vkInstance.destroy();
 }
 
@@ -43,15 +57,24 @@ void RenderContext::PickupPhysicalDevice() {
 }
 
 void RenderContext::CreateDevice() {
+    std::array extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
     vk::DeviceCreateInfo      createInfo;
-    vk::DeviceQueueCreateInfo queueCreateInfo;
 
-    float priority = 1.0;
-    queueCreateInfo.setPQueuePriorities(&priority)
-                   .setQueueCount(1)
-                   .setQueueFamilyIndex(queueIndices.graphicsQueueIndex.value());
+    std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
+    std::unordered_set<uint32_t> uniqueQueueIndices {queueIndices.graphicsQueueIndex.value(), queueIndices.presentQueueIndex.value()};
+    float queuePriority = 1.0f;
 
-    createInfo.setQueueCreateInfos(queueCreateInfo);
+    for(auto index : uniqueQueueIndices) {
+        vk::DeviceQueueCreateInfo queueCreateInfo;
+        queueCreateInfo.setQueueFamilyIndex(index)
+                       .setPQueuePriorities(&queuePriority)
+                       .setQueueCount(1);
+        
+        queueCreateInfos.push_back(queueCreateInfo);
+    }
+    
+    createInfo.setQueueCreateInfos(queueCreateInfos)
+              .setPEnabledExtensionNames(extensions);
               
     device = physicalDevice.createDevice(createInfo);
 }
@@ -62,13 +85,37 @@ void RenderContext::QueryQueueFamilyIndices() {
         if (queueFamily.queueFlags | vk::QueueFlagBits::eGraphics) {
             queueIndices.graphicsQueueIndex = i;
         }
-        if (queueIndices.IsComplete()) { break; }
+        if(physicalDevice.getSurfaceSupportKHR(i, surface)) {
+            queueIndices.presentQueueIndex = i;
+        }
+        if (queueIndices.IsComplete()) break;
         ++i;
     }
 }
 
+
+std::vector<const char*> RenderContext::GetRequiredExtensions() {
+    uint32_t glfwEextensionsCnt = 0;
+    const char** glfwExtensions;
+    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwEextensionsCnt);
+    std::vector<const char*> extensions(glfwEextensionsCnt);
+    for(int i = 0; i < glfwEextensionsCnt; ++i) {
+        std::cout << glfwExtensions[i] << std::endl;
+        extensions[i] = glfwExtensions[i];
+    }
+    return extensions;
+}
+
+void RenderContext::CreateSuface(GLFWwindow* window) {
+    VkSurfaceKHR rawSurface;
+    if (glfwCreateWindowSurface(vkInstance, window, nullptr, &rawSurface) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create window surface!");
+    }
+    surface = rawSurface;
+}
+
 void RenderContext::GetQueue() {
     graphicsQueue = device.getQueue(queueIndices.graphicsQueueIndex.value(), 0);   
+    presentQueue = device.getQueue(queueIndices.presentQueueIndex.value(), 0);
 }    
-
 } // namespace wind

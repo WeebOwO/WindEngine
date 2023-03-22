@@ -3,19 +3,19 @@
 #include <memory>
 
 #include "GLFW/glfw3.h"
-#include "runtime/base/macro.h"
+
 #include "runtime/render/context.h"
-#include "runtime/render/renderer.h"
 
 namespace wind {
 class RenderImpl {
 public:
-    RenderImpl(GLFWwindow* window): m_context(window) {}
+    RenderImpl(Window& window): m_context(window.GetWindow()) {}
 private:
     RenderContext m_context;
+    
 };
 
-Renderer::Renderer(GLFWwindow* window): m_impl(std::make_unique<RenderImpl>(window)) {
+Renderer::Renderer(Window& window): m_impl(std::make_unique<RenderImpl>(window)) {
     
 }
 

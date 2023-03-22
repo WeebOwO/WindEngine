@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "runtime/base/macro.h"
-#include "runtime/render/context.h"
+#include "runtime/render/window.h"
 
 class GLFWwindow;
 
@@ -12,10 +12,12 @@ class RenderImpl;
 
 class Renderer {
 public:
-    Renderer(GLFWwindow* window);
-    ~Renderer();
     PERMIT_COPY(Renderer)
     PERMIT_MOVE(Renderer)
+
+    Renderer(Window& window);
+    ~Renderer();
+
 private:
     std::unique_ptr<RenderImpl> m_impl; // kind of rhi thing
 };
