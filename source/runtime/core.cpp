@@ -42,7 +42,7 @@ void EngineImpl::LogicTick() {
 }
 
 void EngineImpl::RenderTick() {
-    
+    m_renderer->DrawFrame();
 }
 
 // Engine Part
@@ -52,6 +52,8 @@ Engine::Engine() : m_impl(std::make_unique<EngineImpl>()) {
 
 }
 
-Engine::~Engine() = default;
+Engine::~Engine() {
+    RenderContext::GetInstace().device.waitIdle();
+}
 
 } // namespace wind

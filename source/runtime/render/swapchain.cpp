@@ -1,10 +1,10 @@
 #include "swapchain.h"
 
-#include "context.h"
+#include "runtime/render/context.h"
 #include "runtime/render/swapchain.h"
 
 namespace wind {
-    SwapChain::SwapChain(uint32_t width, uint32_t height) {
+    SwapChain::SwapChain(uint32_t width, uint32_t height): m_currentWidth(width), m_currentHeight(height) {
         QueryInfo(width, height);
 
         vk::SwapchainCreateInfoKHR createInfo;
@@ -31,6 +31,7 @@ namespace wind {
 
         swapchain = RenderContext::GetInstace().device.createSwapchainKHR(createInfo);
         images = RenderContext::GetInstace().device.getSwapchainImagesKHR(swapchain);
+
         CreateImageView();
     }
 

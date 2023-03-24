@@ -21,6 +21,7 @@ RenderContext::RenderContext(GLFWwindow* window) noexcept {
     QueryQueueFamilyIndices();
     CreateDevice();
     GetQueue();
+    CreateCmdPool();
 }
 
 void RenderContext::CreateInstance() {
@@ -44,6 +45,7 @@ void RenderContext::CreateInstance() {
 }
 
 RenderContext::~RenderContext() {
+    device.destroyCommandPool(graphicsCmdPool);
     device.destroy();
     vkInstance.destroySurfaceKHR(surface);
     vkInstance.destroy();
@@ -82,10 +84,10 @@ void RenderContext::CreateDevice() {
 void RenderContext::QueryQueueFamilyIndices() {
     auto properties = physicalDevice.getQueueFamilyProperties();
     for (uint32_t i = 0; const auto& queueFamily : properties) {
-        if (queueFamily.queueFlags | vk::QueueFlagBits::eGraphics) {
+        if (queueFamily.queueCount > 0 && queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) {
             queueIndices.graphicsQueueIndex = i;
         }
-        if(physicalDevice.getSurfaceSupportKHR(i, surface)) {
+        if(queueFamily.queueCount > 0 && physicalDevice.getSurfaceSupportKHR(i, surface)) {
             queueIndices.presentQueueIndex = i;
         }
         if (queueIndices.IsComplete()) break;
@@ -117,4 +119,12 @@ void RenderContext::GetQueue() {
     graphicsQueue = device.getQueue(queueIndices.graphicsQueueIndex.value(), 0);   
     presentQueue = device.getQueue(queueIndices.presentQueueIndex.value(), 0);
 }    
+
+void RenderContext::CreateCmdPool() {
+    vk::CommandPoolCreateInfo createInfo;
+    createInfo.setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer)
+              .setQueueFamilyIndex(queueIndices.graphicsQueueIndex.value());
+    graphicsCmdPool = device.createCommandPool(createInfo);
+}
+
 } // namespace wind

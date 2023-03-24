@@ -4,7 +4,6 @@
 #include <string>
 #include <string_view>
 
-
 namespace wind {
 class Window {
 public:

@@ -1,7 +1,5 @@
 #include "runtime/render/window.h"
 
-#include "GLFW/glfw3.h"
-
 namespace wind {
     Window::Window(uint32_t width, uint32_t height, std::string_view title) {
         m_windowInfo.width = width;

@@ -2,6 +2,7 @@
 
 #include "runtime/render/context.h"
 #include "runtime/render/utils.h"
+
 namespace wind {
     Shader::Shader(const std::vector<char>& vertexSource, const std::vector<char>& fragSource) {
         m_vertexShaderModule = utils::CreateShaderModule(vertexSource);

@@ -14,7 +14,7 @@ class Renderer {
 public:
     PERMIT_COPY(Renderer)
     PERMIT_MOVE(Renderer)
-
+    void DrawFrame();
     Renderer(Window& window);
     ~Renderer();
 

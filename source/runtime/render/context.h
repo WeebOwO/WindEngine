@@ -19,10 +19,11 @@ public:
     PERMIT_MOVE(RenderContext);
 
     RenderContext(GLFWwindow* window) noexcept;
+
     struct QueueIndices final {
         std::optional<uint32_t> graphicsQueueIndex;
         std::optional<uint32_t> presentQueueIndex;
-        bool IsComplete() { return graphicsQueueIndex.value() && presentQueueIndex.value(); }
+        bool IsComplete() { return graphicsQueueIndex.has_value() && presentQueueIndex.has_value(); }
     };
 
     ~RenderContext();
@@ -43,6 +44,9 @@ public:
     vk::Queue          presentQueue;
     
     std::unordered_map<size_t, Shader> shaderCache;
+
+    vk::CommandPool graphicsCmdPool;
+
     QueueIndices queueIndices;
 private:
     std::vector<const char*> GetRequiredExtensions();
@@ -53,7 +57,7 @@ private:
     void                     QueryQueueFamilyIndices();
     void                     CreateSwapChain();
     void                     GetQueue();
-    
+    void                     CreateCmdPool();
     static std::unique_ptr<RenderContext> instance;
 };
 
