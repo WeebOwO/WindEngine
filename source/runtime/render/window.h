@@ -11,9 +11,9 @@ public:
     friend class Renderer;
     Window(uint32_t width, uint32_t height, std::string_view title);
     ~Window();
-    auto GetWindow() { return m_window; }
-    auto width() {return m_windowInfo.width;}
-    auto height() {return m_windowInfo.height;}
+    [[nodiscard]] auto GetWindow() const { return m_window; }
+    [[nodiscard]] auto width() const {return m_windowInfo.width;}
+    [[nodiscard]] auto height() const {return m_windowInfo.height;}
 private:
     struct WindowInfo {
         uint32_t    width, height;

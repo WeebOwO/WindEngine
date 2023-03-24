@@ -1,6 +1,7 @@
 #include "swapchain.h"
 
 #include "context.h"
+#include "runtime/render/swapchain.h"
 
 namespace wind {
     SwapChain::SwapChain(uint32_t width, uint32_t height) {
@@ -29,6 +30,15 @@ namespace wind {
         }
 
         swapchain = RenderContext::GetInstace().device.createSwapchainKHR(createInfo);
+        images = RenderContext::GetInstace().device.getSwapchainImagesKHR(swapchain);
+        CreateImageView();
+    }
+
+    SwapChain::~SwapChain() {
+        for(auto& imageView : imageViews) {
+            RenderContext::GetInstace().device.destroyImageView(imageView);
+        }
+        RenderContext::GetInstace().device.destroySwapchainKHR(swapchain);
     }
 
     void SwapChain::QueryInfo(uint32_t width, uint32_t height) {
@@ -61,6 +71,30 @@ namespace wind {
                 std::cout << "using mailbox mode to present!\n";
                 break;
             }
+        }
+    }
+
+    void SwapChain::CreateImageView() {
+        imageViews.resize(images.size());
+        
+        for(size_t i = 0; i < images.size(); ++i) {
+            vk::ImageViewCreateInfo createInfo;
+            vk::ComponentMapping components;
+            vk::ImageSubresourceRange range;
+            
+            range.setBaseMipLevel(0)
+                 .setLevelCount(1)
+                 .setBaseArrayLayer(0)
+                 .setLayerCount(1)
+                 .setAspectMask(vk::ImageAspectFlagBits::eColor);
+
+            createInfo.setImage(images[i])
+                      .setFormat(swapchainInfo.surfaceFormat.format)
+                      .setComponents(components)
+                      .setSubresourceRange(range)
+                      .setViewType(vk::ImageViewType::e2D);
+
+            imageViews[i] = RenderContext::GetInstace().device.createImageView(createInfo);
         }
     }
 }

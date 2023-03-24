@@ -4,10 +4,12 @@
 #include <memory>
 #include <optional>
 
+#include <unordered_map>
 #include <vulkan/vulkan.hpp>
 
 #include "GLFW/glfw3.h"
 #include "runtime/base/macro.h"
+#include "runtime/render/shader.h"
 
 namespace wind {
 
@@ -26,7 +28,7 @@ public:
     ~RenderContext();
     
     static void Init(GLFWwindow* window) {instance = std::make_unique<RenderContext>(window);}
-  
+    
     static RenderContext& GetInstace() {
         assert(instance);
         return *instance;
@@ -39,7 +41,8 @@ public:
 
     vk::Queue          graphicsQueue;
     vk::Queue          presentQueue;
-
+    
+    std::unordered_map<size_t, Shader> shaderCache;
     QueueIndices queueIndices;
 private:
     std::vector<const char*> GetRequiredExtensions();
@@ -53,5 +56,6 @@ private:
     
     static std::unique_ptr<RenderContext> instance;
 };
+
 
 }; // namespace wind
