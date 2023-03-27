@@ -15,9 +15,9 @@ struct SwapChainInfo {
 
 class SwapChain {
 public:
-    SwapChain(uint32_t width, uint32_t height);
+    SwapChain(uint32_t width, uint32_t height, uint32_t maxFrameInFlight);
     ~SwapChain();
-    void             QueryInfo(uint32_t width, uint32_t height);
+    void             QueryInfo(uint32_t width, uint32_t height, uint32_t maxFrameInFlight);
     void             CreateImageView();
     void             CreateFrameBuffers();
     vk::SwapchainKHR swapchain;

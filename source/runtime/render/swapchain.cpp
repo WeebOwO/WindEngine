@@ -1,11 +1,11 @@
-#include "swapchain.h"
-
-#include "runtime/render/context.h"
 #include "runtime/render/swapchain.h"
 
+#include "runtime/render/context.h"
+
+
 namespace wind {
-    SwapChain::SwapChain(uint32_t width, uint32_t height): m_currentWidth(width), m_currentHeight(height) {
-        QueryInfo(width, height);
+    SwapChain::SwapChain(uint32_t width, uint32_t height, uint32_t maxFrameInFlight): m_currentWidth(width), m_currentHeight(height) {
+        QueryInfo(width, height, maxFrameInFlight);
 
         vk::SwapchainCreateInfoKHR createInfo;
         createInfo.setClipped(VK_TRUE)
@@ -42,7 +42,7 @@ namespace wind {
         RenderContext::GetInstace().device.destroySwapchainKHR(swapchain);
     }
 
-    void SwapChain::QueryInfo(uint32_t width, uint32_t height) {
+    void SwapChain::QueryInfo(uint32_t width, uint32_t height, uint32_t maxFrameInFlight) {
         auto& phyDevice  = RenderContext::GetInstace().physicalDevice;
         auto& surface = RenderContext::GetInstace().surface;
         auto formats = phyDevice.getSurfaceFormatsKHR(surface);
@@ -56,7 +56,7 @@ namespace wind {
         }
 
         auto capabilities = phyDevice.getSurfaceCapabilitiesKHR(surface);
-        swapchainInfo.imageCount = std::clamp<uint32_t>(2, capabilities.minImageCount, capabilities.maxImageCount);
+        swapchainInfo.imageCount = std::clamp<uint32_t>(maxFrameInFlight, capabilities.minImageCount, capabilities.maxImageCount);
         
         swapchainInfo.imageExtent.width = std::clamp<uint32_t>(width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
         swapchainInfo.imageExtent.height = std::clamp<uint32_t>(width, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
