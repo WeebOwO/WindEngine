@@ -34,7 +34,7 @@ public:
         assert(instance);
         return *instance;
     }
-
+    
     vk::Instance       vkInstance;
     vk::PhysicalDevice physicalDevice;
     vk::Device         device;

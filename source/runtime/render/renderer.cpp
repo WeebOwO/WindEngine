@@ -3,6 +3,7 @@
 #include <limits>
 #include <memory>
 #include <cstdint>
+#include <vcruntime_string.h>
 #include <vector>
 
 #include "GLFW/glfw3.h"
@@ -13,13 +14,16 @@
 #include "runtime/render/swapchain.h"
 #include "runtime/render/utils.h"
 #include "runtime/render/window.h"
+#include "runtime/render/buffer.h"
+
 
 static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
 namespace wind {
 class RenderImpl {
 public:
-    RenderImpl(Window& window) : m_window(window), m_swapchain(window.width(), window.height(), MAX_FRAMES_IN_FLIGHT) {
+    RenderImpl(Window& window) : m_window(window), m_swapchain(window.width(), window.height(), MAX_FRAMES_IN_FLIGHT), 
+    m_vertexBuffer(CreateVertexBuffer()) {
         CreateGraphicPipeline();
         AllocCmdBuffer();
         CreateFence();
@@ -32,6 +36,7 @@ public:
         if(device.waitForFences(m_cmdAvaliableFences[m_currentFrame], true, std::numeric_limits<uint64_t>::max()) != vk::Result::eSuccess) {
             std::cout << "image present failed\n";
         };
+
         device.resetFences(m_cmdAvaliableFences[m_currentFrame]);
 
         auto result = device.acquireNextImageKHR(m_swapchain.swapchain, std::numeric_limits<uint32_t>::max(), m_imageAvalilable[m_currentFrame]);
@@ -62,12 +67,15 @@ public:
                                .setFramebuffer(m_frameBuffers[index]);
 
             m_cmdBuffers[m_currentFrame].beginRenderPass(renderPassBeginInfo, {});
-
             m_cmdBuffers[m_currentFrame].bindPipeline(vk::PipelineBindPoint::eGraphics, m_currentPipeline);
-            m_cmdBuffers[m_currentFrame].draw(3, 1, 0, 0);
+            std::vector<vk::Buffer> vertexBuffers = {m_vertexBuffer.buffer};
+            std::vector<vk::DeviceSize> offsets = {0};
+            m_cmdBuffers[m_currentFrame].bindVertexBuffers(0, 1, vertexBuffers.data(), offsets.data());
+            m_cmdBuffers[m_currentFrame].draw(vertices.size(), 1, 0, 0);
 
             m_cmdBuffers[m_currentFrame].endRenderPass();
         }
+
         m_cmdBuffers[m_currentFrame].end();
 
         vk::SubmitInfo submitInfo;
@@ -92,6 +100,7 @@ public:
         m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
     }
+
     ~RenderImpl() {
         auto& device = RenderContext::GetInstace().device;
         auto& graphicsPool = RenderContext::GetInstace().graphicsCmdPool;
@@ -105,13 +114,29 @@ public:
             device.destroySemaphore(m_imageFinished[i]);
             device.destroySemaphore(m_imageAvalilable[i]);
         }
-
         device.freeCommandBuffers(graphicsPool, m_cmdBuffers);
         device.destroyRenderPass(m_basepass);
         device.destroyPipelineLayout(m_currentLayout);
         device.destroyPipeline(m_currentPipeline);
     }
+
 private:
+    void CreateRenderPass();
+    void CreateGraphicPipeline(); 
+    void CreateGraphicPipelineLayout();
+    void CreateFrameBuffer();
+    void CreateFence();
+    void CreateSemaphore();
+    Buffer CreateVertexBuffer();
+
+    void AllocCmdBuffer();
+
+    const std::vector<Vertex> vertices = {
+    {{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
+    {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+    {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}
+    };
+
     uint32_t m_currentFrame {0};
     Window&   m_window;
     SwapChain m_swapchain;
@@ -128,14 +153,7 @@ private:
     std::array<vk::Semaphore, MAX_FRAMES_IN_FLIGHT> m_imageAvalilable;
     std::array<vk::Semaphore, MAX_FRAMES_IN_FLIGHT> m_imageFinished;
 
-    void CreateRenderPass();
-    void CreateGraphicPipeline(); 
-    void CreateGraphicPipelineLayout();
-    void CreateFrameBuffer();
-    void CreateFence();
-    void CreateSemaphore();
-
-    void AllocCmdBuffer();
+    Buffer m_vertexBuffer;
 };
 
 void RenderImpl::CreateGraphicPipeline() {
@@ -145,8 +163,17 @@ void RenderImpl::CreateGraphicPipeline() {
     vk::GraphicsPipelineCreateInfo pipelineCreateInfo;
 
     // 1. Vertex Input
-    vk::PipelineVertexInputStateCreateInfo inputState;
-    pipelineCreateInfo.setPVertexInputState(&inputState);
+    vk::PipelineVertexInputStateCreateInfo inputStateCreateInfo;
+
+    auto bindingDescription = Vertex::GetInputBindingDescription();
+    auto attributeDescriptions = Vertex::GetVertexInputAttributeDescriptions();
+
+    inputStateCreateInfo.setVertexAttributeDescriptionCount(static_cast<uint32_t>(attributeDescriptions.size()))
+                        .setVertexBindingDescriptionCount(1)
+                        .setPVertexBindingDescriptions(&bindingDescription)
+                        .setPVertexAttributeDescriptions(attributeDescriptions.data());
+
+    pipelineCreateInfo.setPVertexInputState(&inputStateCreateInfo);
 
     // 2. Input Assembly
     vk::PipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo;
@@ -244,7 +271,6 @@ void RenderImpl::CreateRenderPass() {
                       .setColorAttachmentCount(1);
 
     vk::RenderPassCreateInfo createInfo;
-    vk::SubpassDependency dependency;
 
     createInfo.setSubpassCount(1)
               .setSubpasses(subpassDescription)
@@ -267,6 +293,20 @@ void RenderImpl::CreateFrameBuffer() {
         m_frameBuffers[i] = device.createFramebuffer(info);
         ++i;
     }   
+}
+
+Buffer RenderImpl::CreateVertexBuffer() {
+    auto& device = RenderContext::GetInstace().device;
+
+    size_t size = sizeof(vertices[0]) * vertices.size();
+    auto flagbits = vk::MemoryPropertyFlagBits::eHostVisible|vk::MemoryPropertyFlagBits::eHostCoherent;
+
+    Buffer vertexBuffer(size, vk::BufferUsageFlagBits::eVertexBuffer, flagbits);
+    
+    void* data = device.mapMemory(vertexBuffer.memory, 0, vertexBuffer.size);
+    memcpy(data, vertices.data(), size);
+
+    return vertexBuffer;
 }
 
 void RenderImpl::AllocCmdBuffer() {

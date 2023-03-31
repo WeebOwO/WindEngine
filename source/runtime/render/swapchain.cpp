@@ -2,7 +2,6 @@
 
 #include "runtime/render/context.h"
 
-
 namespace wind {
     SwapChain::SwapChain(uint32_t width, uint32_t height, uint32_t maxFrameInFlight): m_currentWidth(width), m_currentHeight(height) {
         QueryInfo(width, height, maxFrameInFlight);

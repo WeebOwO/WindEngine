@@ -9,8 +9,8 @@
 #include "runtime/render/renderer.h"
 #include "runtime/render/window.h"
 
-static constexpr uint32_t WIDTH  = 1920;
-static constexpr uint32_t HEIGHT = 1080;
+static constexpr uint32_t WIDTH  = 800;
+static constexpr uint32_t HEIGHT = 600;
 
 namespace wind {
 // EngienImpl part
