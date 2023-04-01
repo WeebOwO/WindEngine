@@ -1,5 +1,3 @@
-#include "runtime/base/log.h"
-#include "runtime/base/macro.h"
 #include "runtime/core.h"
 
 auto main() -> int {
