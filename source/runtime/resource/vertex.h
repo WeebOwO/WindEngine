@@ -1,13 +1,7 @@
 #pragma once
 
-#include <vector>
-
 #include <glm/glm.hpp>
 #include <vulkan/vulkan.hpp>
-
-#include "runtime/render/shader.h"
-#include "runtime/render/swapchain.h"
-#include "runtime/render/buffer.h"
 
 namespace wind {
 struct Vertex {
@@ -41,19 +35,3 @@ struct Vertex {
 };
 
 } // namespace wind
-
-namespace wind::utils {
-vk::Device&         GetRHIDevice();
-vk::PhysicalDevice& GetRHIPhysicalDevice();
-
-vk::ShaderModule   CreateShaderModule(const std::vector<char>& shaderCode);
-vk::Pipeline       CreateGraphicsPipelines(const vk::GraphicsPipelineCreateInfo& createinfo);
-vk::PipelineLayout CreatePipelineLayout(const vk::PipelineLayoutCreateInfo& createinfo);
-vk::RenderPass     CreateRenderPass(vk::RenderPassCreateInfo createInfo);
-
-vk::Pipeline ChooseDefaultPipeline(uint32_t index, Shader& shader, vk::RenderPass renderpass,
-                                   vk::PipelineLayout layout, SwapChain& swapchain);
-
-void CopyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size);
-} // namespace wind::utils
-

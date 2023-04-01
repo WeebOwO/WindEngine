@@ -1,13 +1,13 @@
 #include "runtime/render/context.h"
 
 #include <iostream>
-#include <stdexcept>
 #include <vector>
 #include <unordered_set>
 #include <format>
 
 #include "GLFW/glfw3.h"
 #include "runtime/base/misc.h"
+#include "runtime/base/macro.h"
 
 static std::vector<const char*> layers = {"VK_LAYER_KHRONOS_validation"};
 
@@ -55,7 +55,7 @@ void RenderContext::PickupPhysicalDevice() {
     auto physicalDevices = vkInstance.enumeratePhysicalDevices();
     // not good, but enough for me
     physicalDevice = physicalDevices.front();
-    std::cout << physicalDevice.getProperties().deviceName << "\n";
+    WIND_CORE_INFO(physicalDevice.getProperties().deviceName);
 }
 
 void RenderContext::CreateDevice() {
@@ -101,8 +101,8 @@ std::vector<const char*> RenderContext::GetRequiredExtensions() {
     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwEextensionsCnt);
     std::vector<const char*> extensions(glfwEextensionsCnt);
     for(int i = 0; i < glfwEextensionsCnt; ++i) {
-        std::cout << glfwExtensions[i] << std::endl;
         extensions[i] = glfwExtensions[i];
+        WIND_CORE_INFO(extensions[i]);
     }
     return extensions;
 }

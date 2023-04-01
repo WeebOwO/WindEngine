@@ -26,7 +26,7 @@ public:
 
     std::vector<vk::Image>     images;
     std::vector<vk::ImageView> imageViews;
-    std::vector<vk::Framebuffer> frameBuffers;
+
     SwapChainInfo swapchainInfo;
 
 private:

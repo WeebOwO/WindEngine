@@ -1,9 +1,10 @@
-#include "runtime/render/utils.h"
+#include "runtime/base/utils.h"
 
 #include <cstdint>
 
-#include "runtime/render/buffer.h"
 #include "runtime/render/context.h"
+#include "runtime/resource/vertex.h"
+#include "runtime/base/macro.h"
 
 namespace wind::utils {
 vk::Device&         GetRHIDevice() { return RenderContext::GetInstace().device; }
@@ -21,7 +22,7 @@ vk::ShaderModule CreateShaderModule(const std::vector<char>& shaderCode) {
 vk::Pipeline CreateGraphicsPipelines(const vk::GraphicsPipelineCreateInfo& createinfo) {
     auto result = RenderContext::GetInstace().device.createGraphicsPipeline(nullptr, createinfo);
     if (result.result != vk::Result::eSuccess) {
-        std::cout << "create graphics pipeline failed: " << result.result << std::endl;
+        
     }
     return result.value;
 }
@@ -117,19 +118,17 @@ vk::Pipeline ChooseDefaultPipeline(uint32_t index, Shader& shader, vk::RenderPas
 
 void CopyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size) {
     vk::CommandBufferAllocateInfo allocateInfo;
-    auto& rhi = RenderContext::GetInstace();
+    auto&                         rhi = RenderContext::GetInstace();
     allocateInfo.setCommandBufferCount(1)
-                .setCommandPool(rhi.graphicsCmdPool)
-                .setLevel(vk::CommandBufferLevel::ePrimary);
-    auto immCmdBuffer = rhi.device.allocateCommandBuffers(allocateInfo)[0];
+        .setCommandPool(rhi.graphicsCmdPool)
+        .setLevel(vk::CommandBufferLevel::ePrimary);
+    auto                       immCmdBuffer = rhi.device.allocateCommandBuffers(allocateInfo)[0];
     vk::CommandBufferBeginInfo beginInfo;
     beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
     immCmdBuffer.begin(beginInfo);
     {
         vk::BufferCopy copyRegion;
-        copyRegion.setDstOffset(0)
-                .setSize(size)
-                .setSrcOffset(0);
+        copyRegion.setDstOffset(0).setSize(size).setSrcOffset(0);
         immCmdBuffer.copyBuffer(srcBuffer, dstBuffer, copyRegion);
     }
     immCmdBuffer.end();
@@ -142,4 +141,36 @@ void CopyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size)
     rhi.device.freeCommandBuffers(rhi.graphicsCmdPool, immCmdBuffer);
 }
 
+void CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags property,
+                  vk::Buffer& buffer, vk::DeviceMemory& deviceMemory) {
+
+    auto& device    = utils::GetRHIDevice();
+    auto& phyDevice = utils::GetRHIPhysicalDevice();
+    // create buffer
+    vk::BufferCreateInfo createInfo;
+    createInfo.setSize(size).
+               setUsage(usage).
+               setSharingMode(vk::SharingMode::eExclusive);
+
+    buffer = device.createBuffer(createInfo);
+    // query memory info
+    auto properties   = phyDevice.getMemoryProperties();
+    auto requirements = device.getBufferMemoryRequirements(buffer);
+
+    uint32_t index = -1;
+    for (uint32_t i = 0; i < properties.memoryTypeCount; ++i) {
+        if (((1 << i) & requirements.memoryTypeBits) &&
+            ((properties.memoryTypes[i].propertyFlags & property) == property)) {
+            index = i;
+            break;
+        }
+    }
+
+    vk::MemoryAllocateInfo allocateInfo;
+    allocateInfo.setMemoryTypeIndex(index).setAllocationSize(requirements.size);
+
+    deviceMemory = device.allocateMemory(allocateInfo);
+
+    device.bindBufferMemory(buffer, deviceMemory, 0);
+}
 } // namespace wind::utils

@@ -1,6 +1,6 @@
 set_project("Vulkan Engine")
 
-add_requires("glm", "glfw", "glad", "vulkansdk")
+add_requires("glm", "glfw", "glad", "vulkansdk", "spdlog")
 
 add_rules("mode.debug", "mode.release")
 add_includedirs("source/")
@@ -19,12 +19,12 @@ end)
 target("runtime")
     set_kind("static")
     add_files("source/runtime/**.cpp")
-    add_packages("glfw", "glad", "vulkansdk")
+    add_packages("glfw", "glad", "vulkansdk", "spdlog")
     
 target("sandbox")
     set_kind("binary") 
     add_files("source/sandbox/**.cpp")
-    add_packages("glfw", "glad", "vulkansdk")
+    add_packages("glfw", "glad", "vulkansdk", "spdlog")
     add_deps("runtime")
 
 

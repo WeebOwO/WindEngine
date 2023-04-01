@@ -1,7 +1,6 @@
 #include "runtime/render/renderer.h"
 
 #include <cstdint>
-#include <limits>
 #include <memory>
 #include <vcruntime_string.h>
 #include <vector>
@@ -9,12 +8,15 @@
 #include "GLFW/glfw3.h"
 
 #include "runtime/io/io.h"
-#include "runtime/render/buffer.h"
+#include "runtime/base/macro.h"
+#include "runtime/base/utils.h"
+
 #include "runtime/render/context.h"
 #include "runtime/render/shader.h"
 #include "runtime/render/swapchain.h"
-#include "runtime/render/utils.h"
 #include "runtime/render/window.h"
+
+#include "runtime/resource/scene.h"
 
 static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -22,8 +24,7 @@ namespace wind {
 class RenderImpl {
 public:
     RenderImpl(Window& window)
-        : m_window(window), m_swapchain(window.width(), window.height(), MAX_FRAMES_IN_FLIGHT),
-          m_vertexBuffer(CreateBuffer()) {
+        : m_window(window), m_swapchain(window.width(), window.height(), MAX_FRAMES_IN_FLIGHT) {
         CreateRenderPass();
         CreateFrameBuffer();
         CreateGraphicPipeline();
@@ -37,7 +38,7 @@ public:
 
         if (device.waitForFences(m_cmdAvaliableFences[m_currentFrame], true,
                                  std::numeric_limits<uint64_t>::max()) != vk::Result::eSuccess) {
-            std::cout << "image present failed\n";
+            WIND_CORE_ERROR("image present failed\n");
         };
 
         device.resetFences(m_cmdAvaliableFences[m_currentFrame]);
@@ -47,7 +48,7 @@ public:
                                        m_imageAvalilable[m_currentFrame]);
 
         if (result.result != vk::Result::eSuccess) {
-            std::cout << "acquire next image failed!" << std::endl;
+            WIND_CORE_ERROR("acquire next image failed!");
         }
 
         auto index = result.value;
@@ -74,7 +75,7 @@ public:
 
         if (RenderContext::GetInstace().presentQueue.presentKHR(presentInfo) !=
             vk::Result::eSuccess) {
-            std::cout << "image present failed\n";
+            WIND_CORE_ERROR("image present failed");
         }
         m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
@@ -104,14 +105,9 @@ private:
     void   CreateFrameBuffer();
     void   CreateFence();
     void   CreateSemaphore();
-    Buffer CreateBuffer();
     void   AllocCmdBuffer();
 
     void RecordCmdBuffer(vk::CommandBuffer commandBuffer, uint32_t imageIndex);
-
-    const std::vector<Vertex> vertices = {{{0.0f, -0.5f}, {1.0f, 1.0f, 1.0f}},
-                                          {{0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
-                                          {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}}};
 
     uint32_t m_currentFrame{0};
 
@@ -131,15 +127,12 @@ private:
     std::array<vk::Semaphore, MAX_FRAMES_IN_FLIGHT> m_imageAvalilable;
     std::array<vk::Semaphore, MAX_FRAMES_IN_FLIGHT> m_imageFinished;
 
-    Buffer m_vertexBuffer;
 };
 
 void RenderImpl::CreateGraphicPipeline() {
     // Shader
     std::vector<char> vertexShaderCode   = io::ReadFile("simple_shader.vert.spv");
     std::vector<char> fragmentShaderCode = io::ReadFile("simple_shader.frag.spv");
-
-    std::cout << vertexShaderCode.size() << " " << fragmentShaderCode.size() << std::endl;
 
     Shader shader = Shader(vertexShaderCode, fragmentShaderCode);
 
@@ -223,26 +216,11 @@ void RenderImpl::CreateSemaphore() {
     }
 }
 
-Buffer RenderImpl::CreateBuffer() {
-    auto& device = RenderContext::GetInstace().device;
-
-    size_t size = sizeof(vertices[0]) * vertices.size();
-    auto   flagbits =
-        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent;
-
-    Buffer vertexBuffer(size, vk::BufferUsageFlagBits::eVertexBuffer, flagbits);
-
-    void* data = device.mapMemory(vertexBuffer.memory, 0, vertexBuffer.size);
-    memcpy(data, vertices.data(), size);
-    device.unmapMemory(m_vertexBuffer.memory);
-    return vertexBuffer;
-}
-
 void RenderImpl::RecordCmdBuffer(vk::CommandBuffer commandBuffer, uint32_t imageIndex) {
     // simple base pass, can multithread
     vk::CommandBufferBeginInfo beginInfo;
     beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
-
+    auto& gameObjects = Scene::GetWorld().GetWorldGameObjects();
     commandBuffer.begin(beginInfo);
     {
         vk::RenderPassBeginInfo renderPassBeginInfo;
@@ -259,11 +237,11 @@ void RenderImpl::RecordCmdBuffer(vk::CommandBuffer commandBuffer, uint32_t image
 
         commandBuffer.beginRenderPass(renderPassBeginInfo, {});
         commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_currentPipeline);
-        std::vector<vk::Buffer>     vertexBuffers = {m_vertexBuffer.buffer};
-        std::vector<vk::DeviceSize> offsets       = {0};
-        commandBuffer.bindVertexBuffers(0, 1, vertexBuffers.data(), offsets.data());
-        commandBuffer.draw(vertices.size(), 1, 0, 0);
-
+        // draw all the object in the scene
+        for(const auto& objects : gameObjects) {
+            objects.model->bind(commandBuffer);
+            objects.model->Draw(commandBuffer);
+        }
         commandBuffer.endRenderPass();
     }
 

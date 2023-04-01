@@ -1,11 +1,12 @@
 #include "runtime/render/swapchain.h"
 
 #include "runtime/render/context.h"
+#include "runtime/base/utils.h"
 
 namespace wind {
     SwapChain::SwapChain(uint32_t width, uint32_t height, uint32_t maxFrameInFlight): m_currentWidth(width), m_currentHeight(height) {
         QueryInfo(width, height, maxFrameInFlight);
-
+        auto& device = utils::GetRHIDevice();
         vk::SwapchainCreateInfoKHR createInfo;
         createInfo.setClipped(VK_TRUE)
                   .setImageArrayLayers(1)
@@ -28,21 +29,22 @@ namespace wind {
                       .setImageSharingMode(vk::SharingMode::eConcurrent);
         }
 
-        swapchain = RenderContext::GetInstace().device.createSwapchainKHR(createInfo);
-        images = RenderContext::GetInstace().device.getSwapchainImagesKHR(swapchain);
+        swapchain = device.createSwapchainKHR(createInfo);
+        images = device.getSwapchainImagesKHR(swapchain);
 
         CreateImageView();
     }
 
     SwapChain::~SwapChain() {
+        auto& device = utils::GetRHIDevice();
         for(auto& imageView : imageViews) {
-            RenderContext::GetInstace().device.destroyImageView(imageView);
+            device.destroyImageView(imageView);
         }
-        RenderContext::GetInstace().device.destroySwapchainKHR(swapchain);
+        device.destroySwapchainKHR(swapchain);
     }
 
     void SwapChain::QueryInfo(uint32_t width, uint32_t height, uint32_t maxFrameInFlight) {
-        auto& phyDevice  = RenderContext::GetInstace().physicalDevice;
+        auto& phyDevice  = utils::GetRHIPhysicalDevice();
         auto& surface = RenderContext::GetInstace().surface;
         auto formats = phyDevice.getSurfaceFormatsKHR(surface);
         
@@ -68,7 +70,7 @@ namespace wind {
         for(const auto& present : presents) {
             if(present == vk::PresentModeKHR::eMailbox) {
                 swapchainInfo.presentMode = present;
-                std::cout << "using mailbox mode to present!\n";
+                WIND_CORE_INFO("Using mailbox mode to present!");
                 break;
             }
         }
