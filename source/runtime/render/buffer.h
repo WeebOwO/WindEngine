@@ -9,8 +9,10 @@ public:
     vk::DeviceMemory memory;
     size_t           size;
 
-    Buffer(vk::DeviceSize size, vk::BufferUsageFlagBits usage, vk::MemoryPropertyFlags property);
+    Buffer() = default;
+    Buffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags property);
     ~Buffer();
+    
 private:
     void QueryMemoryInfo();
     

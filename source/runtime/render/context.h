@@ -48,6 +48,7 @@ public:
     vk::CommandPool graphicsCmdPool;
 
     QueueIndices queueIndices;
+    
 private:
     std::vector<const char*> GetRequiredExtensions();
     void                     CreateInstance();

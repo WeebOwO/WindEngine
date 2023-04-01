@@ -7,6 +7,7 @@
 
 #include "runtime/render/context.h"
 #include "runtime/render/renderer.h"
+#include "runtime/render/utils.h"
 #include "runtime/render/window.h"
 
 static constexpr uint32_t WIDTH  = 800;
@@ -53,7 +54,8 @@ Engine::Engine() : m_impl(std::make_unique<EngineImpl>()) {
 }
 
 Engine::~Engine() {
-    RenderContext::GetInstace().device.waitIdle();
+    auto& device = utils::GetRHIDevice();
+    device.waitIdle();
 }
 
 } // namespace wind

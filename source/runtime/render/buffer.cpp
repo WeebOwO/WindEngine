@@ -4,9 +4,9 @@
 #include "runtime/render/utils.h"
 
 namespace wind {
-    Buffer::Buffer(vk::DeviceSize size, vk::BufferUsageFlagBits usage, vk::MemoryPropertyFlags property): size(size) {
-        auto& device = RenderContext::GetInstace().device;
-        auto& phyDevice = RenderContext::GetInstace().physicalDevice;
+    Buffer::Buffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags property): size(size) {
+        auto& device = utils::GetRHIDevice();
+        auto& phyDevice = utils::GetRHIPhysicalDevice();
         // create buffer
         vk::BufferCreateInfo createInfo;
         createInfo.setSize(size)
@@ -37,7 +37,7 @@ namespace wind {
     }
     
     Buffer::~Buffer() {
-        auto& device = RenderContext::GetInstace().device;
+        auto& device = utils::GetRHIDevice();
         device.freeMemory(memory);
         device.destroyBuffer(buffer);
     }
