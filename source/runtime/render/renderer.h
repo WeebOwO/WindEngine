@@ -17,6 +17,7 @@ public:
     void DrawFrame();
     Renderer(Window& window);
     ~Renderer();
+
 private:
     std::unique_ptr<RenderImpl> m_impl; // kind of rhi thing
 };

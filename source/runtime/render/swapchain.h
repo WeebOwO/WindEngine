@@ -18,11 +18,11 @@ class SwapChain {
 public:
     SwapChain(uint32_t width, uint32_t height, uint32_t maxFrameInFlight);
     ~SwapChain();
-    void             QueryInfo(uint32_t width, uint32_t height, uint32_t maxFrameInFlight);
-    void             CreateImageView();
-    void             CreateFrameBuffers();
-    std::tuple<uint32_t, uint32_t> GetViewPortSize() {return {m_currentWidth, m_currentHeight};}
-    vk::SwapchainKHR swapchain;
+    void QueryInfo(uint32_t width, uint32_t height, uint32_t maxFrameInFlight);
+    void CreateImageView();
+    void CreateFrameBuffers();
+    std::tuple<uint32_t, uint32_t> GetViewPortSize() { return {m_currentWidth, m_currentHeight}; }
+    vk::SwapchainKHR               swapchain;
 
     std::vector<vk::Image>     images;
     std::vector<vk::ImageView> imageViews;

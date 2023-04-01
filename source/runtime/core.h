@@ -13,6 +13,7 @@ public:
     Engine();
     ~Engine();
     void Run();
+
 private:
     std::unique_ptr<EngineImpl> m_impl;
 };

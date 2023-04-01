@@ -10,7 +10,8 @@ namespace wind {
 class RenderGraph {
 public:
     template <typename SetupFunc, typename ExecFunc>
-    void AddRenderPass(std::string_view renderPassName, const SetupFunc& setupFunc, const ExecFunc& execFunc) {
+    void AddRenderPass(std::string_view renderPassName, const SetupFunc& setupFunc,
+                       const ExecFunc& execFunc) {
         auto renderPass = std::make_unique<RenderPassBase>(renderPassName, setupFunc, execFunc);
         renderPasses.push_back(renderPass);
     }
@@ -20,17 +21,17 @@ public:
     }
 
     void Setup() {
-        for(auto& rp : renderPasses) {
+        for (auto& rp : renderPasses) {
             rp->Setup();
         }
     }
 
     void Run() {
-        for(auto& rp : renderPasses) {
+        for (auto& rp : renderPasses) {
             rp->Exec();
         }
     }
-    
+
 private:
     std::list<std::unique_ptr<RenderPassBase>> renderPasses;
 };

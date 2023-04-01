@@ -15,7 +15,7 @@ Model::~Model() {
 }
 
 void Model::CreateVertexBuffer(const std::vector<Vertex>& vertices) {
-    auto& device = utils::GetRHIDevice();
+    auto&          device     = utils::GetRHIDevice();
     vk::DeviceSize bufferSize = sizeof(vertices[0]) * m_vertexCnt;
     utils::CreateBuffer(bufferSize, vk::BufferUsageFlagBits::eVertexBuffer,
                         vk::MemoryPropertyFlagBits::eHostVisible |

@@ -7,9 +7,10 @@
 
 #include "GLFW/glfw3.h"
 
-#include "runtime/io/io.h"
 #include "runtime/base/macro.h"
 #include "runtime/base/utils.h"
+#include "runtime/io/io.h"
+
 
 #include "runtime/render/context.h"
 #include "runtime/render/shader.h"
@@ -100,12 +101,12 @@ public:
     }
 
 private:
-    void   CreateRenderPass();
-    void   CreateGraphicPipeline();
-    void   CreateFrameBuffer();
-    void   CreateFence();
-    void   CreateSemaphore();
-    void   AllocCmdBuffer();
+    void CreateRenderPass();
+    void CreateGraphicPipeline();
+    void CreateFrameBuffer();
+    void CreateFence();
+    void CreateSemaphore();
+    void AllocCmdBuffer();
 
     void RecordCmdBuffer(vk::CommandBuffer commandBuffer, uint32_t imageIndex);
 
@@ -126,7 +127,6 @@ private:
 
     std::array<vk::Semaphore, MAX_FRAMES_IN_FLIGHT> m_imageAvalilable;
     std::array<vk::Semaphore, MAX_FRAMES_IN_FLIGHT> m_imageFinished;
-
 };
 
 void RenderImpl::CreateGraphicPipeline() {
@@ -238,7 +238,7 @@ void RenderImpl::RecordCmdBuffer(vk::CommandBuffer commandBuffer, uint32_t image
         commandBuffer.beginRenderPass(renderPassBeginInfo, {});
         commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_currentPipeline);
         // draw all the object in the scene
-        for(const auto& objects : gameObjects) {
+        for (const auto& objects : gameObjects) {
             objects.model->bind(commandBuffer);
             objects.model->Draw(commandBuffer);
         }

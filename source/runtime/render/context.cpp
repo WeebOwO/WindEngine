@@ -1,13 +1,13 @@
 #include "runtime/render/context.h"
 
-#include <iostream>
-#include <vector>
-#include <unordered_set>
 #include <format>
+#include <iostream>
+#include <unordered_set>
+#include <vector>
 
 #include "GLFW/glfw3.h"
-#include "runtime/base/misc.h"
 #include "runtime/base/macro.h"
+#include "runtime/base/misc.h"
 
 static std::vector<const char*> layers = {"VK_LAYER_KHRONOS_validation"};
 
@@ -25,7 +25,7 @@ RenderContext::RenderContext(GLFWwindow* window) noexcept {
 }
 
 void RenderContext::CreateInstance() {
-    vk::InstanceCreateInfo createinfo {};
+    vk::InstanceCreateInfo createinfo{};
     vk::ApplicationInfo    appInfo{};
 
     appInfo.setApiVersion(VK_MAKE_VERSION(1, 0, 3));
@@ -38,8 +38,7 @@ void RenderContext::CreateInstance() {
         });
 
     auto extensions = GetRequiredExtensions();
-    createinfo.setPEnabledLayerNames(layers)
-              .setPEnabledExtensionNames(extensions);
+    createinfo.setPEnabledLayerNames(layers).setPEnabledExtensionNames(extensions);
 
     vkInstance = vk::createInstance(createinfo);
 }
@@ -59,25 +58,25 @@ void RenderContext::PickupPhysicalDevice() {
 }
 
 void RenderContext::CreateDevice() {
-    std::array extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-    vk::DeviceCreateInfo      createInfo;
+    std::array           extensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    vk::DeviceCreateInfo createInfo;
 
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
-    std::unordered_set<uint32_t> uniqueQueueIndices {queueIndices.graphicsQueueIndex.value(), queueIndices.presentQueueIndex.value()};
-    float queuePriority = 1.0f;
+    std::unordered_set<uint32_t> uniqueQueueIndices{queueIndices.graphicsQueueIndex.value(),
+                                                    queueIndices.presentQueueIndex.value()};
+    float                        queuePriority = 1.0f;
 
-    for(auto index : uniqueQueueIndices) {
+    for (auto index : uniqueQueueIndices) {
         vk::DeviceQueueCreateInfo queueCreateInfo;
         queueCreateInfo.setQueueFamilyIndex(index)
-                       .setPQueuePriorities(&queuePriority)
-                       .setQueueCount(1);
-        
+            .setPQueuePriorities(&queuePriority)
+            .setQueueCount(1);
+
         queueCreateInfos.push_back(queueCreateInfo);
     }
-    
-    createInfo.setQueueCreateInfos(queueCreateInfos)
-              .setPEnabledExtensionNames(extensions);
-              
+
+    createInfo.setQueueCreateInfos(queueCreateInfos).setPEnabledExtensionNames(extensions);
+
     device = physicalDevice.createDevice(createInfo);
 }
 
@@ -87,7 +86,7 @@ void RenderContext::QueryQueueFamilyIndices() {
         if (queueFamily.queueCount > 0 && queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) {
             queueIndices.graphicsQueueIndex = i;
         }
-        if(queueFamily.queueCount > 0 && physicalDevice.getSurfaceSupportKHR(i, surface)) {
+        if (queueFamily.queueCount > 0 && physicalDevice.getSurfaceSupportKHR(i, surface)) {
             queueIndices.presentQueueIndex = i;
         }
         if (queueIndices.IsComplete()) break;
@@ -96,11 +95,11 @@ void RenderContext::QueryQueueFamilyIndices() {
 }
 
 std::vector<const char*> RenderContext::GetRequiredExtensions() {
-    uint32_t glfwEextensionsCnt = 0;
+    uint32_t     glfwEextensionsCnt = 0;
     const char** glfwExtensions;
     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwEextensionsCnt);
     std::vector<const char*> extensions(glfwEextensionsCnt);
-    for(int i = 0; i < glfwEextensionsCnt; ++i) {
+    for (int i = 0; i < glfwEextensionsCnt; ++i) {
         extensions[i] = glfwExtensions[i];
         WIND_CORE_INFO(extensions[i]);
     }
@@ -116,14 +115,14 @@ void RenderContext::CreateSuface(GLFWwindow* window) {
 }
 
 void RenderContext::GetQueue() {
-    graphicsQueue = device.getQueue(queueIndices.graphicsQueueIndex.value(), 0);   
-    presentQueue = device.getQueue(queueIndices.presentQueueIndex.value(), 0);
-}    
+    graphicsQueue = device.getQueue(queueIndices.graphicsQueueIndex.value(), 0);
+    presentQueue  = device.getQueue(queueIndices.presentQueueIndex.value(), 0);
+}
 
 void RenderContext::CreateCmdPool() {
     vk::CommandPoolCreateInfo createInfo;
     createInfo.setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer)
-              .setQueueFamilyIndex(queueIndices.graphicsQueueIndex.value());
+        .setQueueFamilyIndex(queueIndices.graphicsQueueIndex.value());
     graphicsCmdPool = device.createCommandPool(createInfo);
 }
 

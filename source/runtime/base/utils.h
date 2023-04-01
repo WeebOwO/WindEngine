@@ -18,6 +18,6 @@ vk::Pipeline ChooseDefaultPipeline(uint32_t index, Shader& shader, vk::RenderPas
                                    vk::PipelineLayout layout, SwapChain& swapchain);
 
 void CopyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size);
-void CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags property, vk::Buffer& buffer, vk::DeviceMemory& deviceMemory);
+void CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags property,
+                  vk::Buffer& buffer, vk::DeviceMemory& deviceMemory);
 } // namespace wind::utils
-

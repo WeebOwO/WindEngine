@@ -2,9 +2,10 @@
 
 #include <cstdint>
 
+#include "runtime/base/macro.h"
 #include "runtime/render/context.h"
 #include "runtime/resource/vertex.h"
-#include "runtime/base/macro.h"
+
 
 namespace wind::utils {
 vk::Device&         GetRHIDevice() { return RenderContext::GetInstace().device; }
@@ -21,9 +22,7 @@ vk::ShaderModule CreateShaderModule(const std::vector<char>& shaderCode) {
 
 vk::Pipeline CreateGraphicsPipelines(const vk::GraphicsPipelineCreateInfo& createinfo) {
     auto result = RenderContext::GetInstace().device.createGraphicsPipeline(nullptr, createinfo);
-    if (result.result != vk::Result::eSuccess) {
-        
-    }
+    if (result.result != vk::Result::eSuccess) {}
     return result.value;
 }
 
@@ -148,9 +147,7 @@ void CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPro
     auto& phyDevice = utils::GetRHIPhysicalDevice();
     // create buffer
     vk::BufferCreateInfo createInfo;
-    createInfo.setSize(size).
-               setUsage(usage).
-               setSharingMode(vk::SharingMode::eExclusive);
+    createInfo.setSize(size).setUsage(usage).setSharingMode(vk::SharingMode::eExclusive);
 
     buffer = device.createBuffer(createInfo);
     // query memory info

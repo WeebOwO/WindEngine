@@ -18,8 +18,8 @@ public:
 private:
     void CreateVertexBuffer(const std::vector<Vertex>& vertices);
 
-    vk::Buffer m_vertexBuffer;
+    vk::Buffer       m_vertexBuffer;
     vk::DeviceMemory m_vertexBufferMemory;
-    uint32_t m_vertexCnt;
+    uint32_t         m_vertexCnt;
 };
 } // namespace wind
