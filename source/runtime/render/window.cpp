@@ -1,4 +1,5 @@
 #include "runtime/render/window.h"
+#include "GLFW/glfw3.h"
 
 namespace wind {
 Window::Window(uint32_t width, uint32_t height, std::string_view title) {
@@ -8,9 +9,9 @@ Window::Window(uint32_t width, uint32_t height, std::string_view title) {
 
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
     m_window = glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
     glfwSetWindowUserPointer(m_window, this);
 }
+
 Window::~Window() { glfwDestroyWindow(m_window); }
 } // namespace wind

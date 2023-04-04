@@ -6,6 +6,7 @@
 
 namespace wind {
 class EngineImpl;
+
 class Engine {
 public:
     PERMIT_COPY(Engine)

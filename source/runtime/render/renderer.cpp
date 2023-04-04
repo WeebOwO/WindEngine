@@ -11,7 +11,6 @@
 #include "runtime/base/utils.h"
 #include "runtime/io/io.h"
 
-
 #include "runtime/render/context.h"
 #include "runtime/render/shader.h"
 #include "runtime/render/swapchain.h"
@@ -30,60 +29,39 @@ public:
         CreateFrameBuffer();
         CreateGraphicPipeline();
         AllocCmdBuffer();
-        CreateFence();
-        CreateSemaphore();
+        CreateSyncObjects();
     }
 
     void DrawFrame() {
         auto& device = utils::GetRHIDevice();
 
-        if (device.waitForFences(m_cmdAvaliableFences[m_currentFrame], true,
+        if (device.waitForFences(m_cmdAvaliableFences[m_frameIndex], true,
                                  std::numeric_limits<uint64_t>::max()) != vk::Result::eSuccess) {
             WIND_CORE_ERROR("image present failed\n");
         };
 
-        device.resetFences(m_cmdAvaliableFences[m_currentFrame]);
+        device.resetFences(m_cmdAvaliableFences[m_frameIndex]);
 
         auto result =
             device.acquireNextImageKHR(m_swapchain.swapchain, std::numeric_limits<uint32_t>::max(),
-                                       m_imageAvalilable[m_currentFrame]);
+                                       m_imageAvalilable[m_frameIndex]);
 
         if (result.result != vk::Result::eSuccess) {
             WIND_CORE_ERROR("acquire next image failed!");
         }
 
         auto index = result.value;
-        m_cmdBuffers[m_currentFrame].reset();
+        m_cmdBuffers[m_frameIndex].reset();
 
-        RecordCmdBuffer(m_cmdBuffers[index], index);
+        ForwardPass(m_cmdBuffers[m_frameIndex], index);
+        RenderPresent(index);
 
-        vk::SubmitInfo                        submitInfo;
-        std::array<vk::PipelineStageFlags, 1> waitStages = {
-            vk::PipelineStageFlagBits::eColorAttachmentOutput};
-
-        submitInfo.setCommandBuffers(m_cmdBuffers[m_currentFrame])
-            .setWaitSemaphores(m_imageAvalilable[m_currentFrame])
-            .setSignalSemaphores(m_imageFinished[m_currentFrame])
-            .setWaitDstStageMask(waitStages);
-
-        RenderContext::GetInstace().graphicsQueue.submit(submitInfo,
-                                                         m_cmdAvaliableFences[m_currentFrame]);
-
-        vk::PresentInfoKHR presentInfo;
-        presentInfo.setImageIndices(index)
-            .setSwapchains(m_swapchain.swapchain)
-            .setWaitSemaphores(m_imageFinished[m_currentFrame]);
-
-        if (RenderContext::GetInstace().presentQueue.presentKHR(presentInfo) !=
-            vk::Result::eSuccess) {
-            WIND_CORE_ERROR("image present failed");
-        }
-        m_currentFrame = (m_currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+        m_frameIndex = (m_frameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
     }
 
     ~RenderImpl() {
         auto& device       = utils::GetRHIDevice();
-        auto& graphicsPool = RenderContext::GetInstace().graphicsCmdPool;
+        auto& graphicsPool = utils::GetRHIGraphicsCmdPool();
 
         for (auto& buffer : m_frameBuffers) {
             device.destroyFramebuffer(buffer);
@@ -94,6 +72,7 @@ public:
             device.destroySemaphore(m_imageFinished[i]);
             device.destroySemaphore(m_imageAvalilable[i]);
         }
+
         device.freeCommandBuffers(graphicsPool, m_cmdBuffers);
         device.destroyRenderPass(m_basepass);
         device.destroyPipelineLayout(m_currentLayout);
@@ -101,16 +80,21 @@ public:
     }
 
 private:
+    struct simplePushData {
+        glm::vec2 offset;
+        alignas(16) glm::vec3 color;
+    };
+
     void CreateRenderPass();
     void CreateGraphicPipeline();
     void CreateFrameBuffer();
-    void CreateFence();
-    void CreateSemaphore();
+    void CreateSyncObjects();
     void AllocCmdBuffer();
 
-    void RecordCmdBuffer(vk::CommandBuffer commandBuffer, uint32_t imageIndex);
-
-    uint32_t m_currentFrame{0};
+    void     CreateFrameData();
+    void     ForwardPass(vk::CommandBuffer commandBuffer, uint32_t imageIndex);
+    void     RenderPresent(uint32_t imageIndex);
+    uint32_t m_frameIndex{0};
 
     Window&   m_window;
     SwapChain m_swapchain;
@@ -138,6 +122,15 @@ void RenderImpl::CreateGraphicPipeline() {
 
     m_currentLayout = [&]() {
         vk::PipelineLayoutCreateInfo createInfo;
+        vk::PushConstantRange        pushConstantRange;
+
+        // pushConstantRange
+        //     .setStageFlags(vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment)
+        //     .setSize(sizeof(simplePushData))
+        //     .setOffset(0);
+
+        // createInfo.setPushConstantRangeCount(1).setPushConstantRanges(pushConstantRange);
+
         return utils::CreatePipelineLayout(createInfo);
     }();
 
@@ -190,25 +183,15 @@ void RenderImpl::CreateFrameBuffer() {
     }
 }
 
-void RenderImpl::AllocCmdBuffer() {
-    vk::CommandBufferAllocateInfo allocateInfo;
-    allocateInfo.setCommandPool(RenderContext::GetInstace().graphicsCmdPool)
-        .setCommandBufferCount(MAX_FRAMES_IN_FLIGHT)
-        .setLevel(vk::CommandBufferLevel::ePrimary);
-    m_cmdBuffers = RenderContext::GetInstace().device.allocateCommandBuffers(allocateInfo);
-}
+void RenderImpl::CreateSyncObjects() {
+    auto& device = utils::GetRHIDevice();
 
-void RenderImpl::CreateFence() {
-    // createInfo.setFlags(vk::FenceCreateFlagBits::eSignaled);
     for (auto& fence : m_cmdAvaliableFences) {
         vk::FenceCreateInfo createInfo;
         createInfo.setFlags(vk::FenceCreateFlagBits::eSignaled);
-        fence = RenderContext::GetInstace().device.createFence(createInfo);
+        fence = device.createFence(createInfo);
     }
-}
 
-void RenderImpl::CreateSemaphore() {
-    auto& device = utils::GetRHIDevice();
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
         vk::SemaphoreCreateInfo info;
         m_imageAvalilable[i] = device.createSemaphore(info);
@@ -216,11 +199,22 @@ void RenderImpl::CreateSemaphore() {
     }
 }
 
-void RenderImpl::RecordCmdBuffer(vk::CommandBuffer commandBuffer, uint32_t imageIndex) {
+void RenderImpl::AllocCmdBuffer() {
+    vk::CommandBufferAllocateInfo allocateInfo;
+    allocateInfo.setCommandPool(utils::GetRHIGraphicsCmdPool())
+        .setCommandBufferCount(MAX_FRAMES_IN_FLIGHT)
+        .setLevel(vk::CommandBufferLevel::ePrimary);
+    m_cmdBuffers = utils::GetRHIDevice().allocateCommandBuffers(allocateInfo);
+}
+
+void RenderImpl::ForwardPass(vk::CommandBuffer commandBuffer, uint32_t imageIndex) {
     // simple base pass, can multithread
+    auto&                      graphicsQueue = utils::GetRHIGraphicsQueue();
     vk::CommandBufferBeginInfo beginInfo;
     beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
+
     auto& gameObjects = Scene::GetWorld().GetWorldGameObjects();
+
     commandBuffer.begin(beginInfo);
     {
         vk::RenderPassBeginInfo renderPassBeginInfo;
@@ -239,13 +233,37 @@ void RenderImpl::RecordCmdBuffer(vk::CommandBuffer commandBuffer, uint32_t image
         commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_currentPipeline);
         // draw all the object in the scene
         for (const auto& objects : gameObjects) {
-            objects.model->bind(commandBuffer);
+            objects.model->Bind(commandBuffer);
             objects.model->Draw(commandBuffer);
         }
         commandBuffer.endRenderPass();
     }
-
     commandBuffer.end();
+
+    // submit
+    vk::SubmitInfo                        submitInfo;
+    std::array<vk::PipelineStageFlags, 1> waitStages = {
+        vk::PipelineStageFlagBits::eColorAttachmentOutput};
+
+    submitInfo.setCommandBuffers(commandBuffer)
+        .setWaitSemaphores(m_imageAvalilable[imageIndex])
+        .setSignalSemaphores(m_imageFinished[imageIndex])
+        .setWaitDstStageMask(waitStages);
+
+    // submit part
+    graphicsQueue.submit(submitInfo, m_cmdAvaliableFences[imageIndex]);
+}
+
+void RenderImpl::RenderPresent(uint32_t imageIndex) {
+    auto&              presentQueue = utils::GetRHIPresentQueue();
+    vk::PresentInfoKHR presentInfo;
+    presentInfo.setImageIndices(imageIndex)
+        .setSwapchains(m_swapchain.swapchain)
+        .setWaitSemaphores(m_imageFinished[m_frameIndex]);
+
+    if (presentQueue.presentKHR(presentInfo) != vk::Result::eSuccess) {
+        WIND_CORE_ERROR("image present failed");
+    }
 }
 
 Renderer::Renderer(Window& window) : m_impl(std::make_unique<RenderImpl>(window)) {}

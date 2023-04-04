@@ -19,8 +19,8 @@ public:
         return world;
     }
 
-    void AddModel(const std::vector<Vertex>& vertices) {
-        auto model       = std::make_shared<Model>(vertices);
+    void AddModel(const Model::Builder& modelBuilder) {
+        auto model       = std::make_shared<Model>(modelBuilder);
         auto gameobject  = GameObject::createGameObject();
         gameobject.model = model;
         gameobject.color = {0.1f, 0.1f, 0.1f};

@@ -9,17 +9,28 @@
 namespace wind {
 class Model {
 public:
-    Model(const std::vector<Vertex>& vertices);
+    struct Builder {
+        std::vector<Vertex>   vertices;
+        std::vector<uint32_t> indices;
+    };
+
+    Model(const Builder& builder);
+
     ~Model();
 
-    void bind(vk::CommandBuffer cmdBuffer);
+    void Bind(vk::CommandBuffer cmdBuffer);
     void Draw(vk::CommandBuffer cmdBuffer);
 
 private:
     void CreateVertexBuffer(const std::vector<Vertex>& vertices);
+    void CreateIndexBuffer(const std::vector<uint32_t>& indices);
 
     vk::Buffer       m_vertexBuffer;
     vk::DeviceMemory m_vertexBufferMemory;
     uint32_t         m_vertexCnt;
+
+    vk::Buffer       m_indexBuffer;
+    vk::DeviceMemory m_indexBufferMemory;
+    uint32_t         m_indexCnt;
 };
 } // namespace wind

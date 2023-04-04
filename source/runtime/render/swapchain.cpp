@@ -22,7 +22,8 @@ SwapChain::SwapChain(uint32_t width, uint32_t height, uint32_t maxFrameInFlight)
         .setPreTransform(swapchainInfo.transform)
         .setPresentMode(swapchainInfo.presentMode);
 
-    auto queueIndices = RenderContext::GetInstace().queueIndices;
+    // not good to direct access rhi, but dont't want to create another util func
+    auto queueIndices = RenderContext::GetInstace().queueIndices; 
     if (queueIndices.graphicsQueueIndex == queueIndices.presentQueueIndex) {
         createInfo.setImageSharingMode(vk::SharingMode::eExclusive);
     } else {
@@ -84,7 +85,7 @@ void SwapChain::QueryInfo(uint32_t width, uint32_t height, uint32_t maxFrameInFl
 
 void SwapChain::CreateImageView() {
     imageViews.resize(images.size());
-
+    auto& device = utils::GetRHIDevice();
     for (size_t i = 0; i < images.size(); ++i) {
         vk::ImageViewCreateInfo   createInfo;
         vk::ComponentMapping      components;
@@ -102,7 +103,7 @@ void SwapChain::CreateImageView() {
             .setSubresourceRange(range)
             .setViewType(vk::ImageViewType::e2D);
 
-        imageViews[i] = RenderContext::GetInstace().device.createImageView(createInfo);
+        imageViews[i] = device.createImageView(createInfo);
     }
 }
 } // namespace wind

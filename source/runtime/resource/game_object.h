@@ -4,7 +4,6 @@
 #include "runtime/resource/model.h"
 #include <memory>
 
-
 namespace wind {
 class GameObject {
 public:

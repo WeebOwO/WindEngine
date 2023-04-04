@@ -9,8 +9,9 @@ Shader::Shader(const std::vector<char>& vertexSource, const std::vector<char>& f
     m_vertexShaderModule   = utils::CreateShaderModule(vertexSource);
     m_fragmentShaderModule = utils::CreateShaderModule(fragSource);
 }
+
 Shader::~Shader() {
-    auto& device = RenderContext::GetInstace().device;
+    auto& device = utils::GetRHIDevice();
     device.destroyShaderModule(m_vertexShaderModule);
     device.destroyShaderModule(m_fragmentShaderModule);
 }

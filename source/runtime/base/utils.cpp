@@ -6,12 +6,14 @@
 #include "runtime/render/context.h"
 #include "runtime/resource/vertex.h"
 
-
 namespace wind::utils {
 vk::Device&         GetRHIDevice() { return RenderContext::GetInstace().device; }
 vk::PhysicalDevice& GetRHIPhysicalDevice() { return RenderContext::GetInstace().physicalDevice; }
+vk::CommandPool&    GetRHIGraphicsCmdPool() { return RenderContext::GetInstace().graphicsCmdPool; }
+vk::Queue& GetRHIGraphicsQueue() {return RenderContext::GetInstace().graphicsQueue;}
+vk::Queue& GetRHIPresentQueue() {return RenderContext::GetInstace().presentQueue;}
 
-vk::ShaderModule CreateShaderModule(const std::vector<char>& shaderCode) {
+vk::ShaderModule    CreateShaderModule(const std::vector<char>& shaderCode) {
     vk::ShaderModuleCreateInfo createInfo;
     vk::ShaderModule           shaderModule;
     createInfo.setCodeSize(shaderCode.size())
@@ -147,7 +149,9 @@ void CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPro
     auto& phyDevice = utils::GetRHIPhysicalDevice();
     // create buffer
     vk::BufferCreateInfo createInfo;
-    createInfo.setSize(size).setUsage(usage).setSharingMode(vk::SharingMode::eExclusive);
+    createInfo.setSize(size)
+              .setUsage(usage)
+              .setSharingMode(vk::SharingMode::eExclusive);
 
     buffer = device.createBuffer(createInfo);
     // query memory info

@@ -6,8 +6,12 @@
 #include "runtime/render/swapchain.h"
 
 namespace wind::utils {
+// RHI related thing
 vk::Device&         GetRHIDevice();
 vk::PhysicalDevice& GetRHIPhysicalDevice();
+vk::CommandPool& GetRHIGraphicsCmdPool();
+vk::Queue& GetRHIGraphicsQueue();
+vk::Queue& GetRHIPresentQueue();
 
 vk::ShaderModule   CreateShaderModule(const std::vector<char>& shaderCode);
 vk::Pipeline       CreateGraphicsPipelines(const vk::GraphicsPipelineCreateInfo& createinfo);

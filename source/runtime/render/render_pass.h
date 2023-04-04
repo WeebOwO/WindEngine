@@ -10,7 +10,6 @@ class RenderPassBase {
 protected:
     std::string    passName;
     vk::RenderPass renderPass;
-
 public:
     [[nodiscard]] auto& Name() const { return passName; }
     virtual void        Setup() = 0;
