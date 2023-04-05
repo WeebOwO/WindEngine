@@ -86,7 +86,7 @@ vk::Pipeline ChooseDefaultPipeline(uint32_t index, Shader& shader, vk::RenderPas
 
     vk::PipelineRasterizationStateCreateInfo rasterizationStateCreateInfo;
     rasterizationStateCreateInfo.setRasterizerDiscardEnable(false)
-        .setCullMode(vk::CullModeFlagBits::eBack)
+        .setCullMode(vk::CullModeFlagBits::eFront)
         .setFrontFace(vk::FrontFace::eClockwise)
         .setPolygonMode(vk::PolygonMode::eFill)
         .setLineWidth(1);

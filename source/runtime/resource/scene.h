@@ -3,12 +3,10 @@
 #include <iostream>
 #include <memory>
 
-
 #include "runtime/base/macro.h"
 #include "runtime/resource/game_object.h"
 #include "runtime/resource/model.h"
 #include "runtime/resource/vertex.h"
-
 
 namespace wind {
 class Scene {

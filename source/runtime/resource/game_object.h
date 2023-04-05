@@ -2,6 +2,7 @@
 
 #include "runtime/base/macro.h"
 #include "runtime/resource/model.h"
+#include "runtime/resource/uniform.h"
 #include <memory>
 
 namespace wind {
@@ -20,6 +21,7 @@ public:
     auto getId() { return m_id; }
 
     std::shared_ptr<Model> model{};
+    std::shared_ptr<TransfromComponent> transform;
     glm::vec3              color{};
 
 private:

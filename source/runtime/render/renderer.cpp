@@ -1,11 +1,13 @@
 #include "runtime/render/renderer.h"
 
+#include <chrono>
 #include <cstdint>
 #include <memory>
 #include <vcruntime_string.h>
 #include <vector>
 
-#include "GLFW/glfw3.h"
+#include <GLFW/glfw3.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 #include "runtime/base/macro.h"
 #include "runtime/base/utils.h"
@@ -17,6 +19,7 @@
 #include "runtime/render/window.h"
 
 #include "runtime/resource/scene.h"
+#include "runtime/resource/uniform.h"
 
 static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -27,9 +30,13 @@ public:
         : m_window(window), m_swapchain(window.width(), window.height(), MAX_FRAMES_IN_FLIGHT) {
         CreateRenderPass();
         CreateFrameBuffer();
+        CreateDescriptorSetLayout();
         CreateGraphicPipeline();
         AllocCmdBuffer();
         CreateSyncObjects();
+        CreateUnifomBuffer();
+        CreateDescriptorPool();
+        AllocDescriptorSet();
     }
 
     void DrawFrame() {
@@ -53,6 +60,7 @@ public:
         auto index = result.value;
         m_cmdBuffers[m_frameIndex].reset();
 
+        UpdateUniformBuffer(index);
         ForwardPass(m_cmdBuffers[m_frameIndex], index);
         RenderPresent(index);
 
@@ -63,6 +71,7 @@ public:
         auto& device       = utils::GetRHIDevice();
         auto& graphicsPool = utils::GetRHIGraphicsCmdPool();
 
+        device.destroyDescriptorSetLayout(m_uniformDescriptorSetLayout);
         for (auto& buffer : m_frameBuffers) {
             device.destroyFramebuffer(buffer);
         }
@@ -71,8 +80,12 @@ public:
             device.destroyFence(m_cmdAvaliableFences[i]);
             device.destroySemaphore(m_imageFinished[i]);
             device.destroySemaphore(m_imageAvalilable[i]);
+            device.destroyBuffer(m_uniformBuffer[i]);
+            device.unmapMemory(m_uniformDeviceMemory[i]);
+            device.freeMemory(m_uniformDeviceMemory[i]);
         }
 
+        device.destroyDescriptorPool(m_uniformDescriptorPool);
         device.freeCommandBuffers(graphicsPool, m_cmdBuffers);
         device.destroyRenderPass(m_basepass);
         device.destroyPipelineLayout(m_currentLayout);
@@ -80,18 +93,23 @@ public:
     }
 
 private:
-    struct simplePushData {
-        glm::vec2 offset;
-        alignas(16) glm::vec3 color;
-    };
+    // struct simplePushData {
+    //     glm::vec2 offset;
+    //     alignas(16) glm::vec3 color;
+    // };
 
     void CreateRenderPass();
+    void CreateDescriptorSetLayout();
     void CreateGraphicPipeline();
     void CreateFrameBuffer();
     void CreateSyncObjects();
+    void CreateUnifomBuffer();
+    void CreateDescriptorPool();
+
+    void AllocDescriptorSet();
     void AllocCmdBuffer();
 
-    void     CreateFrameData();
+    void     UpdateUniformBuffer(uint32_t imageIndex);
     void     ForwardPass(vk::CommandBuffer commandBuffer, uint32_t imageIndex);
     void     RenderPresent(uint32_t imageIndex);
     uint32_t m_frameIndex{0};
@@ -104,7 +122,16 @@ private:
     vk::Pipeline       m_currentPipeline;
     vk::PipelineLayout m_currentLayout;
 
+    vk::DescriptorSetLayout m_uniformDescriptorSetLayout; 
+
+    vk::DescriptorPool m_uniformDescriptorPool;
+    std::vector<vk::DescriptorSet> m_uniformDescriptorSets;
+
     std::vector<vk::Framebuffer> m_frameBuffers;
+
+    std::array<vk::Buffer, MAX_FRAMES_IN_FLIGHT>       m_uniformBuffer;
+    std::array<vk::DeviceMemory, MAX_FRAMES_IN_FLIGHT> m_uniformDeviceMemory;
+    std::array<void*, MAX_FRAMES_IN_FLIGHT>            m_uniformMapedMemory;
 
     std::vector<vk::CommandBuffer>              m_cmdBuffers;
     std::array<vk::Fence, MAX_FRAMES_IN_FLIGHT> m_cmdAvaliableFences;
@@ -122,20 +149,12 @@ void RenderImpl::CreateGraphicPipeline() {
 
     m_currentLayout = [&]() {
         vk::PipelineLayoutCreateInfo createInfo;
-        vk::PushConstantRange        pushConstantRange;
-
-        // pushConstantRange
-        //     .setStageFlags(vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment)
-        //     .setSize(sizeof(simplePushData))
-        //     .setOffset(0);
-
-        // createInfo.setPushConstantRangeCount(1).setPushConstantRanges(pushConstantRange);
-
+        createInfo.setSetLayoutCount(1)
+                  .setSetLayouts(m_uniformDescriptorSetLayout);
         return utils::CreatePipelineLayout(createInfo);
     }();
 
-    m_currentPipeline =
-        utils::ChooseDefaultPipeline(0, shader, m_basepass, m_currentLayout, m_swapchain);
+    m_currentPipeline = utils::ChooseDefaultPipeline(0, shader, m_basepass, m_currentLayout, m_swapchain);
 }
 
 void RenderImpl::CreateRenderPass() {
@@ -168,6 +187,21 @@ void RenderImpl::CreateRenderPass() {
     m_basepass = utils::CreateRenderPass(createInfo);
 }
 
+void RenderImpl::CreateDescriptorSetLayout() {
+    auto&                          device = utils::GetRHIDevice();
+    vk::DescriptorSetLayoutBinding uboLayoutBinding;
+    uboLayoutBinding.setBinding(0)
+        .setDescriptorCount(1)
+        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+        .setStageFlags(vk::ShaderStageFlagBits::eVertex);
+
+    vk::DescriptorSetLayoutCreateInfo createInfo;
+    createInfo.setBindingCount(1)
+              .setBindings(uboLayoutBinding);
+    
+    m_uniformDescriptorSetLayout = device.createDescriptorSetLayout(createInfo);
+}
+
 void RenderImpl::CreateFrameBuffer() {
     auto& device = utils::GetRHIDevice();
     m_frameBuffers.resize(m_swapchain.images.size());
@@ -196,6 +230,65 @@ void RenderImpl::CreateSyncObjects() {
         vk::SemaphoreCreateInfo info;
         m_imageAvalilable[i] = device.createSemaphore(info);
         m_imageFinished[i]   = device.createSemaphore(info);
+    }
+}
+
+void RenderImpl::CreateUnifomBuffer() {
+    vk::DeviceSize bufferSize = sizeof(TransfromComponent);
+    auto& device = utils::GetRHIDevice();
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+        utils::CreateBuffer(bufferSize, vk::BufferUsageFlagBits::eUniformBuffer,
+                            vk::MemoryPropertyFlagBits::eHostVisible |
+                                vk::MemoryPropertyFlagBits::eHostCoherent,
+                            m_uniformBuffer[i], m_uniformDeviceMemory[i]);
+        m_uniformMapedMemory[i] = device.mapMemory(m_uniformDeviceMemory[i], 0, bufferSize);
+    }
+}
+
+
+void RenderImpl::CreateDescriptorPool() {
+    auto& device = utils::GetRHIDevice();
+
+    vk::DescriptorPoolSize poolSize;
+    vk::DescriptorPoolCreateInfo createInfo;
+
+    poolSize.setDescriptorCount(MAX_FRAMES_IN_FLIGHT)
+            .setType(vk::DescriptorType::eUniformBuffer);
+    
+    createInfo.setPoolSizeCount(1)
+              .setPoolSizes(poolSize)
+              .setMaxSets(MAX_FRAMES_IN_FLIGHT);
+
+    m_uniformDescriptorPool = device.createDescriptorPool(createInfo);
+}
+
+void RenderImpl::AllocDescriptorSet() {
+    auto& device = utils::GetRHIDevice();
+    std::vector<vk::DescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_uniformDescriptorSetLayout);
+    vk::DescriptorSetAllocateInfo allocateInfo;
+   
+    allocateInfo.setDescriptorPool(m_uniformDescriptorPool)
+                .setDescriptorSetCount(MAX_FRAMES_IN_FLIGHT)
+                .setSetLayouts(layouts);
+
+    m_uniformDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+    m_uniformDescriptorSets = device.allocateDescriptorSets(allocateInfo);
+
+    for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
+        vk::DescriptorBufferInfo bufferInfo;
+        bufferInfo.setBuffer(m_uniformBuffer[i])
+                  .setOffset(0)
+                  .setRange(sizeof(TransfromComponent));
+        
+        vk::WriteDescriptorSet descriptorWrite{};
+        descriptorWrite.setBufferInfo(bufferInfo)
+                       .setDescriptorCount(1)
+                       .setDescriptorType(vk::DescriptorType::eUniformBuffer)
+                       .setDstBinding(0)
+                       .setDstSet(m_uniformDescriptorSets[i])
+                       .setDstArrayElement(0);
+        
+        device.updateDescriptorSets(descriptorWrite, {});
     }
 }
 
@@ -231,6 +324,8 @@ void RenderImpl::ForwardPass(vk::CommandBuffer commandBuffer, uint32_t imageInde
 
         commandBuffer.beginRenderPass(renderPassBeginInfo, {});
         commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_currentPipeline);
+        commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_currentLayout, 0, m_uniformDescriptorSets[imageIndex], {});
+
         // draw all the object in the scene
         for (const auto& objects : gameObjects) {
             objects.model->Bind(commandBuffer);
@@ -253,6 +348,22 @@ void RenderImpl::ForwardPass(vk::CommandBuffer commandBuffer, uint32_t imageInde
     // submit part
     graphicsQueue.submit(submitInfo, m_cmdAvaliableFences[imageIndex]);
 }
+
+void RenderImpl::UpdateUniformBuffer(uint32_t imageIndex) {
+    static auto startTime = std::chrono::steady_clock::now();
+
+    auto currentTime = std::chrono::steady_clock::now();
+    float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+    TransfromComponent transform;
+    transform.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    transform.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    transform.projection = glm::perspective(glm::radians(45.0f), m_window.width() / (float) m_window.height(), 0.1f, 10.0f);
+    transform.projection[1][1] *= -1;
+
+    memcpy(m_uniformMapedMemory[imageIndex], &transform, sizeof(transform));
+}
+
 
 void RenderImpl::RenderPresent(uint32_t imageIndex) {
     auto&              presentQueue = utils::GetRHIPresentQueue();
