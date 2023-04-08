@@ -10,10 +10,10 @@ namespace wind::utils {
 vk::Device&         GetRHIDevice() { return RenderContext::GetInstace().device; }
 vk::PhysicalDevice& GetRHIPhysicalDevice() { return RenderContext::GetInstace().physicalDevice; }
 vk::CommandPool&    GetRHIGraphicsCmdPool() { return RenderContext::GetInstace().graphicsCmdPool; }
-vk::Queue& GetRHIGraphicsQueue() {return RenderContext::GetInstace().graphicsQueue;}
-vk::Queue& GetRHIPresentQueue() {return RenderContext::GetInstace().presentQueue;}
+vk::Queue&          GetRHIGraphicsQueue() { return RenderContext::GetInstace().graphicsQueue; }
+vk::Queue&          GetRHIPresentQueue() { return RenderContext::GetInstace().presentQueue; }
 
-vk::ShaderModule    CreateShaderModule(const std::vector<char>& shaderCode) {
+vk::ShaderModule CreateShaderModule(const std::vector<char>& shaderCode) {
     vk::ShaderModuleCreateInfo createInfo;
     vk::ShaderModule           shaderModule;
     createInfo.setCodeSize(shaderCode.size())
@@ -34,6 +34,22 @@ vk::PipelineLayout CreatePipelineLayout(const vk::PipelineLayoutCreateInfo& crea
 
 vk::RenderPass CreateRenderPass(vk::RenderPassCreateInfo createInfo) {
     return RenderContext::GetInstace().device.createRenderPass(createInfo);
+}
+
+vk::CommandBuffer BeginSingleTimeCommand() {
+    auto&                         device = utils::GetRHIDevice();
+    vk::CommandBufferAllocateInfo allocateInfo;
+
+    allocateInfo.setCommandPool(utils::GetRHIGraphicsCmdPool())
+        .setCommandBufferCount(1)
+        .setLevel(vk::CommandBufferLevel::ePrimary);
+
+    vk::CommandBuffer cmdBuffer = device.allocateCommandBuffers(allocateInfo)[0];
+
+    vk::CommandBufferBeginInfo beginInfo;
+    beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
+    cmdBuffer.begin(beginInfo);
+    return cmdBuffer;
 }
 
 vk::Pipeline ChooseDefaultPipeline(uint32_t index, Shader& shader, vk::RenderPass renderpass,
@@ -117,29 +133,102 @@ vk::Pipeline ChooseDefaultPipeline(uint32_t index, Shader& shader, vk::RenderPas
     return utils::CreateGraphicsPipelines(pipelineCreateInfo);
 }
 
-void CopyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size) {
-    vk::CommandBufferAllocateInfo allocateInfo;
-    auto&                         rhi = RenderContext::GetInstace();
-    allocateInfo.setCommandBufferCount(1)
-        .setCommandPool(rhi.graphicsCmdPool)
-        .setLevel(vk::CommandBufferLevel::ePrimary);
-    auto                       immCmdBuffer = rhi.device.allocateCommandBuffers(allocateInfo)[0];
-    vk::CommandBufferBeginInfo beginInfo;
-    beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
-    immCmdBuffer.begin(beginInfo);
-    {
-        vk::BufferCopy copyRegion;
-        copyRegion.setDstOffset(0).setSize(size).setSrcOffset(0);
-        immCmdBuffer.copyBuffer(srcBuffer, dstBuffer, copyRegion);
-    }
-    immCmdBuffer.end();
+uint32_t FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) {
+    auto& phyDevice     = utils::GetRHIPhysicalDevice();
+    auto  memProperties = phyDevice.getMemoryProperties();
 
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; ++i) {
+        if ((typeFilter & (1 << i)) &&
+            (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+void EndSingleTimeCommands(vk::CommandBuffer cmdBuffer) {
+    cmdBuffer.end();
+
+    auto& rhi = RenderContext::GetInstace();
+    // submit
     vk::SubmitInfo submitInfo;
-    submitInfo.setCommandBuffers(immCmdBuffer);
+    submitInfo.setCommandBuffers(cmdBuffer);
     rhi.graphicsQueue.submit(submitInfo);
     rhi.device.waitIdle();
+    rhi.device.freeCommandBuffers(rhi.graphicsCmdPool, cmdBuffer);
+}
 
-    rhi.device.freeCommandBuffers(rhi.graphicsCmdPool, immCmdBuffer);
+void TransitionImageLayout(vk::Image image, vk::Format format, vk::ImageLayout oldLayout,
+                           vk::ImageLayout newLayout) {
+    vk::CommandBuffer cmdBuffer = utils::BeginSingleTimeCommand();
+
+    vk::ImageMemoryBarrier    barrier;
+    vk::ImageSubresourceRange range;
+
+    range.setLevelCount(1)
+         .setBaseArrayLayer(0)
+         .setLayerCount(1)
+         .setBaseMipLevel(0)
+         .setAspectMask(vk::ImageAspectFlagBits::eColor);
+
+    vk::PipelineStageFlags souceStage, destinationStage;
+    if(oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eTransferDstOptimal) {
+        barrier.setDstAccessMask(vk::AccessFlagBits::eTransferWrite);
+        souceStage = vk::PipelineStageFlagBits::eTopOfPipe;
+        destinationStage = vk::PipelineStageFlagBits::eTransfer;
+    } else if(oldLayout == vk::ImageLayout::eTransferDstOptimal && newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
+        barrier.setSrcAccessMask(vk::AccessFlagBits::eTransferWrite)
+               .setDstAccessMask(vk::AccessFlagBits::eShaderRead);
+        souceStage = vk::PipelineStageFlagBits::eTransfer;
+        destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
+    }
+    
+    barrier.setImage(image)
+        .setOldLayout(oldLayout)
+        .setNewLayout(newLayout)
+        .setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+        .setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+        .setSubresourceRange(range);
+
+    cmdBuffer.pipelineBarrier(souceStage,
+                              destinationStage, {}, {}, nullptr, barrier);
+    EndSingleTimeCommands(cmdBuffer);
+}
+
+void CopyBufferToImage(vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height) {
+    vk::CommandBuffer cmdBuffer = BeginSingleTimeCommand();
+
+    vk::BufferImageCopy region;
+    vk::ImageSubresourceLayers subsource;
+
+    subsource.setAspectMask(vk::ImageAspectFlagBits::eColor)
+            .setBaseArrayLayer(0)
+            .setMipLevel(0)
+            .setLayerCount(1);
+
+    region.setBufferImageHeight(0)
+            .setBufferOffset(0)
+            .setImageOffset(0)
+            .setImageExtent({width, height, 1})
+            .setBufferRowLength(0)
+            .setImageSubresource(subsource);
+
+    cmdBuffer.copyBufferToImage(buffer, image,
+                                vk::ImageLayout::eTransferDstOptimal,
+                                region);
+    
+    EndSingleTimeCommands(cmdBuffer);
+}
+
+void CopyBuffer(vk::Buffer srcBuffer, vk::Buffer dstBuffer, vk::DeviceSize size) {
+    vk::CommandBuffer immCmdBuffer = BeginSingleTimeCommand();
+
+    vk::BufferCopy copyRegion;
+    copyRegion.setDstOffset(0).setSize(size).setSrcOffset(0);
+    immCmdBuffer.copyBuffer(srcBuffer, dstBuffer, copyRegion);
+
+    EndSingleTimeCommands(immCmdBuffer);
 }
 
 void CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags property,
@@ -149,23 +238,14 @@ void CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPro
     auto& phyDevice = utils::GetRHIPhysicalDevice();
     // create buffer
     vk::BufferCreateInfo createInfo;
-    createInfo.setSize(size)
-              .setUsage(usage)
-              .setSharingMode(vk::SharingMode::eExclusive);
+    createInfo.setSize(size).setUsage(usage).setSharingMode(vk::SharingMode::eExclusive);
 
     buffer = device.createBuffer(createInfo);
     // query memory info
     auto properties   = phyDevice.getMemoryProperties();
     auto requirements = device.getBufferMemoryRequirements(buffer);
 
-    uint32_t index = -1;
-    for (uint32_t i = 0; i < properties.memoryTypeCount; ++i) {
-        if (((1 << i) & requirements.memoryTypeBits) &&
-            ((properties.memoryTypes[i].propertyFlags & property) == property)) {
-            index = i;
-            break;
-        }
-    }
+    uint32_t index = FindMemoryType(requirements.memoryTypeBits, property);
 
     vk::MemoryAllocateInfo allocateInfo;
     allocateInfo.setMemoryTypeIndex(index).setAllocationSize(requirements.size);

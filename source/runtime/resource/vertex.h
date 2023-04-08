@@ -7,7 +7,8 @@ namespace wind {
 struct Vertex {
     glm::vec2 pos;
     glm::vec3 color;
-    
+    glm::vec2 texCoord;
+
     static vk::VertexInputBindingDescription GetInputBindingDescription() {
         vk::VertexInputBindingDescription vertexInputBindingDescription{};
         vertexInputBindingDescription.setBinding(0)
@@ -16,9 +17,9 @@ struct Vertex {
         return vertexInputBindingDescription;
     };
 
-    static std::array<vk::VertexInputAttributeDescription, 2>
+    static std::array<vk::VertexInputAttributeDescription, 3>
     GetVertexInputAttributeDescriptions() {
-        std::array<vk::VertexInputAttributeDescription, 2> vertexInputAttributeDescription;
+        std::array<vk::VertexInputAttributeDescription, 3> vertexInputAttributeDescription;
         vertexInputAttributeDescription[0]
             .setBinding(0)
             .setLocation(0)
@@ -30,6 +31,12 @@ struct Vertex {
             .setLocation(1)
             .setFormat(vk::Format::eR32G32B32Sfloat)
             .setOffset(offsetof(Vertex, color));
+        
+        vertexInputAttributeDescription[2].setOffset(offsetof(Vertex, texCoord))
+                                          .setBinding(0)
+                                          .setFormat(vk::Format::eR32G32Sfloat)
+                                          .setLocation(2);
+        
         return vertexInputAttributeDescription;
     }
 };

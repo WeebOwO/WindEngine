@@ -31,8 +31,7 @@ void Model::CreateVertexBuffer(const std::vector<Vertex>& vertices) {
                         vk::MemoryPropertyFlagBits::eHostCoherent, stagingBuffer,
                         stagingBufferMemory);
 
-    void* data;
-    data = device.mapMemory(stagingBufferMemory, 0, bufferSize);
+    void* data = device.mapMemory(stagingBufferMemory, 0, bufferSize);
     memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
     device.unmapMemory(stagingBufferMemory);
 

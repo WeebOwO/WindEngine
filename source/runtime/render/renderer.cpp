@@ -19,6 +19,7 @@
 #include "runtime/render/window.h"
 
 #include "runtime/resource/scene.h"
+#include "runtime/resource/texture.h"
 #include "runtime/resource/uniform.h"
 
 static constexpr int MAX_FRAMES_IN_FLIGHT = 2;
@@ -27,7 +28,7 @@ namespace wind {
 class RenderImpl {
 public:
     RenderImpl(Window& window)
-        : m_window(window), m_swapchain(window.width(), window.height(), MAX_FRAMES_IN_FLIGHT) {
+        : m_window(window), m_swapchain(window.width(), window.height(), MAX_FRAMES_IN_FLIGHT), m_texture(R"(D:\Dev\WindEngine\assets\p5.png)") {
         CreateRenderPass();
         CreateFrameBuffer();
         CreateDescriptorSetLayout();
@@ -36,6 +37,7 @@ public:
         CreateSyncObjects();
         CreateUnifomBuffer();
         CreateDescriptorPool();
+        CreateTextureSampler();
         AllocDescriptorSet();
     }
 
@@ -71,7 +73,7 @@ public:
         auto& device       = utils::GetRHIDevice();
         auto& graphicsPool = utils::GetRHIGraphicsCmdPool();
 
-        device.destroyDescriptorSetLayout(m_uniformDescriptorSetLayout);
+        device.destroyDescriptorSetLayout(m_descriptorSetLayout);
         for (auto& buffer : m_frameBuffers) {
             device.destroyFramebuffer(buffer);
         }
@@ -85,7 +87,8 @@ public:
             device.freeMemory(m_uniformDeviceMemory[i]);
         }
 
-        device.destroyDescriptorPool(m_uniformDescriptorPool);
+        device.destroySampler(m_sampler);
+        device.destroyDescriptorPool(m_descriptorPool);
         device.freeCommandBuffers(graphicsPool, m_cmdBuffers);
         device.destroyRenderPass(m_basepass);
         device.destroyPipelineLayout(m_currentLayout);
@@ -105,6 +108,7 @@ private:
     void CreateSyncObjects();
     void CreateUnifomBuffer();
     void CreateDescriptorPool();
+    void CreateTextureSampler();
 
     void AllocDescriptorSet();
     void AllocCmdBuffer();
@@ -122,10 +126,10 @@ private:
     vk::Pipeline       m_currentPipeline;
     vk::PipelineLayout m_currentLayout;
 
-    vk::DescriptorSetLayout m_uniformDescriptorSetLayout; 
+    vk::DescriptorSetLayout m_descriptorSetLayout; 
 
-    vk::DescriptorPool m_uniformDescriptorPool;
-    std::vector<vk::DescriptorSet> m_uniformDescriptorSets;
+    vk::DescriptorPool m_descriptorPool;
+    std::vector<vk::DescriptorSet> m_descriptorSets;
 
     std::vector<vk::Framebuffer> m_frameBuffers;
 
@@ -138,6 +142,10 @@ private:
 
     std::array<vk::Semaphore, MAX_FRAMES_IN_FLIGHT> m_imageAvalilable;
     std::array<vk::Semaphore, MAX_FRAMES_IN_FLIGHT> m_imageFinished;
+
+    // Texture part
+    Texture m_texture;
+    vk::Sampler m_sampler;
 };
 
 void RenderImpl::CreateGraphicPipeline() {
@@ -150,7 +158,7 @@ void RenderImpl::CreateGraphicPipeline() {
     m_currentLayout = [&]() {
         vk::PipelineLayoutCreateInfo createInfo;
         createInfo.setSetLayoutCount(1)
-                  .setSetLayouts(m_uniformDescriptorSetLayout);
+                  .setSetLayouts(m_descriptorSetLayout);
         return utils::CreatePipelineLayout(createInfo);
     }();
 
@@ -194,12 +202,20 @@ void RenderImpl::CreateDescriptorSetLayout() {
         .setDescriptorCount(1)
         .setDescriptorType(vk::DescriptorType::eUniformBuffer)
         .setStageFlags(vk::ShaderStageFlagBits::eVertex);
+        
+    vk::DescriptorSetLayoutBinding smaplerLayoutBinding;
+    smaplerLayoutBinding.setBinding(1)
+                        .setDescriptorCount(1)
+                        .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+                        .setPImmutableSamplers(nullptr)
+                        .setStageFlags(vk::ShaderStageFlagBits::eFragment);
+
+    std::array<vk::DescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, smaplerLayoutBinding};
 
     vk::DescriptorSetLayoutCreateInfo createInfo;
-    createInfo.setBindingCount(1)
-              .setBindings(uboLayoutBinding);
+    createInfo.setBindings(bindings);
     
-    m_uniformDescriptorSetLayout = device.createDescriptorSetLayout(createInfo);
+    m_descriptorSetLayout = device.createDescriptorSetLayout(createInfo);
 }
 
 void RenderImpl::CreateFrameBuffer() {
@@ -248,31 +264,53 @@ void RenderImpl::CreateUnifomBuffer() {
 
 void RenderImpl::CreateDescriptorPool() {
     auto& device = utils::GetRHIDevice();
-
-    vk::DescriptorPoolSize poolSize;
-    vk::DescriptorPoolCreateInfo createInfo;
-
-    poolSize.setDescriptorCount(MAX_FRAMES_IN_FLIGHT)
-            .setType(vk::DescriptorType::eUniformBuffer);
     
-    createInfo.setPoolSizeCount(1)
-              .setPoolSizes(poolSize)
+    std::array<vk::DescriptorPoolSize, 2> poolSizes;
+    poolSizes[0].setDescriptorCount(MAX_FRAMES_IN_FLIGHT)
+                .setType(vk::DescriptorType::eUniformBuffer);
+    poolSizes[1].setDescriptorCount(MAX_FRAMES_IN_FLIGHT)
+                .setType(vk::DescriptorType::eCombinedImageSampler);
+
+    vk::DescriptorPoolCreateInfo createInfo;
+    
+    createInfo.setPoolSizeCount(poolSizes.size())
+              .setPoolSizes(poolSizes)
               .setMaxSets(MAX_FRAMES_IN_FLIGHT);
 
-    m_uniformDescriptorPool = device.createDescriptorPool(createInfo);
+    m_descriptorPool = device.createDescriptorPool(createInfo);
 }
 
-void RenderImpl::AllocDescriptorSet() {
+ void RenderImpl::CreateTextureSampler() {
     auto& device = utils::GetRHIDevice();
-    std::vector<vk::DescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_uniformDescriptorSetLayout);
+    vk::SamplerCreateInfo createInfo;
+
+    createInfo.setMagFilter(vk::Filter::eLinear)
+              .setMinFilter(vk::Filter::eLinear)
+              .setAddressModeU(vk::SamplerAddressMode::eRepeat)
+              .setAddressModeV(vk::SamplerAddressMode::eRepeat)
+              .setAddressModeW(vk::SamplerAddressMode::eRepeat)
+              .setAnisotropyEnable(false)
+              .setBorderColor(vk::BorderColor::eIntOpaqueBlack)
+              .setUnnormalizedCoordinates(false)
+              .setCompareEnable(false)
+              .setMipmapMode(vk::SamplerMipmapMode::eLinear);
+    
+    m_sampler = device.createSampler(createInfo);
+ }
+
+void RenderImpl::AllocDescriptorSet() {
+
+    auto& device = utils::GetRHIDevice();
+
+    std::vector<vk::DescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, m_descriptorSetLayout);
     vk::DescriptorSetAllocateInfo allocateInfo;
    
-    allocateInfo.setDescriptorPool(m_uniformDescriptorPool)
+    allocateInfo.setDescriptorPool(m_descriptorPool)
                 .setDescriptorSetCount(MAX_FRAMES_IN_FLIGHT)
                 .setSetLayouts(layouts);
 
-    m_uniformDescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-    m_uniformDescriptorSets = device.allocateDescriptorSets(allocateInfo);
+    m_descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+    m_descriptorSets = device.allocateDescriptorSets(allocateInfo);
 
     for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; ++i) {
         vk::DescriptorBufferInfo bufferInfo;
@@ -280,15 +318,28 @@ void RenderImpl::AllocDescriptorSet() {
                   .setOffset(0)
                   .setRange(sizeof(TransfromComponent));
         
-        vk::WriteDescriptorSet descriptorWrite{};
-        descriptorWrite.setBufferInfo(bufferInfo)
+        vk::DescriptorImageInfo imageInfo;
+        imageInfo.setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal)
+                 .setImageView(m_texture.view)
+                 .setSampler(m_sampler);
+        
+        std::array<vk::WriteDescriptorSet, 2> descriptorWrites;
+        
+        descriptorWrites[0].setBufferInfo(bufferInfo)
                        .setDescriptorCount(1)
                        .setDescriptorType(vk::DescriptorType::eUniformBuffer)
                        .setDstBinding(0)
-                       .setDstSet(m_uniformDescriptorSets[i])
+                       .setDstSet(m_descriptorSets[i])
                        .setDstArrayElement(0);
         
-        device.updateDescriptorSets(descriptorWrite, {});
+        descriptorWrites[1].setImageInfo(imageInfo)
+                           .setDstSet(m_descriptorSets[i])
+                           .setDstBinding(1)
+                           .setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+                           .setDescriptorCount(1)
+                           .setDstArrayElement(0);
+
+        device.updateDescriptorSets(descriptorWrites, {});
     }
 }
 
@@ -324,7 +375,7 @@ void RenderImpl::ForwardPass(vk::CommandBuffer commandBuffer, uint32_t imageInde
 
         commandBuffer.beginRenderPass(renderPassBeginInfo, {});
         commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_currentPipeline);
-        commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_currentLayout, 0, m_uniformDescriptorSets[imageIndex], {});
+        commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_currentLayout, 0, m_descriptorSets[imageIndex], {});
 
         // draw all the object in the scene
         for (const auto& objects : gameObjects) {
