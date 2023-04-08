@@ -7,7 +7,7 @@
 
 #include "GLFW/glfw3.h"
 #include "runtime/base/macro.h"
-#include "runtime/base/misc.h"
+#include "runtime/base/utils.h"
 
 static std::vector<const char*> layers = {"VK_LAYER_KHRONOS_validation"};
 
@@ -31,7 +31,7 @@ void RenderContext::CreateInstance() {
     appInfo.setApiVersion(VK_MAKE_VERSION(1, 0, 3));
     createinfo.setPApplicationInfo(&appInfo);
 
-    RemoveNosupportedElems<const char*, vk::LayerProperties>(
+    utils::RemoveNosupportedElems<const char*, vk::LayerProperties>(
         layers, vk::enumerateInstanceLayerProperties(),
         [](const char* e1, const vk::LayerProperties& e2) {
             return std::strcmp(e1, e2.layerName) == 0;
