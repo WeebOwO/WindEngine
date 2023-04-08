@@ -1,6 +1,6 @@
 set_project("Vulkan Engine")
 
-add_requires("glm", "glfw", "glad", "vulkansdk", "spdlog", 'assimp')
+add_requires("glm", "glfw", "glad", "vulkansdk", "spdlog", 'assimp', 'stb')
 
 add_rules("mode.debug", "mode.release")
 add_includedirs("source/")
@@ -19,12 +19,12 @@ end)
 target("runtime")
     set_kind("static")
     add_files("source/runtime/**.cpp")
-    add_packages("glfw", "glad", "vulkansdk", "spdlog", "assimp")
+    add_packages("glfw", "glad", "vulkansdk", "spdlog", "assimp", "stb")
     
 target("sandbox")
     set_kind("binary") 
     add_files("source/sandbox/**.cpp")
-    add_packages("spdlog", "glfw", "vulkansdk")
+    add_packages("spdlog")
     add_deps("runtime")
 
 
