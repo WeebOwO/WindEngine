@@ -5,7 +5,7 @@
 
 namespace wind {
 struct Vertex {
-    glm::vec2 pos;
+    glm::vec3 pos;
     glm::vec3 color;
     glm::vec2 texCoord;
 
@@ -23,7 +23,7 @@ struct Vertex {
         vertexInputAttributeDescription[0]
             .setBinding(0)
             .setLocation(0)
-            .setFormat(vk::Format::eR32G32Sfloat)
+            .setFormat(vk::Format::eR32G32B32Sfloat)
             .setOffset(offsetof(Vertex, pos));
 
         vertexInputAttributeDescription[1]

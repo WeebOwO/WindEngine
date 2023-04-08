@@ -24,7 +24,7 @@ target("runtime")
 target("sandbox")
     set_kind("binary") 
     add_files("source/sandbox/**.cpp")
-    add_packages("spdlog")
+    add_packages("spdlog", "glfw", "vulkansdk")
     add_deps("runtime")
 
 

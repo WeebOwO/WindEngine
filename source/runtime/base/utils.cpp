@@ -102,8 +102,9 @@ vk::Pipeline ChooseDefaultPipeline(uint32_t index, Shader& shader, vk::RenderPas
 
     vk::PipelineRasterizationStateCreateInfo rasterizationStateCreateInfo;
     rasterizationStateCreateInfo.setRasterizerDiscardEnable(false)
-        .setCullMode(vk::CullModeFlagBits::eFront)
-        .setFrontFace(vk::FrontFace::eClockwise)
+        .setDepthClampEnable(false)
+        .setCullMode(vk::CullModeFlagBits::eBack)
+        .setFrontFace(vk::FrontFace::eCounterClockwise)
         .setPolygonMode(vk::PolygonMode::eFill)
         .setLineWidth(1);
 
@@ -116,7 +117,16 @@ vk::Pipeline ChooseDefaultPipeline(uint32_t index, Shader& shader, vk::RenderPas
     pipelineCreateInfo.setPMultisampleState(&multisampleStateCreateInfo);
 
     // 6. Test - setencil, depth
-
+    vk::PipelineDepthStencilStateCreateInfo depthStencilStateCreateInfo;
+    depthStencilStateCreateInfo.setDepthTestEnable(true)
+                               .setDepthWriteEnable(true)
+                               .setDepthBoundsTestEnable(false)
+                               .setStencilTestEnable(false)
+                               .setMinDepthBounds(0.0f)
+                               .setMaxDepthBounds(1.0f)
+                               .setDepthCompareOp(vk::CompareOp::eLess);
+                          
+    pipelineCreateInfo.setPDepthStencilState(&depthStencilStateCreateInfo);
     // 7. Color blending
     vk::PipelineColorBlendStateCreateInfo colorBlendStateCreateInfo;
     vk::PipelineColorBlendAttachmentState colorBlendAttachment;
@@ -124,13 +134,34 @@ vk::Pipeline ChooseDefaultPipeline(uint32_t index, Shader& shader, vk::RenderPas
     colorBlendAttachment.setBlendEnable(false).setColorWriteMask(
         vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
         vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
-    colorBlendStateCreateInfo.setLogicOpEnable(false).setAttachments(colorBlendAttachment);
+    colorBlendStateCreateInfo.setLogicOpEnable(false)
+                             .setAttachments(colorBlendAttachment);
     pipelineCreateInfo.setPColorBlendState(&colorBlendStateCreateInfo);
 
     // 8. Add renderpass and pipelineLayout
-    pipelineCreateInfo.setLayout(layout).setRenderPass(renderpass);
+    pipelineCreateInfo.setLayout(layout)
+                      .setRenderPass(renderpass);
 
     return utils::CreateGraphicsPipelines(pipelineCreateInfo);
+}
+
+vk::Format FindDepthFormat() {
+    auto& device = utils::GetRHIDevice();
+    auto& physicalDevice = utils::GetRHIPhysicalDevice();
+    auto findSupportFormat = [&](const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) {
+        for(auto format : candidates) {
+            vk::FormatProperties props = physicalDevice.getFormatProperties(format);
+            if(tiling == vk::ImageTiling::eLinear && (props.linearTilingFeatures & features) == features) {
+                return format;
+            } 
+            else if(tiling == vk::ImageTiling::eOptimal && (props.optimalTilingFeatures & features) == features) {
+                return format;
+            }
+        }
+        return vk::Format::eD32Sfloat;
+    };
+
+    return findSupportFormat({vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint}, vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment);
 }
 
 uint32_t FindMemoryType(uint32_t typeFilter, vk::MemoryPropertyFlags properties) {
@@ -253,5 +284,35 @@ void CreateBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPro
     deviceMemory = device.allocateMemory(allocateInfo);
 
     device.bindBufferMemory(buffer, deviceMemory, 0);
+}
+
+void CreateImage(uint32_t width, uint32_t height, vk::Format format, vk::ImageTiling tiling,
+                 vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image,
+                 vk::DeviceMemory& memory) {
+                    
+    auto& device = utils::GetRHIDevice();
+    vk::ImageCreateInfo createInfo;
+    createInfo.setImageType(vk::ImageType::e2D)
+              .setExtent({width, height, 1})
+              .setMipLevels(1)
+              .setArrayLayers(1)
+              .setFormat(format)
+              .setTiling(tiling)
+              .setInitialLayout(vk::ImageLayout::eUndefined)
+              .setUsage(usage)
+              .setSamples(vk::SampleCountFlagBits::e1)
+              .setSharingMode(vk::SharingMode::eExclusive);
+    
+    image = device.createImage(createInfo);
+    vk::MemoryRequirements memRequirements = device.getImageMemoryRequirements(image);
+
+    vk::MemoryAllocateInfo allocateInfo;
+    allocateInfo.setMemoryTypeIndex(FindMemoryType(memRequirements.memoryTypeBits, properties))
+                .setAllocationSize(memRequirements.size);
+
+    memory = device.allocateMemory(allocateInfo);
+
+    device.bindImageMemory(image, memory, 0);
+    return;
 }
 } // namespace wind::utils
