@@ -209,16 +209,16 @@ void RenderImpl::CreateRenderPass() {
         .setPDepthStencilAttachment(&depthAttachmentRef)
         .setColorAttachmentCount(1);
 
-    // vk::SubpassDependency dependency;
-    // dependency.setSrcSubpass(VK_SUBPASS_EXTERNAL)
-    //     .setDstSubpass(0)
-    //     .setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput |
-    //                      vk::PipelineStageFlagBits::eEarlyFragmentTests)
-    //     .setSrcAccessMask(vk::AccessFlagBits::eNone)
-    //     .setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput |
-    //                      vk::PipelineStageFlagBits::eEarlyFragmentTests)
-    //     .setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite |
-    //                       vk::AccessFlagBits::eDepthStencilAttachmentWrite);
+    vk::SubpassDependency dependency;
+    dependency.setSrcSubpass(VK_SUBPASS_EXTERNAL)
+        .setDstSubpass(0)
+        .setSrcStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput |
+                         vk::PipelineStageFlagBits::eEarlyFragmentTests)
+        .setSrcAccessMask(vk::AccessFlagBits::eNone)
+        .setDstStageMask(vk::PipelineStageFlagBits::eColorAttachmentOutput |
+                         vk::PipelineStageFlagBits::eEarlyFragmentTests)
+        .setDstAccessMask(vk::AccessFlagBits::eColorAttachmentWrite |
+                          vk::AccessFlagBits::eDepthStencilAttachmentWrite);
 
     vk::RenderPassCreateInfo                 createInfo;
     std::array<vk::AttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
@@ -226,8 +226,8 @@ void RenderImpl::CreateRenderPass() {
     createInfo.setSubpassCount(1)
         .setSubpasses(subpassDescription)
         .setAttachmentCount(attachments.size())
-        //.setDependencies(dependency)
-        //.setDependencyCount(1)
+        .setDependencies(dependency)
+        .setDependencyCount(1)
         .setAttachments(attachments);
 
     m_basepass = utils::CreateRenderPass(createInfo);
