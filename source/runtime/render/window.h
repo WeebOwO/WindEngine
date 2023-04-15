@@ -15,12 +15,23 @@ public:
     [[nodiscard]] auto width() const { return m_windowInfo.width; }
     [[nodiscard]] auto height() const { return m_windowInfo.height; }
 
-private:
+private:    
+    enum class InputMode : uint8_t {
+        None,
+        RotatingView,
+    };
+
     struct WindowInfo {
         uint32_t    width, height;
         std::string title;
     };
-    GLFWwindow* m_window;
+
+    double m_prevCursorX;
+    double m_prevCursorY;
+
+    InputMode m_mode {InputMode::None};
+    GLFWwindow* m_window {nullptr};
     WindowInfo  m_windowInfo;
+
 };
 } // namespace wind

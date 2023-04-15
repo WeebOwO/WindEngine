@@ -52,7 +52,7 @@ vk::CommandBuffer BeginSingleTimeCommand() {
     return cmdBuffer;
 }
 
-vk::Pipeline ChooseDefaultPipeline(uint32_t index, Shader& shader, vk::RenderPass renderpass,
+vk::Pipeline CreateSkyBoxPipeline(uint32_t index, Shader& shader, vk::RenderPass renderpass,
                                    vk::PipelineLayout layout, SwapChain& swapchain) {
     vk::GraphicsPipelineCreateInfo pipelineCreateInfo;
 
@@ -82,10 +82,12 @@ vk::Pipeline ChooseDefaultPipeline(uint32_t index, Shader& shader, vk::RenderPas
         .setStage(vk::ShaderStageFlagBits::eVertex)
         .setModule(shader.vertexShaderModule())
         .setPName("main");
+
     shaderStageCreateInfos[1]
         .setStage(vk::ShaderStageFlagBits::eFragment)
         .setModule(shader.fragmentShaderModule())
         .setPName("main");
+    
     pipelineCreateInfo.setStages(shaderStageCreateInfos);
 
     // 4. Viewport and Rasterization
@@ -103,7 +105,7 @@ vk::Pipeline ChooseDefaultPipeline(uint32_t index, Shader& shader, vk::RenderPas
     vk::PipelineRasterizationStateCreateInfo rasterizationStateCreateInfo;
     rasterizationStateCreateInfo.setRasterizerDiscardEnable(false)
         .setDepthClampEnable(false)
-        .setCullMode(vk::CullModeFlagBits::eBack)
+        .setCullMode(vk::CullModeFlagBits::eNone)
         .setFrontFace(vk::FrontFace::eCounterClockwise)
         .setPolygonMode(vk::PolygonMode::eFill)
         .setLineWidth(1);

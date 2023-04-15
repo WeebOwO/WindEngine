@@ -10,6 +10,7 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <GLFW/glfw3.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 #include "runtime/base/macro.h"
 #include "runtime/base/utils.h"
@@ -31,12 +32,12 @@ class RenderImpl {
 public:
     RenderImpl(Window& window)
         : m_window(window), m_swapchain(window.width(), window.height(), MAX_FRAMES_IN_FLIGHT),
-          m_texture(R"(D:\Dev\WindEngine\assets\p5.png)") {
+          m_skyboxTexture(R"(D:\Dev\WindEngine\assets\textures\environment.hdr)") {
         CreateRenderPass();
         CreateDepthResources();
         CreateFrameBuffer();
         CreateDescriptorSetLayout();
-        CreateGraphicPipeline();
+        CreateSkyBoxGraphicPipeline();
         AllocCmdBuffer();
         CreateSyncObjects();
         CreateUnifomBuffer();
@@ -50,7 +51,7 @@ public:
 
         if (device.waitForFences(m_cmdAvaliableFences[m_frameIndex], true,
                                  std::numeric_limits<uint64_t>::max()) != vk::Result::eSuccess) {
-            WIND_CORE_ERROR("image present failed\n");
+            WIND_CORE_ERROR("Image present failed\n");
         };
 
         device.resetFences(m_cmdAvaliableFences[m_frameIndex]);
@@ -60,14 +61,14 @@ public:
                                        m_imageAvalilable[m_frameIndex]);
 
         if (result.result != vk::Result::eSuccess) {
-            WIND_CORE_ERROR("acquire next image failed!");
+            WIND_CORE_ERROR("Acquire next image failed!");
         }
 
         auto index = result.value;
         m_cmdBuffers[m_frameIndex].reset();
 
         UpdateUniformBuffer(index);
-        ForwardPass(m_cmdBuffers[m_frameIndex], index);
+        BasePass(m_cmdBuffers[m_frameIndex], index);
         RenderPresent(index);
 
         m_frameIndex = (m_frameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
@@ -97,15 +98,15 @@ public:
         device.destroySampler(m_sampler);
         device.destroyDescriptorPool(m_descriptorPool);
         device.freeCommandBuffers(graphicsPool, m_cmdBuffers);
-        device.destroyRenderPass(m_basepass);
-        device.destroyPipelineLayout(m_currentLayout);
-        device.destroyPipeline(m_currentPipeline);
+        device.destroyRenderPass(m_baseRenderPass);
+        device.destroyPipelineLayout(m_skyboxPipelineLayout);
+        device.destroyPipeline(m_skyboxPipeline);
     }
 
 private:
     void CreateRenderPass();
     void CreateDescriptorSetLayout();
-    void CreateGraphicPipeline();
+    void CreateSkyBoxGraphicPipeline();
     void CreateFrameBuffer();
     void CreateSyncObjects();
     void CreateUnifomBuffer();
@@ -116,18 +117,20 @@ private:
     void AllocDescriptorSet();
     void AllocCmdBuffer();
 
-    void     UpdateUniformBuffer(uint32_t imageIndex);
-    void     ForwardPass(vk::CommandBuffer commandBuffer, uint32_t imageIndex);
-    void     RenderPresent(uint32_t imageIndex);
+    void SkyBoxPass();
+    void UpdateUniformBuffer(uint32_t imageIndex);
+    void BasePass(vk::CommandBuffer commandBuffer, uint32_t imageIndex);
+    void RenderPresent(uint32_t imageIndex);
+
     uint32_t m_frameIndex{0};
 
     Window&   m_window;
     SwapChain m_swapchain;
 
-    vk::RenderPass m_basepass;
+    vk::RenderPass m_baseRenderPass;
 
-    vk::Pipeline       m_currentPipeline;
-    vk::PipelineLayout m_currentLayout;
+    vk::Pipeline       m_skyboxPipeline;
+    vk::PipelineLayout m_skyboxPipelineLayout;
 
     vk::DescriptorSetLayout m_descriptorSetLayout;
 
@@ -147,7 +150,7 @@ private:
     std::array<vk::Semaphore, MAX_FRAMES_IN_FLIGHT> m_imageFinished;
 
     // Texture part
-    Texture     m_texture;
+    Texture     m_skyboxTexture;
     vk::Sampler m_sampler;
 
     // depth buffer part
@@ -156,21 +159,21 @@ private:
     vk::ImageView    m_depthImageView;
 };
 
-void RenderImpl::CreateGraphicPipeline() {
+void RenderImpl::CreateSkyBoxGraphicPipeline() {
     // Shader
-    std::vector<char> vertexShaderCode   = io::ReadFile("simple_shader.vert.spv");
-    std::vector<char> fragmentShaderCode = io::ReadFile("simple_shader.frag.spv");
+    std::vector<char> vertexShaderCode   = io::ReadFile("skybox.vert.spv");
+    std::vector<char> fragmentShaderCode = io::ReadFile("skybox.frag.spv");
 
     Shader shader = Shader(vertexShaderCode, fragmentShaderCode);
 
-    m_currentLayout = [&]() {
+    m_skyboxPipelineLayout = [&]() {
         vk::PipelineLayoutCreateInfo createInfo;
-        createInfo.setSetLayoutCount(1).setSetLayouts(m_descriptorSetLayout);
+        createInfo.setSetLayoutCount(1)
+                  .setSetLayouts(m_descriptorSetLayout);
         return utils::CreatePipelineLayout(createInfo);
     }();
 
-    m_currentPipeline =
-        utils::ChooseDefaultPipeline(0, shader, m_basepass, m_currentLayout, m_swapchain);
+    m_skyboxPipeline = utils::CreateSkyBoxPipeline(0, shader, m_baseRenderPass, m_skyboxPipelineLayout, m_swapchain);
 }
 
 void RenderImpl::CreateRenderPass() {
@@ -196,12 +199,10 @@ void RenderImpl::CreateRenderPass() {
         .setStoreOp(vk::AttachmentStoreOp::eDontCare);
 
     vk::AttachmentReference colorAttachmentReference;
-    colorAttachmentReference.setAttachment(0)
-                            .setLayout(vk::ImageLayout::eColorAttachmentOptimal);
+    colorAttachmentReference.setAttachment(0).setLayout(vk::ImageLayout::eColorAttachmentOptimal);
 
     vk::AttachmentReference depthAttachmentRef;
-    depthAttachmentRef.setAttachment(1)
-                      .setLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+    depthAttachmentRef.setAttachment(1).setLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
     vk::SubpassDescription subpassDescription;
     subpassDescription.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics)
@@ -230,7 +231,7 @@ void RenderImpl::CreateRenderPass() {
         .setDependencyCount(1)
         .setAttachments(attachments);
 
-    m_basepass = utils::CreateRenderPass(createInfo);
+    m_baseRenderPass = utils::CreateRenderPass(createInfo);
 }
 
 void RenderImpl::CreateDescriptorSetLayout() {
@@ -267,7 +268,7 @@ void RenderImpl::CreateFrameBuffer() {
             .setHeight(m_window.height())
             .setAttachmentCount(static_cast<uint32_t>(attachments.size()))
             .setAttachments(attachments)
-            .setRenderPass(m_basepass)
+            .setRenderPass(m_baseRenderPass)
             .setLayers(1);
         m_frameBuffers[i] = device.createFramebuffer(info);
         ++i;
@@ -360,7 +361,7 @@ void RenderImpl::AllocDescriptorSet() {
 
         vk::DescriptorImageInfo imageInfo;
         imageInfo.setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal)
-            .setImageView(m_texture.view)
+            .setImageView(m_skyboxTexture.view)
             .setSampler(m_sampler);
 
         std::array<vk::WriteDescriptorSet, 2> descriptorWrites;
@@ -419,7 +420,7 @@ void RenderImpl::AllocCmdBuffer() {
     m_cmdBuffers = utils::GetRHIDevice().allocateCommandBuffers(allocateInfo);
 }
 
-void RenderImpl::ForwardPass(vk::CommandBuffer commandBuffer, uint32_t imageIndex) {
+void RenderImpl::BasePass(vk::CommandBuffer commandBuffer, uint32_t imageIndex) {
     // simple base pass, can multithread
     auto&                      graphicsQueue = utils::GetRHIGraphicsQueue();
     vk::CommandBufferBeginInfo beginInfo;
@@ -429,21 +430,21 @@ void RenderImpl::ForwardPass(vk::CommandBuffer commandBuffer, uint32_t imageInde
 
     commandBuffer.begin(beginInfo);
     {
-        vk::RenderPassBeginInfo renderPassBeginInfo;
-        vk::Rect2D              renderArea;
+        vk::RenderPassBeginInfo       renderPassBeginInfo;
+        vk::Rect2D                    renderArea;
         std::array<vk::ClearValue, 2> clearValues;
         clearValues[0].setColor(std::array<float, 4>{0.1f, 0.1f, 0.1f, 1.0f});
         clearValues[1].setDepthStencil({1.0f, 0});
         renderArea.setOffset({0, 0}).setExtent(m_swapchain.swapchainInfo.imageExtent);
 
-        renderPassBeginInfo.setRenderPass(m_basepass)
+        renderPassBeginInfo.setRenderPass(m_baseRenderPass)
             .setRenderArea(renderArea)
             .setClearValues(clearValues)
             .setFramebuffer(m_frameBuffers[imageIndex]);
 
         commandBuffer.beginRenderPass(renderPassBeginInfo, {});
-        commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_currentPipeline);
-        commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_currentLayout, 0,
+        commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_skyboxPipeline);
+        commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_skyboxPipelineLayout, 0,
                                          m_descriptorSets[imageIndex], {});
 
         // draw all the object in the scene
@@ -472,18 +473,24 @@ void RenderImpl::ForwardPass(vk::CommandBuffer commandBuffer, uint32_t imageInde
 void RenderImpl::UpdateUniformBuffer(uint32_t imageIndex) {
     static auto startTime = std::chrono::steady_clock::now();
 
+    auto& camera      = Scene::GetWorld().GetCamera();
     auto  currentTime = std::chrono::steady_clock::now();
     float time =
         std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
     TransfromComponent transform;
-    transform.model =
-        glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    transform.view       = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f),
-                                       glm::vec3(0.0f, 0.0f, 1.0f));
-    transform.projection = glm::perspective(
-        glm::radians(45.0f), m_window.width() / (float)m_window.height(), 0.1f, 10.0f);
-    transform.projection[1][1] *= -1;
+
+    glm::mat4 projection = glm::perspectiveFov(camera.vFov, (float)m_window.width(),
+                                               (float)m_window.height(), camera.znear, camera.zfar);
+    projection[1][1] *= -1.0f;
+
+    glm::mat4 viewRotationMatrix =
+        glm::eulerAngleXY(glm::radians(camera.pitch), glm::radians(camera.yaw));
+    glm::mat4 view = viewRotationMatrix;
+
+    transform.model      = glm::identity<glm::mat4>();
+    transform.view       = view;
+    transform.projection = projection;
 
     memcpy(m_uniformMapedMemory[imageIndex], &transform, sizeof(transform));
 }
@@ -491,6 +498,7 @@ void RenderImpl::UpdateUniformBuffer(uint32_t imageIndex) {
 void RenderImpl::RenderPresent(uint32_t imageIndex) {
     auto&              presentQueue = utils::GetRHIPresentQueue();
     vk::PresentInfoKHR presentInfo;
+
     presentInfo.setImageIndices(imageIndex)
         .setSwapchains(m_swapchain.swapchain)
         .setWaitSemaphores(m_imageFinished[m_frameIndex]);

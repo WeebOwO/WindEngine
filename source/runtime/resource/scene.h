@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "runtime/base/macro.h"
+#include "runtime/render/camera.h"
 #include "runtime/resource/game_object.h"
 #include "runtime/resource/model.h"
 #include "runtime/resource/vertex.h"
@@ -22,12 +23,14 @@ public:
         auto gameobject  = GameObject::createGameObject();
         gameobject.model = model;
         gameobject.color = {0.1f, 0.1f, 0.1f};
-        m_WorldObjects.push_back(std::move(gameobject));
+        m_worldObjects.push_back(std::move(gameobject));
     }
 
-    auto& GetWorldGameObjects() { return m_WorldObjects; }
-
+    auto& GetWorldGameObjects() { return m_worldObjects; }
+    auto& GetCamera() {return m_camera;}
+    
 private:
-    std::vector<GameObject> m_WorldObjects;
+    std::vector<GameObject> m_worldObjects;
+    Camera m_camera;
 };
 } // namespace wind

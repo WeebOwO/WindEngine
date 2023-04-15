@@ -33,7 +33,7 @@ vk::Pipeline       CreateGraphicsPipelines(const vk::GraphicsPipelineCreateInfo&
 vk::PipelineLayout CreatePipelineLayout(const vk::PipelineLayoutCreateInfo& createinfo);
 vk::RenderPass     CreateRenderPass(vk::RenderPassCreateInfo createInfo);
 
-vk::Pipeline ChooseDefaultPipeline(uint32_t index, Shader& shader, vk::RenderPass renderpass,
+vk::Pipeline CreateSkyBoxPipeline(uint32_t index, Shader& shader, vk::RenderPass renderpass,
                                    vk::PipelineLayout layout, SwapChain& swapchain);
 
 vk::CommandBuffer BeginSingleTimeCommand();

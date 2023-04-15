@@ -13,14 +13,25 @@ namespace wind {
     Texture::Texture(std::string_view filepath) {
         auto& device = utils::GetRHIDevice();
         int width, height, channels;
-        stbi_uc* pixels = stbi_load(filepath.data(), &width, &height, &channels, STBI_rgb_alpha);
+        unsigned char* pixels;
 
-        if(!pixels) {
-            WIND_CORE_ERROR("Failed to load texture!");
-            throw std::runtime_error("");
+        vk::DeviceSize imageSize;
+        vk::Format imageFormat;
+        // some align problem here
+        if(stbi_is_hdr(filepath.data())) {
+            float* tempPixels = stbi_loadf(filepath.data(), &width, &height, &channels, STBI_rgb_alpha);
+            pixels = reinterpret_cast<unsigned char*>(tempPixels);
+            imageSize = width * height * 4 * sizeof(float);
+            imageFormat = vk::Format::eR32G32B32A32Sfloat;
+        } else {
+            pixels = stbi_load(filepath.data(), &width, &height, &channels, STBI_rgb_alpha);
+            imageSize = width * height * 4 * sizeof(unsigned char);
+            imageFormat = vk::Format::eR8G8B8A8Srgb;
         }
 
-        vk::DeviceSize imageSize = width * height * 4;
+        if(!pixels) {
+            WIND_CORE_ERROR("Failed to create texture!");
+        }
 
         // Create staging buffer
         vk::Buffer stagingBuffer;
@@ -34,14 +45,13 @@ namespace wind {
 
         stbi_image_free(pixels);
 
-
         // Create texure image 
         vk::ImageCreateInfo createInfo;
         createInfo.setImageType(vk::ImageType::e2D)
                   .setArrayLayers(1)
                   .setMipLevels(1)
                   .setExtent({uint32_t(width), uint32_t(height), 1})
-                  .setFormat(vk::Format::eR8G8B8A8Srgb)
+                  .setFormat(imageFormat)
                   .setTiling(vk::ImageTiling::eOptimal)
                   .setInitialLayout(vk::ImageLayout::eUndefined)
                   .setUsage(vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled)
@@ -59,9 +69,9 @@ namespace wind {
         memory = device.allocateMemory(allocateInfo);
         device.bindImageMemory(image, memory, 0);
 
-        utils::TransitionImageLayout(image, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
+        utils::TransitionImageLayout(image, imageFormat, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal);
         utils::CopyBufferToImage(stagingBuffer, image, width, height);
-        utils::TransitionImageLayout(image, vk::Format::eR8G8B8A8Srgb, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
+        utils::TransitionImageLayout(image, imageFormat, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
 
         device.destroyBuffer(stagingBuffer);
         device.freeMemory(stagingBufferMemory);
@@ -79,12 +89,12 @@ namespace wind {
         viewCreateInfo.setImage(image)
                       .setViewType(vk::ImageViewType::e2D)
                       .setComponents(mapping)
-                      .setFormat(vk::Format::eR8G8B8A8Srgb)
+                      .setFormat(imageFormat)
                       .setSubresourceRange(range);
 
         view = device.createImageView(viewCreateInfo);
     }
-
+    
     Texture::~Texture() {
         auto& device = utils::GetRHIDevice();
 

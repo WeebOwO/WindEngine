@@ -1,3 +1,3 @@
-glslc.exe shaders/simple_shader.vert -o shaders/compiled_shader/simple_shader.vert.spv
-glslc.exe shaders/simple_shader.frag -o shaders/compiled_shader/simple_shader.frag.spv
+glslc.exe shaders/skybox.vert -o shaders/compiled_shader/skybox.vert.spv
+glslc.exe shaders/skybox.frag -o shaders/compiled_shader/skybox.frag.spv
 pause

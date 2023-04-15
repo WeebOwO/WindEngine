@@ -5,9 +5,11 @@
 
 namespace wind {
 struct Vertex {
-    glm::vec3 pos;
-    glm::vec3 color;
-    glm::vec2 texCoord;
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::vec3 tangent;
+    glm::vec3 bitangent;
+    glm::vec2 texcoord;
 
     static vk::VertexInputBindingDescription GetInputBindingDescription() {
         vk::VertexInputBindingDescription vertexInputBindingDescription{};
@@ -17,26 +19,39 @@ struct Vertex {
         return vertexInputBindingDescription;
     };
 
-    static std::array<vk::VertexInputAttributeDescription, 3>
+    static std::array<vk::VertexInputAttributeDescription, 5>
     GetVertexInputAttributeDescriptions() {
-        std::array<vk::VertexInputAttributeDescription, 3> vertexInputAttributeDescription;
+        std::array<vk::VertexInputAttributeDescription, 5> vertexInputAttributeDescription;
         vertexInputAttributeDescription[0]
             .setBinding(0)
             .setLocation(0)
             .setFormat(vk::Format::eR32G32B32Sfloat)
-            .setOffset(offsetof(Vertex, pos));
+            .setOffset(offsetof(Vertex, position));
 
         vertexInputAttributeDescription[1]
             .setBinding(0)
             .setLocation(1)
             .setFormat(vk::Format::eR32G32B32Sfloat)
-            .setOffset(offsetof(Vertex, color));
+            .setOffset(offsetof(Vertex, normal));
         
-        vertexInputAttributeDescription[2].setOffset(offsetof(Vertex, texCoord))
-                                          .setBinding(0)
-                                          .setFormat(vk::Format::eR32G32Sfloat)
-                                          .setLocation(2);
+        vertexInputAttributeDescription[2]
+            .setBinding(0)
+            .setLocation(2)
+            .setFormat(vk::Format::eR32G32B32Sfloat)
+            .setOffset(offsetof(Vertex, tangent));
         
+        vertexInputAttributeDescription[3]
+            .setBinding(0)
+            .setLocation(3)
+            .setFormat(vk::Format::eR32G32B32Sfloat)
+            .setOffset(offsetof(Vertex, bitangent));
+
+        vertexInputAttributeDescription[4]
+            .setBinding(0)
+            .setLocation(4)
+            .setFormat(vk::Format::eR32G32Sfloat)
+            .setOffset(offsetof(Vertex, texcoord));    
+
         return vertexInputAttributeDescription;
     }
 };
