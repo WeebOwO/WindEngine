@@ -72,7 +72,7 @@ void EngineImpl::LoadGameObjects() const noexcept {
 		aiProcess_Debone |
 		aiProcess_ValidateDataStructure;
 
-    const std::string skyboxFile = R"(D:\Dev\WindEngine\assets\meshes\skybox.obj)";
+    const std::string skyboxFile = R"(..\..\..\..\assets\meshes\skybox.obj)";
     Assimp::Importer importer;
     auto scene = importer.ReadFile(skyboxFile, ImportFlags);
 

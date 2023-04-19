@@ -32,7 +32,7 @@ class RenderImpl {
 public:
     RenderImpl(Window& window)
         : m_window(window), m_swapchain(window.width(), window.height(), MAX_FRAMES_IN_FLIGHT),
-          m_skyboxTexture(R"(D:\Dev\WindEngine\assets\textures\environment.hdr)") {
+          m_skyboxTexture(R"(..\..\..\..\assets\textures\environment.hdr)") {
         CreateRenderPass();
         CreateDepthResources();
         CreateFrameBuffer();
