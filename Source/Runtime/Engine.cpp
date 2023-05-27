@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "Runtime/Base/Log.h"
+#include "Runtime/Input/Input.h"
 #include "Runtime/Render/RHI/Backend.h"
 #include "Runtime/Scene/Scene.h"
 #include "RUntime/Render/Renderer.h"
@@ -18,6 +19,7 @@ public:
         WIND_CORE_INFO("Engine init");
         BackendCreateSetting setting{m_window};
         RenderBackend::Init(setting);
+        InputManger::Init(m_window.GetWindow());
         m_renderer = std::make_unique<Renderer>();
     }
 
@@ -64,7 +66,6 @@ void EngineImpl::LogicTick() {
 void EngineImpl::RenderTick() { 
     m_renderer->Render(); 
 }
-
 
 // Engine Part
 void Engine::Run() { m_impl->Run(); }

@@ -4,5 +4,6 @@
 .xmake/
 build/
 shaders/compiled_shader/
+vsxmake2022/
 compile_commands.json
 Shaders/CompiledShader

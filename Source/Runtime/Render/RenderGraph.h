@@ -17,7 +17,6 @@ class RenderGraph {
 public:
     void AddRenderPass(std::unique_ptr<wind::RenderPassBase> renderPass);
     void DeclareAttachmentOutput(std::string_view passName, std::shared_ptr<Image> attachment);
-    void DeclareUniformBuffer(std::string_view passName);
     void Exec();
     void Setup();
 
