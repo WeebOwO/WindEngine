@@ -17,7 +17,7 @@ public:
     [[nodiscard]] auto width() const { return m_windowInfo.width; }
     [[nodiscard]] auto height() const { return m_windowInfo.height; }
 
-    void OnUpdate();
+    void OnUpdate(float fs);
 private:    
     enum class InputMode : uint8_t {
         None,

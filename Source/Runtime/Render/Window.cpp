@@ -1,4 +1,5 @@
 #include "Window.h"
+#include "Runtime/Scene/Scene.h"
 
 namespace wind {
 
@@ -12,7 +13,10 @@ Window::Window(uint32_t width, uint32_t height, std::string_view title): m_windo
 
 Window::~Window() { glfwDestroyWindow(m_window); }
 
-void Window::OnUpdate() {
+void Window::OnUpdate(float fs) {
+    auto camera = Scene::GetWorld().GetActiveCamera();
     glfwPollEvents();
+    camera->OnResize(width(), height());
+    camera->OnUpdate(fs);
 }
 } // namespace wind

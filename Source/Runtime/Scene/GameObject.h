@@ -7,6 +7,7 @@
 #include "Runtime/Base/Macro.h"
 
 namespace wind {
+class Model;
 
 struct Transform {
    alignas(16) glm::vec3 location;

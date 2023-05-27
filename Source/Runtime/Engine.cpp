@@ -2,11 +2,13 @@
 
 #include <memory>
 
+#include "RUntime/Render/Renderer.h"
 #include "Runtime/Base/Log.h"
 #include "Runtime/Input/Input.h"
 #include "Runtime/Render/RHI/Backend.h"
+#include "Runtime/Render/Window.h"
+#include "Runtime/Scene/Camera.h"
 #include "Runtime/Scene/Scene.h"
-#include "RUntime/Render/Renderer.h"
 
 static constexpr uint32_t WIDTH  = 1920;
 static constexpr uint32_t HEIGHT = 1080;
@@ -16,56 +18,78 @@ class EngineImpl {
 public:
     EngineImpl() : m_window(WIDTH, HEIGHT, "Wind Engine") {
         Log::Init();
-        WIND_CORE_INFO("Engine init");
         BackendCreateSetting setting{m_window};
         RenderBackend::Init(setting);
+        Scene::Init();
         InputManger::Init(m_window.GetWindow());
         m_renderer = std::make_unique<Renderer>();
+        WIND_CORE_INFO("Engine init");
     }
 
     ~EngineImpl() = default;
     void Run() {
         LoadGameObject();
+        AddCamera();
         while (!glfwWindowShouldClose(m_window.GetWindow())) {
-            LogicTick();
-            RenderTick();
+            float fs = CalculateDeltaTime();
+            LogicTick(fs);
+            RenderTick(fs);
         }
     }
 
 private:
-    void                      RenderTick();
-    void                      LogicTick();
-    void                      LoadGameObject();
-    Window                    m_window;
-    std::unique_ptr<Renderer> m_renderer{nullptr};
+    void  RenderTick(float ts);
+    void  LogicTick(float ts);
+    void  LoadGameObject();
+    void  AddCamera();
+    float CalculateDeltaTime();
+
+private:
+    Window                                m_window;
+    std::unique_ptr<Renderer>             m_renderer{nullptr};
+    std::chrono::steady_clock::time_point m_last_tick_time_point{std::chrono::steady_clock::now()};
 };
 
+void  EngineImpl::AddCamera() {
+    auto& world = Scene::GetWorld();
+    world.SetupCamera(std::make_shared<Camera>(45.0f, 1.0f, 100.0f));
+}
+float EngineImpl::CalculateDeltaTime() {
+    float delta_time;
+    {
+        using namespace std::chrono;
+
+        steady_clock::time_point tick_time_point = steady_clock::now();
+        duration<float>          time_span =
+            duration_cast<duration<float>>(tick_time_point - m_last_tick_time_point);
+        delta_time = time_span.count();
+
+        m_last_tick_time_point = tick_time_point;
+    }
+    return delta_time;
+}
 void EngineImpl::LoadGameObject() {
-    // Model::Builder builder;    
+    // Model::Builder builder;
     // auto& world = Scene::GetWorld();
     // builder = io::LoadModelFromFilePath("../../../../assets/meshes/skybox.obj");
     // world.AddModel(builder);
 
     Model::Builder builder;
     builder.indices = {0, 1, 2};
-    
+
     Vertex v1, v2, v3;
     v1.position = glm::vec3(0.0, -0.5, 0.0);
     v2.position = glm::vec3(0.5, 0.5, 0.0);
     v3.position = glm::vec3(0.5, -0.5, 0.0);
-    
-    auto& world = Scene::GetWorld();
+
+    auto& world      = Scene::GetWorld();
     builder.vertices = {v1, v2, v3};
     world.AddModel(builder);
 }
 
-void EngineImpl::LogicTick() { 
-    m_window.OnUpdate();    
-}
+void EngineImpl::LogicTick(float fs) { m_window.OnUpdate(fs); }
 
-void EngineImpl::RenderTick() { 
-    m_renderer->Render(); 
-}
+void EngineImpl::RenderTick(float fs) { m_renderer->Render(); }
 
 // Engine Part
 void Engine::Run() { m_impl->Run(); }

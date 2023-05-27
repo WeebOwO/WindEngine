@@ -1,5 +1,6 @@
 #include "Input.h"
 #include "Runtime/Base/Macro.h"
+#include "Runtime/Input/KeyCodes.h"
 
 namespace wind {
 std::shared_ptr<InputManger> InputManger::s_instance {nullptr};

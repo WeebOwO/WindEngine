@@ -5,13 +5,17 @@
 
 #include "Runtime/Base/Macro.h"
 #include "Runtime/Resource/Mesh.h"
+#include "Runtime/Scene/Camera.h"
 #include "Runtime/Scene/GameObject.h"
+
 
 namespace wind {
 class Scene {
 public:
-    static void Init() { WIND_CORE_INFO("Scene Init!"); }
-    
+    static void Init() { 
+        WIND_CORE_INFO("Scene Init!"); 
+    }
+
     static Scene& GetWorld() {
         static Scene world;
         return world;
@@ -25,8 +29,13 @@ public:
     }
 
     auto& GetWorldGameObjects() { return m_worldObjects; }
-    
+    auto& GetActiveCamera() { return m_activeCamera; }
+    void SetupCamera(std::shared_ptr<Camera> camera) {
+        m_activeCamera = camera;
+    }
 private:
     std::vector<GameObject> m_worldObjects;
+    std::shared_ptr<Buffer> m_viewUniformBuffer;
+    std::shared_ptr<Camera> m_activeCamera;
 };
 } // namespace wind

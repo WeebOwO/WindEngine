@@ -21,7 +21,7 @@ public:
     glm::vec2 GetMousePosition();
     void      SetCursorMode(CursorMode mode);
 
-    [[nodiscard]] auto GetInstance() const { return s_instance; }
+    [[nodiscard]] static auto GetInstance() { return s_instance; }
 
     static void Init(GLFWwindow* window);
 
@@ -29,4 +29,5 @@ private:
     GLFWwindow*                         m_windowHandle;
     static std::shared_ptr<InputManger> s_instance;
 };
+
 } // namespace wind
