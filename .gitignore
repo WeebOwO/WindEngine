@@ -1,0 +1,8 @@
+# build files
+.cache/
+.vscode/
+.xmake/
+build/
+shaders/compiled_shader/
+compile_commands.json
+Shaders/CompiledShader
