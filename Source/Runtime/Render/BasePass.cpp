@@ -1,7 +1,6 @@
 #include "BasePass.h"
 
 #include <array>
-#include <stdint.h>
 
 #include "Runtime/Render/RHI/Backend.h"
 #include "Runtime/Render/RHI/Shader.h"
@@ -26,7 +25,8 @@ void BasePass::Setup() {
         .setSamples(vk::SampleCountFlagBits::e1);
 
     vk::AttachmentReference colorRef;
-    colorRef.setAttachment(0).setLayout(vk::ImageLayout::eColorAttachmentOptimal);
+    colorRef.setAttachment(0)
+            .setLayout(vk::ImageLayout::eColorAttachmentOptimal);
 
     vk::SubpassDescription subpassDescription;
     subpassDescription.setColorAttachmentCount(1)
@@ -41,7 +41,8 @@ void BasePass::Setup() {
     passNode.renderPassHandle = device.createRenderPass(renderPasscreateInfo);
     // 2. Set render area
     const auto [width, height] = RenderBackend::GetInstance().GetSurfaceExtent();
-    passNode.renderArea.setExtent({width, height}).setOffset({0, 0});
+    passNode.renderArea.setExtent({width, height})
+                       .setOffset({0, 0});
 
     // 2. Create FrameBuffer
     vk::FramebufferCreateInfo  framebufferCreateInfo;

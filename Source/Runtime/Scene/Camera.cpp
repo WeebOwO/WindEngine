@@ -9,17 +9,17 @@
 
 namespace wind {
 Camera::Camera(float verticalFOV, float nearClip, float farClip)
-    : m_VerticalFOV(verticalFOV), m_NearClip(nearClip), m_FarClip(farClip) {
-    m_ForwardDirection = glm::vec3(0, 0, -1);
-    m_Position         = glm::vec3(0, 0, 6);
+    : m_verticalFOV(verticalFOV), m_nearClip(nearClip), m_farClip(farClip) {
+    m_forwardDirection = glm::vec3(0, 0, -1);
+    m_position         = glm::vec3(0, 0, 6);
 }
 float Camera::GetRotationSpeed() { return 0.3f; }
 
 bool  Camera::OnUpdate(float ts) {
     auto      InputManger = InputManger::GetInstance();
     glm::vec2 mousePos    = InputManger->GetMousePosition();
-    glm::vec2 delta       = (mousePos - m_LastMousePosition) * 0.002f;
-    m_LastMousePosition   = mousePos;
+    glm::vec2 delta       = (mousePos - m_lastMousePosition) * 0.002f;
+    m_lastMousePosition   = mousePos;
 
     if (!InputManger->IsMouseButtonDown(MouseButton::Right)) {
         InputManger->SetCursorMode(CursorMode::Normal);
@@ -31,34 +31,34 @@ bool  Camera::OnUpdate(float ts) {
     bool moved = false;
 
     constexpr glm::vec3 upDirection(0.0f, 1.0f, 0.0f);
-    glm::vec3           rightDirection = glm::cross(m_ForwardDirection, upDirection);
+    glm::vec3           rightDirection = glm::cross(m_forwardDirection, upDirection);
 
     float speed = 5.0f;
 
     // Movement
     if (InputManger->IsKeyDown(KeyCode::W)) {
         WIND_INFO("Move forward");
-        m_Position += m_ForwardDirection * speed * ts;
+        m_position += m_forwardDirection * speed * ts;
         moved = true;
     } else if (InputManger->IsKeyDown(KeyCode::S)) {
         WIND_INFO("Move backward");
-        m_Position -= m_ForwardDirection * speed * ts;
+        m_position -= m_forwardDirection * speed * ts;
         moved = true;
     }
     if (InputManger->IsKeyDown(KeyCode::A)) {
         WIND_INFO("Move left");
-        m_Position -= rightDirection * speed * ts;
+        m_position -= rightDirection * speed * ts;
         moved = true;
     } else if (InputManger->IsKeyDown(KeyCode::D)) {
         WIND_INFO("Move right");
-        m_Position += rightDirection * speed * ts;
+        m_position += rightDirection * speed * ts;
         moved = true;
     }
     if (InputManger->IsKeyDown(KeyCode::Q)) {
-        m_Position -= upDirection * speed * ts;
+        m_position -= upDirection * speed * ts;
         moved = true;
     } else if (InputManger->IsKeyDown(KeyCode::E)) {
-        m_Position += upDirection * speed * ts;
+        m_position += upDirection * speed * ts;
         moved = true;
     }
 
@@ -70,7 +70,7 @@ bool  Camera::OnUpdate(float ts) {
         glm::quat q =
             glm::normalize(glm::cross(glm::angleAxis(-pitchDelta, rightDirection),
                                        glm::angleAxis(-yawDelta, glm::vec3(0.f, 1.0f, 0.0f))));
-        m_ForwardDirection = glm::rotate(q, m_ForwardDirection);
+        m_forwardDirection = glm::rotate(q, m_forwardDirection);
 
         moved = true;
     }
@@ -81,22 +81,22 @@ bool  Camera::OnUpdate(float ts) {
 }
 
 void Camera::OnResize(uint32_t width, uint32_t height) {
-    if (width == m_ViewportWidth && height == m_ViewportHeight) return;
+    if (width == m_viewportWidth && height == m_viewportHeight) return;
 
-    m_ViewportWidth  = width;
-    m_ViewportHeight = height;
+    m_viewportWidth  = width;
+    m_viewportHeight = height;
 
     RecalculateProjection();
 }
 
 void Camera::RecalculateView() {
-    m_View        = glm::lookAt(m_Position, m_Position + m_ForwardDirection, glm::vec3(0, 1, 0));
-    m_InverseView = glm::inverse(m_View);
+    m_view        = glm::lookAt(m_position, m_position + m_forwardDirection, glm::vec3(0, 1, 0));
+    m_inverseView = glm::inverse(m_view);
 }
 
 void Camera::RecalculateProjection() {
-    m_Projection        = glm::perspectiveFov(glm::radians(m_VerticalFOV), (float)m_ViewportWidth,
-                                              (float)m_ViewportHeight, m_NearClip, m_FarClip);
-    m_InverseProjection = glm::inverse(m_Projection);
+    m_projection        = glm::perspectiveFov(glm::radians(m_verticalFOV), (float)m_viewportWidth,
+                                              (float)m_viewportHeight, m_nearClip, m_farClip);
+    m_inverseProjection = glm::inverse(m_projection);
 }
 } // namespace wind

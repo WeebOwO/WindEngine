@@ -47,26 +47,28 @@ private:
 private:
     Window                                m_window;
     std::unique_ptr<Renderer>             m_renderer{nullptr};
-    std::chrono::steady_clock::time_point m_last_tick_time_point{std::chrono::steady_clock::now()};
+    std::chrono::steady_clock::time_point m_lastTickTimePoint{std::chrono::steady_clock::now()};
 };
 
 void  EngineImpl::AddCamera() {
     auto& world = Scene::GetWorld();
     world.SetupCamera(std::make_shared<Camera>(45.0f, 1.0f, 100.0f));
+
+    vk::CommandBuffer cmdBuffer;
 }
+
 float EngineImpl::CalculateDeltaTime() {
-    float delta_time;
+    float dalta;
     {
         using namespace std::chrono;
+        steady_clock::time_point tickTimePoint = steady_clock::now();
+        auto          timeSpan =
+            duration_cast<duration<float>>(tickTimePoint - m_lastTickTimePoint);
+        dalta = timeSpan.count();
 
-        steady_clock::time_point tick_time_point = steady_clock::now();
-        duration<float>          time_span =
-            duration_cast<duration<float>>(tick_time_point - m_last_tick_time_point);
-        delta_time = time_span.count();
-
-        m_last_tick_time_point = tick_time_point;
+        m_lastTickTimePoint = tickTimePoint;
     }
-    return delta_time;
+    return dalta;
 }
 void EngineImpl::LoadGameObject() {
     // Model::Builder builder;
