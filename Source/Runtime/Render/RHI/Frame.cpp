@@ -1,5 +1,6 @@
 #include "Frame.h"
 
+#include "Runtime/Render/RHI/StageBuffer.h"
 #include "Runtime/Render/Rhi/Backend.h"
 
 namespace wind {
@@ -21,6 +22,7 @@ void VirtualFrameProvider::Init(size_t frameCount, size_t stageBufferSize) {
 
         m_virtualFrames.push_back(VirtualFrame{
             CommandBuffer{commandBuffers[i]},
+            StageBuffer(stageBufferSize),
             fence,
         });
     }

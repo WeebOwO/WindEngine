@@ -10,11 +10,10 @@
 #include <GLFW/glfw3.h>
 
 #include "Runtime/Base/Macro.h"
-#include "Runtime/Render/Window.h"
-#include "Runtime/Render/RHI/Vma.h"
-#include "Runtime/Render/RHI/Image.h"
 #include "Runtime/Render/RHI/Descriptors.h"
 #include "Runtime/Render/RHI/Frame.h"
+#include "Runtime/Render/Window.h"
+
 
 namespace wind {
 
@@ -54,7 +53,7 @@ public:
     void StartFrame() { m_virtualFrames.StartFrame(); }
     void EndFrame() { m_virtualFrames.EndFrame(); }
 
-    vk::CommandBuffer BeginSingleTimeCommand();
+    CommandBuffer BeginSingleTimeCommand();
     void              SubmitSingleTimeCommand(vk::CommandBuffer cmdBuffer);
 
     void InitVirtualFrame() {
@@ -104,7 +103,10 @@ public:
     [[nodiscard]] const auto& GetCurrentFrame() const { return m_virtualFrames.GetCurrentFrame(); }
     [[nodiscard]] const auto& GetDescriptorLayoutCache() const { return m_descriptorLayoutCache; }
     [[nodiscard]] const auto& GetDescriptorAllocator() const { return m_descriptorAllocator; }
-    
+    [[nodiscard]] auto& GetStagingBuffer() {
+        return m_virtualFrames.GetCurrentFrame().StagingBuffer;
+    }
+
 private:
     std::vector<const char*> GetRequiredExtensions();
     void                     CreateInstance();
@@ -126,9 +128,10 @@ private:
     vk::PhysicalDeviceProperties m_physicalDeviceProperties;
     vk::Device                   m_device;
 
-    vk::Queue    m_graphicsQueue;
-    vk::Queue    m_presentQueue;
-    vk::Queue    m_computeQueue;
+    vk::Queue m_graphicsQueue;
+    vk::Queue m_presentQueue;
+    vk::Queue m_computeQueue;
+
     QueueIndices m_queueIndices;
 
     vk::CommandPool m_coomandPool;

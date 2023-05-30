@@ -2,12 +2,14 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include "Runtime/Render/Rhi/CommandBuffer.h"
+#include "Runtime/Render/RHI/CommandBuffer.h"
+#include "Runtime/Render/RHI/StageBuffer.h"
 
 namespace wind {
 
 struct VirtualFrame {
     CommandBuffer Commands{vk::CommandBuffer{}};
+    StageBuffer   StagingBuffer;
     vk::Fence     CommandQueueFence;
 };
 

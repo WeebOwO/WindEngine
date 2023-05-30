@@ -274,7 +274,7 @@ void RenderBackend::CreateDescriptorCacheAndAllocator() {
     m_descriptorAllocator->Init(m_device);
 }
 
-vk::CommandBuffer RenderBackend::BeginSingleTimeCommand() {
+CommandBuffer RenderBackend::BeginSingleTimeCommand() {
     vk::CommandBufferAllocateInfo allocateInfo;
     allocateInfo.setCommandBufferCount(1)
         .setCommandPool(m_coomandPool)
@@ -283,7 +283,7 @@ vk::CommandBuffer RenderBackend::BeginSingleTimeCommand() {
     vk::CommandBufferBeginInfo beginInfo;
     beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
     immCmdBuffer.begin(beginInfo);
-    return immCmdBuffer;
+    return CommandBuffer(immCmdBuffer);
 }
 
 void RenderBackend::SubmitSingleTimeCommand(vk::CommandBuffer cmdBuffer) {

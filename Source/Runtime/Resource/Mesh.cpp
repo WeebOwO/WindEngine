@@ -1,4 +1,7 @@
 #include "Mesh.h"
+#include "Runtime/Base/Utils.h"
+#include "Runtime/Render/RHI/Backend.h"
+#include "Runtime/Render/RHI/CommandBuffer.h"
 
 #include <memory>
 
@@ -8,13 +11,29 @@ Model::Model(Builder builder)
     vk::DeviceSize vertexBufferSize = sizeof(builder.vertices[0]) * m_vertexCnt;
     vk::DeviceSize indexBufferSize  = sizeof(builder.indices[0]) * m_indexCnt;
 
-    m_vertexBuffer = std::make_unique<Buffer>(vertexBufferSize, BufferUsage::VERTEX_BUFFER,
-                                              MemoryUsage::CPU_TO_GPU);
-    m_indexBuffer  = std::make_unique<Buffer>(indexBufferSize, BufferUsage::INDEX_BUFFER,
-                                             MemoryUsage::CPU_TO_GPU);
-    
-    m_vertexBuffer->CopyData(reinterpret_cast<uint8_t*>(builder.vertices.data()), vertexBufferSize, 0);
-    m_indexBuffer->CopyData(reinterpret_cast<uint8_t*>(builder.indices.data()), indexBufferSize, 0);
+    auto& backend     = RenderBackend::GetInstance();
+    auto& stageBuffer = backend.GetStagingBuffer();
+    auto  cmdbuffer   = backend.BeginSingleTimeCommand();
+
+    m_vertexBuffer = std::make_unique<Buffer>(
+        vertexBufferSize, BufferUsage::VERTEX_BUFFER | BufferUsage::TRANSFER_DESTINATION,
+        MemoryUsage::GPU_ONLY);
+    m_indexBuffer = std::make_unique<Buffer>(
+        indexBufferSize, BufferUsage::INDEX_BUFFER | BufferUsage::TRANSFER_DESTINATION,
+        MemoryUsage::GPU_ONLY);
+
+    auto vertexAllocation = stageBuffer.Submit(utils::MakeView(builder.vertices));
+    auto indexAllocation  = stageBuffer.Submit(utils::MakeView(builder.indices));
+
+    cmdbuffer.CopyBuffer(BufferInfo{stageBuffer.GetBuffer(), vertexAllocation.Offset},
+                         BufferInfo{*m_vertexBuffer, 0}, vertexAllocation.Size);
+    cmdbuffer.CopyBuffer(BufferInfo{stageBuffer.GetBuffer(), indexAllocation.Offset},
+                         BufferInfo{*m_indexBuffer, 0}, indexAllocation.Size);
+
+    stageBuffer.Flush();
+    backend.SubmitSingleTimeCommand(cmdbuffer.GetNativeHandle());
+
+    stageBuffer.Reset();
 }
 
 Model::~Model() {
@@ -27,7 +46,5 @@ void Model::Bind(CommandBuffer cmdbuffer) {
     cmdbuffer.BindIndexBufferUInt32(*m_indexBuffer);
 }
 
-void Model::Draw(CommandBuffer cmdbuffer) {
-    cmdbuffer.DrawIndexed(m_indexCnt, 1);
-}
+void Model::Draw(CommandBuffer cmdbuffer) { cmdbuffer.DrawIndexed(m_indexCnt, 1); }
 } // namespace wind
