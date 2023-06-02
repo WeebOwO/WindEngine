@@ -82,7 +82,7 @@ void EngineImpl::LoadGameObject() {
     Vertex v1, v2, v3;
     v1.position = glm::vec3(0.0, -0.5, 0.0);
     v2.position = glm::vec3(0.5, 0.5, 0.0);
-    v3.position = glm::vec3(0.5, -0.5, 0.0);
+    v3.position = glm::vec3(-0.5, 0.5, 0.0);
 
     auto& world      = Scene::GetWorld();
     builder.vertices = {v1, v2, v3};

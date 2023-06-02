@@ -11,6 +11,7 @@ Renderer::Renderer() : m_backend(RenderBackend::GetInstance()) {
 } 
 
 void Renderer::InitRenderPass() {
+    // Currently just simple forward shading
     m_renderGraph.AddRenderPass(std::make_unique<BasePass>("BasePass", m_renderGraph));
 }
 

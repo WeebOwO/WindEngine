@@ -9,8 +9,9 @@
 #include "Runtime/Scene/Camera.h"
 #include "Runtime/Scene/GameObject.h"
 
-
 namespace wind {
+enum UniformBufferGroup : uint8_t { viewUniform = 0, sceneUniform, UniformBufferCnt };
+
 class Scene {
 public:
     static void Init();
@@ -20,6 +21,7 @@ public:
         return world;
     }
 
+    ~Scene();
     void AddModel(const Model::Builder& modelBuilder) {
         auto model       = std::make_shared<Model>(modelBuilder);
         auto gameobject  = GameObject::CreateGameObject();
@@ -30,23 +32,18 @@ public:
     auto& GetWorldGameObjects() { return m_worldObjects; }
     auto& GetActiveCamera() { return m_activeCamera; }
 
-    auto GetViewUniformBuffer() {return m_viewUniformBuffer;}
-    auto GetSceneUniformBuffer();
-
+    auto GetTargetUniformBuffer(UniformBufferGroup group) { return m_uniformBuffers[group]; }
     void UpdateUniformBuffer();
-    void SetupCamera(std::shared_ptr<Camera> camera) {
-        m_activeCamera = camera;
-    }
+    void SetupCamera(std::shared_ptr<Camera> camera) { m_activeCamera = camera; }
 
 private:
-    struct CameraViewData {
-        glm::mat4 view;
-        glm::mat4 projection;
+    Scene();
+    struct CameraView {
+        alignas(16) glm::mat4 view;
+        alignas(16) glm::mat4 projection;
     };
-
-    std::vector<GameObject> m_worldObjects;
-    std::shared_ptr<Buffer> m_viewUniformBuffer;
-    std::shared_ptr<Buffer> m_sceneUniforBuffer;
-    std::shared_ptr<Camera> m_activeCamera;
+    std::vector<std::shared_ptr<Buffer>> m_uniformBuffers;
+    std::vector<GameObject>              m_worldObjects;
+    std::shared_ptr<Camera>              m_activeCamera;
 };
 } // namespace wind

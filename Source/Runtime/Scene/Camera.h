@@ -19,7 +19,7 @@ public:
     [[nodiscard]] const glm::vec3& GetPosition() const { return m_position; }
     [[nodiscard]] const glm::vec3& GetDirection() const { return m_forwardDirection; }
 
-    float GetRotationSpeed();
+    constexpr float GetRotationSpeed();
 
 private:
     void RecalculateProjection();

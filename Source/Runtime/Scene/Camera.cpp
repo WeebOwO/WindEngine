@@ -13,7 +13,7 @@ Camera::Camera(float verticalFOV, float nearClip, float farClip)
     m_forwardDirection = glm::vec3(0, 0, -1);
     m_position         = glm::vec3(0, 0, 6);
 }
-float Camera::GetRotationSpeed() { return 0.3f; }
+constexpr float Camera::GetRotationSpeed() { return 0.3f; }
 
 bool  Camera::OnUpdate(float ts) {
     auto      InputManger = InputManger::GetInstance();

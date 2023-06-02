@@ -1,6 +1,5 @@
 #include "RenderGraph.h"
 
-#include "Runtime/Render/RHI/Image.h"
 #include "Runtime/Render/RHI/RenderPassBase.h"
 
 namespace wind {
@@ -23,6 +22,5 @@ namespace wind {
     void RenderGraph::DeclareAttachmentOutput(std::string_view resourseName, std::shared_ptr<Image> attachment) {
         m_graphAttachments[std::string(resourseName)] = attachment;
     }
-
     
 }
