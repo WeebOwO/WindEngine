@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "Runtime/Render/BasePass.h"
+#include "Runtime/Scene/Scene.h"
 
 namespace wind {
 Renderer::Renderer() : m_backend(RenderBackend::GetInstance()) {
@@ -16,6 +17,9 @@ void Renderer::InitRenderPass() {
 }
 
 void Renderer::Render() {
+    auto& world = Scene::GetWorld();
+    world.UpdateUniformBuffer();
+    // Render start!
     m_backend.StartFrame();
     m_renderGraph.Exec();
     m_backend.EndFrame();

@@ -21,7 +21,6 @@ public:
         return world;
     }
 
-    ~Scene();
     void AddModel(const Model::Builder& modelBuilder) {
         auto model       = std::make_shared<Model>(modelBuilder);
         auto gameobject  = GameObject::CreateGameObject();

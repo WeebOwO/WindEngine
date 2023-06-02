@@ -89,7 +89,10 @@ void EngineImpl::LoadGameObject() {
     world.AddModel(builder);
 }
 
-void EngineImpl::LogicTick(float fs) { m_window.OnUpdate(fs); }
+void EngineImpl::LogicTick(float fs) { 
+    m_window.OnUpdate(fs);
+    
+ }
 
 void EngineImpl::RenderTick(float fs) { m_renderer->Render(); }
 

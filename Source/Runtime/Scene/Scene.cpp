@@ -11,17 +11,12 @@ namespace wind {
         m_uniformBuffers[UniformBufferGroup::viewUniform] = std::make_shared<Buffer>(cameraViewSize, BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
     }
 
-    Scene::~Scene() {
-        for(auto uniformBuffer : m_uniformBuffers) {
-            uniformBuffer->UnmapMemory();
-        }
-    }
-
     void Scene::UpdateUniformBuffer() {
         auto& viewUniformBuffer = m_uniformBuffers[UniformBufferGroup::viewUniform];
         // SetupviewUniformBuffer
-        
         CameraView view = {m_activeCamera->GetView(), m_activeCamera->GetProjection()};
+        viewUniformBuffer->MapMemory();
         viewUniformBuffer->CopyData(reinterpret_cast<uint8_t*>(&view), sizeof(CameraView), 0);
+        viewUniformBuffer->UnmapMemory();
     }
 }
