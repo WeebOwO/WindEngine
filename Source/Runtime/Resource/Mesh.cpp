@@ -13,7 +13,7 @@ Model::Model(Builder builder)
 
     auto& backend     = RenderBackend::GetInstance();
     auto& stageBuffer = backend.GetStagingBuffer();
-    auto  cmdbuffer   = backend.BeginSingleTimeCommand();
+    auto  cmdBuffer   = backend.BeginSingleTimeCommand();
 
     m_vertexBuffer = std::make_unique<Buffer>(
         vertexBufferSize, BufferUsage::VERTEX_BUFFER | BufferUsage::TRANSFER_DESTINATION,
@@ -22,16 +22,16 @@ Model::Model(Builder builder)
         indexBufferSize, BufferUsage::INDEX_BUFFER | BufferUsage::TRANSFER_DESTINATION,
         MemoryUsage::GPU_ONLY);
 
-    auto vertexAllocation = stageBuffer.Submit(utils::MakeView(builder.vertices));
-    auto indexAllocation  = stageBuffer.Submit(utils::MakeView(builder.indices));
+    const auto vertexAllocation = stageBuffer.Submit(utils::MakeView(builder.vertices));
+    const auto indexAllocation  = stageBuffer.Submit(utils::MakeView(builder.indices));
 
-    cmdbuffer.CopyBuffer(BufferInfo{stageBuffer.GetBuffer(), vertexAllocation.Offset},
+    cmdBuffer.CopyBuffer(BufferInfo{stageBuffer.GetBuffer(), vertexAllocation.Offset},
                          BufferInfo{*m_vertexBuffer, 0}, vertexAllocation.Size);
-    cmdbuffer.CopyBuffer(BufferInfo{stageBuffer.GetBuffer(), indexAllocation.Offset},
+    cmdBuffer.CopyBuffer(BufferInfo{stageBuffer.GetBuffer(), indexAllocation.Offset},
                          BufferInfo{*m_indexBuffer, 0}, indexAllocation.Size);
 
     stageBuffer.Flush();
-    backend.SubmitSingleTimeCommand(cmdbuffer.GetNativeHandle());
+    backend.SubmitSingleTimeCommand(cmdBuffer.GetNativeHandle());
 
     stageBuffer.Reset();
 }

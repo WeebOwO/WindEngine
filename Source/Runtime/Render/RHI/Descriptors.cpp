@@ -149,10 +149,8 @@ DescriptorBuilder DescriptorBuilder::Begin(DescriptorLayoutCache* cache,
 
 DescriptorBuilder DescriptorBuilder::Begin() {
     DescriptorBuilder builder;
-    
     builder.m_cache = RenderBackend::GetInstance().GetDescriptorLayoutCache();
     builder.m_alloc = RenderBackend::GetInstance().GetDescriptorAllocator();
-
     return builder;
 }
 

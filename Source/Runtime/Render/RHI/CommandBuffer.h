@@ -6,9 +6,7 @@
 #include "Runtime/Render/Rhi/Image.h"
 
 namespace wind {
-struct PassNode;
-struct ResourceNode;
-
+    
 struct Rect2D {
     int32_t  offsetWidth  = 0;
     int32_t  offsetHeight = 0;
@@ -79,9 +77,9 @@ public:
 
     void Dispatch(uint32_t x, uint32_t y, uint32_t z);
 
-    void BeginRenderPass(const PassNode& passNode, const ResourceNode& resourceNode);
-    void EndRenderPass();
-    
+    // void BeginRenderPass(const PassNode& passNode, const ResourceNode& resourceNode);
+    // void EndRenderPass();
+
     void CopyImage(const ImageInfo& source, const ImageInfo& distance);
     void CopyBufferToImage(const BufferInfo& source, const ImageInfo& distance);
     void CopyImageToBuffer(const ImageInfo& source, const BufferInfo& distance);
@@ -97,8 +95,8 @@ public:
     void TransferLayout(std::span<Image> images, ImageUsage::Bits oldLayout,
                         ImageUsage::Bits newLayout);
 
-    void BindPipeline(const PassNode& passNode);
-     
+    // void BindPipeline(const PassNode& passNode);
+
     template <typename... Buffers> void BindVertexBuffers(const Buffers&... vertexBuffers) {
         constexpr size_t BufferCount          = sizeof...(Buffers);
         std::array       buffers              = {vertexBuffers.GetNativeHandle()...};

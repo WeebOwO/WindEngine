@@ -1,4 +1,4 @@
-set_project("Vulkan Engine")
+set_project("WindEngine")
 
 add_requires("glm", "glfw", "glad", "vulkansdk", "spdlog", 'assimp', 'stb', 'vulkan-memory-allocator', 'spirv-cross', 'spirv-reflect')
 

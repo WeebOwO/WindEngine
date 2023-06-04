@@ -2,26 +2,27 @@
 
 #include <memory>
 
-#include "Runtime/Render/BasePass.h"
+#include "Runtime/Base/Macro.h"
 #include "Runtime/Scene/Scene.h"
 
 namespace wind {
 Renderer::Renderer() : m_backend(RenderBackend::GetInstance()) {
-    InitRenderPass();
-    m_renderGraph.Setup();
+    m_renderGraph = std::make_unique<RenderGraph>();
+    CreateRenderPass();
 } 
 
-void Renderer::InitRenderPass() {
-    // Currently just simple forward shading
-    m_renderGraph.AddRenderPass(std::make_unique<BasePass>("BasePass", m_renderGraph));
+void Renderer::CreateRenderPass() {
+    m_renderGraph->AddRenderPass("BasePass", [&]() {
+        WIND_CORE_INFO("Create Base Pass");
+        return [](CommandBuffer cmdbuffer, RenderGraphRegister graphRegister) {
+            
+        };
+    });
 }
 
 void Renderer::Render() {
-    auto& world = Scene::GetWorld();
-    world.UpdateUniformBuffer();
     // Render start!
-    m_backend.StartFrame();
-    m_renderGraph.Exec();
-    m_backend.EndFrame();
+    // m_backend.StartFrame();
+    // m_backend.EndFrame();
 }
 } // namespace wind

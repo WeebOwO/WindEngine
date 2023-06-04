@@ -42,7 +42,7 @@ void Buffer::FlushMemory(size_t byteSize, size_t offset) {
 }
 
 void Buffer::CopyData(const uint8_t* data, size_t byteSize, size_t offset) {
-    assert(byteSize + offset <= byteSize);
+    assert(byteSize + offset <= m_byteSize);
 
     if (m_mappedMemory == nullptr) {
         (void)MapMemory();
