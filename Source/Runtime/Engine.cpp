@@ -6,7 +6,6 @@
 #include "Runtime/Base/Log.h"
 #include "Runtime/Input/Input.h"
 #include "Runtime/Render/RHI/Backend.h"
-#include "Runtime/Render/Window.h"
 #include "Runtime/Scene/Camera.h"
 #include "Runtime/Scene/Scene.h"
 
@@ -18,12 +17,12 @@ class EngineImpl {
 public:
     EngineImpl() : m_window(WIDTH, HEIGHT, "Wind Engine") {
         Log::Init();
+        WIND_CORE_INFO("Engine init");
         BackendCreateSetting setting{m_window};
         RenderBackend::Init(setting);
         Scene::Init();
         InputManger::Init(m_window.GetWindow());
         m_renderer = std::make_unique<Renderer>();
-        WIND_CORE_INFO("Engine init");
     }
 
     ~EngineImpl() = default;
@@ -90,11 +89,18 @@ void EngineImpl::LoadGameObject() {
 }
 
 void EngineImpl::LogicTick(float fs) { 
+    // window handle the flfw event
+    auto& world = Scene::GetWorld();
+    auto camera = world.GetActiveCamera();
     m_window.OnUpdate(fs);
-    
+    // update camera related things
+    camera->OnResize(m_window.width(), m_window.height());
+    camera->OnUpdate(fs);   
  }
 
-void EngineImpl::RenderTick(float fs) { m_renderer->Render(); }
+void EngineImpl::RenderTick(float fs) { 
+    m_renderer->Render(); 
+}
 
 // Engine Part
 void Engine::Run() { m_impl->Run(); }

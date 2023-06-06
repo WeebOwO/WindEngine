@@ -6,6 +6,7 @@ namespace wind {
     }
 
     Scene::Scene() {
+        
     }
 
 }

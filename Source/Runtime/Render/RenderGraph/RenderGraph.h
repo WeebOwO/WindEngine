@@ -3,6 +3,7 @@
 #include <string_view>
 #include <vector>
 
+#include "Runtime/Render/RHI/Image.h"
 #include "Runtime/Render/RenderGraph/Node.h"
 #include "Runtime/Render/RenderGraph/RenderGraphRegister.h"
 
@@ -15,14 +16,11 @@ public:
     };
 
     struct ImageCreateInfo {
+        uint32_t width, height;
 
     };
 
     void    AddRenderPass(std::string_view passName, PassSetupFunc setupFunc);
-    Image*  RegisterAndCreateImage(const std::string& passName, const std::string& resourceName,
-                                   DataRelation relation, const BufferCreateInfo& createInfo);
-    Buffer* RegisterAndCreateBuffer(const std::string& passName, const std::string& resourceName,
-                                    DataRelation relation, const ImageCreateInfo& createInfo);
     void    ImportPersistentResource();
 
     void Setup();

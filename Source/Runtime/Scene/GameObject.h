@@ -5,13 +5,14 @@
 #include <glm/glm.hpp>
 
 #include "Runtime/Base/Macro.h"
+#include "Runtime/Resource/Material.h"
 
 namespace wind {
 class Model;
 
 struct Transform {
    alignas(16) glm::vec3 location;
-   alignas(16) glm::vec3 ratation;
+   alignas(16) glm::vec3 rotation;
    alignas(16) glm::vec3 scale;
 };
 
@@ -31,6 +32,7 @@ public:
 
     Transform transform;
     std::shared_ptr<Model> model{nullptr};
+    std::shared_ptr<Material> material {nullptr};
 
 private:
     GameObject(uint32_t id) : m_id(id) {}

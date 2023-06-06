@@ -65,6 +65,7 @@ class DescriptorBuilder {
 public:
     static DescriptorBuilder Begin(DescriptorLayoutCache* cache, DescriptorAllocator* allocator);
     static DescriptorBuilder Begin();
+    
     DescriptorBuilder& BindBuffer(uint32_t binding, vk::DescriptorBufferInfo bufferInfo, vk::DescriptorType descriptorType, vk::ShaderStageFlags stageFlags);
     DescriptorBuilder& BindImage(uint32_t binding, vk::DescriptorImageInfo imageInfo, vk::DescriptorType descriptorType, vk::ShaderStageFlags stageFlags);
     

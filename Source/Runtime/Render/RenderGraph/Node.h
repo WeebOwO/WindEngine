@@ -3,6 +3,7 @@
 #include <functional>
 #include <string>
 #include <variant>
+#include <vector>
 
 #include <vulkan/vulkan.hpp>
 
@@ -20,7 +21,12 @@ namespace wind {
         Buffer = 0,
         Image
     };
-
+    
+    struct Node {
+        uint32_t inRefCnt = 0;
+        uint32_t outRegcnt = 0;
+    };
+    
     struct ResourceNode {
         std::string resourceName;
         RenderResoueceType resoueceType;

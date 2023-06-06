@@ -26,7 +26,7 @@ public:
         gameobject.model = model;
         m_worldObjects.push_back(std::move(gameobject));
     }
-
+    
     auto& GetWorldGameObjects() { return m_worldObjects; }
     auto& GetActiveCamera() { return m_activeCamera; }
 
