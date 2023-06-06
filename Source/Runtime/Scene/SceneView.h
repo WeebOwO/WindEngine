@@ -5,7 +5,14 @@
 #include <memory>
 
 namespace wind {
-struct ViewInfo {};
+struct CameraUniformBuffer {
+
+};
+
+struct ViewInfo {
+
+};
+
 // A scene abstraction for renderer side
 class SceneView {
 public:

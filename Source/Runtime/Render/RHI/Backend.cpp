@@ -122,14 +122,18 @@ void RenderBackend::CreateDevice() {
 
 void RenderBackend::QueryQueueFamilyIndices() {
     auto properties = m_physicalDevice.getQueueFamilyProperties();
+  
     for (uint32_t i = 0; const auto& queueFamily : properties) {
         if (queueFamily.queueCount > 0 && queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) {
+            WIND_CORE_INFO("Present queue index is {}", i);
             m_queueIndices.graphicsQueueIndex = i;
         }
         if (queueFamily.queueCount > 0 && queueFamily.queueFlags & vk::QueueFlagBits::eCompute) {
+            WIND_CORE_INFO("Compute queue index is {}", i);
             m_queueIndices.computeQueueIndex = i;
         }
         if (queueFamily.queueCount > 0 && m_physicalDevice.getSurfaceSupportKHR(i, m_surface)) {
+            WIND_CORE_INFO("Present queue index is {}", i);
             m_queueIndices.presentQueueIndex = i;
         }
         if (m_queueIndices.IsComplete()) break;

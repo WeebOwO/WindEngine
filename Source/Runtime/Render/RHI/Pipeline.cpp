@@ -7,15 +7,6 @@ vk::Pipeline CreateGraphicsPipeline(const GraphicsShader& shader, vk::RenderPass
     // 1. vertex input
     vk::PipelineVertexInputStateCreateInfo inputStateCreateInfo;
     
-    auto bindingDescription    = shader.GetVertexInputBindingDescription();
-    auto attributeDescriptions = shader.GetVertexInputAttributeDescriptions();
-
-    inputStateCreateInfo
-        .setVertexAttributeDescriptionCount(static_cast<uint32_t>(attributeDescriptions.size()))
-        .setVertexBindingDescriptionCount(1)
-        .setPVertexBindingDescriptions(&bindingDescription)
-        .setPVertexAttributeDescriptions(attributeDescriptions.data());
-
     // 2. input Assembly
     vk::PipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo;
     inputAssemblyCreateInfo.setTopology(vk::PrimitiveTopology::eTriangleList)

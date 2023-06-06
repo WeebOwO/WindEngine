@@ -13,7 +13,7 @@ Renderer::Renderer() : m_backend(RenderBackend::GetInstance()) {
 
 void Renderer::Render() {
     // Render start!
-
+    
     // m_backend.StartFrame();
     // m_backend.EndFrame();
 }

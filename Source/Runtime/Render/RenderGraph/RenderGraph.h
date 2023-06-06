@@ -11,18 +11,18 @@ namespace wind {
 
 class RenderGraph {
 public:
-    struct BufferCreateInfo {
+    struct RDGBufferDesc {
 
     };
 
-    struct ImageCreateInfo {
-        uint32_t width, height;
-
+    struct RDGTextureDesc {
+        uint32_t width;
+        uint32_t height;
     };
 
     void    AddRenderPass(std::string_view passName, PassSetupFunc setupFunc);
     void    ImportPersistentResource();
-
+    
     void Setup();
     void Compile();
     void Exec();
