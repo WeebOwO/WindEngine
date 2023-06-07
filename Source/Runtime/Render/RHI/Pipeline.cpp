@@ -11,7 +11,7 @@ vk::Pipeline CreateGraphicsPipeline(const GraphicsShader& shader, vk::RenderPass
     vk::PipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo;
     inputAssemblyCreateInfo.setTopology(vk::PrimitiveTopology::eTriangleList)
         .setPrimitiveRestartEnable(false);
-
+    
     // 3. shader stage
     std::array<vk::PipelineShaderStageCreateInfo, 2> shaderStageCreateInfos;
     shaderStageCreateInfos[0]
@@ -65,7 +65,7 @@ vk::Pipeline CreateGraphicsPipeline(const GraphicsShader& shader, vk::RenderPass
         vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
         vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
     colorBlendStateCreateInfo.setLogicOpEnable(false).setAttachments(colorBlendAttachment);
-
+    
     // 8 dynamic state create
     vk::PipelineDynamicStateCreateInfo dynamicStateCreateInfo;
     std::array dynamicStates = {vk::DynamicState::eViewport, vk::DynamicState::eScissor};

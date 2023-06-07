@@ -12,7 +12,7 @@ public:
         uint32_t binding;
         vk::DescriptorType descriptorType;
     };  
-
+    
     GraphicsShader(std::string_view vertexShaderfilePath, std::string_view fragmentShaderFilePath);
 
     ~GraphicsShader();

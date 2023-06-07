@@ -12,6 +12,7 @@ class Material {
 public:
     static void LoadMaterial(std::string_view filePath);
     static void AddMaterial(std::string_view materialName);
+    
     static auto GetMaterialByName(std::string_view materialName) {
         return m_materialCache[std::string(materialName)];
     }   

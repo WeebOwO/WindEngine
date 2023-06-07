@@ -11,21 +11,14 @@ namespace wind {
 
 class RenderGraph {
 public:
-    struct RDGBufferDesc {
+    friend class RenderGraphBuilder;
 
-    };
-
-    struct RDGTextureDesc {
-        uint32_t width;
-        uint32_t height;
-    };
-
-    void    AddRenderPass(std::string_view passName, PassSetupFunc setupFunc);
-    void    ImportPersistentResource();
-    
     void Setup();
     void Compile();
     void Exec();
+
+private:
+    void AddRenderPass(std::string_view passName, PassSetupFunc setupFunc);
 private:
     std::vector<PassNode>     m_passNodes;
     std::vector<ResourceNode> m_resourceNodes;
