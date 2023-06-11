@@ -5,12 +5,9 @@
 #include <memory>
 
 namespace wind {
-struct CameraUniformBuffer {
-
-};
 
 struct ViewInfo {
-
+    std::shared_ptr<Buffer> CameraUniformBuffer;
 };
 
 // A scene abstraction for renderer side

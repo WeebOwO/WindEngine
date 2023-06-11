@@ -13,12 +13,16 @@ class RenderGraph {
 public:
     friend class RenderGraphBuilder;
 
+    ~RenderGraph() = default;
+
     void Setup();
     void Compile();
     void Exec();
 
 private:
     void AddRenderPass(std::string_view passName, PassSetupFunc setupFunc);
+    void AddResourceNode(const std::string& name, ResourceNode resource);
+    
 private:
     std::vector<PassNode>     m_passNodes;
     std::vector<ResourceNode> m_resourceNodes;

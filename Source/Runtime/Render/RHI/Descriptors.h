@@ -8,7 +8,6 @@
 #include "vulkan/vulkan.hpp"
 
 namespace wind {
-
 class DescriptorLayoutCache {
 public:
     struct DescriptorLayoutInfo {

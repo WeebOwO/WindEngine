@@ -32,7 +32,8 @@ vk::Pipeline CreateGraphicsPipeline(const GraphicsShader& shader, vk::RenderPass
     viewportCreateinfo.setViewports(viewport);
 
     vk::Rect2D rect{{0, 0}, {viewportWidth, viewportHeight}};
-    viewportCreateinfo.setPScissors(&rect).setScissorCount(1);
+    viewportCreateinfo.setPScissors(&rect)
+                      .setScissorCount(1);
 
     vk::PipelineRasterizationStateCreateInfo rasterizationStateCreateInfo;
     rasterizationStateCreateInfo.setRasterizerDiscardEnable(false)
@@ -61,10 +62,11 @@ vk::Pipeline CreateGraphicsPipeline(const GraphicsShader& shader, vk::RenderPass
     vk::PipelineColorBlendStateCreateInfo colorBlendStateCreateInfo;
     vk::PipelineColorBlendAttachmentState colorBlendAttachment;
 
-    colorBlendAttachment.setBlendEnable(false).setColorWriteMask(
-        vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+    colorBlendAttachment.setBlendEnable(false)
+                        .setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
         vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
-    colorBlendStateCreateInfo.setLogicOpEnable(false).setAttachments(colorBlendAttachment);
+    colorBlendStateCreateInfo.setLogicOpEnable(false)
+                             .setAttachments(colorBlendAttachment);
     
     // 8 dynamic state create
     vk::PipelineDynamicStateCreateInfo dynamicStateCreateInfo;

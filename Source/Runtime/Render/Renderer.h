@@ -6,6 +6,8 @@
 #include "Runtime/Render/RHI/Backend.h"
 
 #include "Runtime/Render/RenderGraph/RenderGraph.h"
+#include "Runtime/Render/RenderGraph/RenderGraphBuilder.h"
+#include "Runtime/Render/RenderGraph/RenderPass.h"
 
 namespace wind {
 
@@ -18,19 +20,23 @@ enum class ShadingPath  {
     Deferred
 };
 
+class Scene;
+
 class Renderer {
 public:
     PERMIT_COPY(Renderer)
     PERMIT_MOVE(Renderer)
     Renderer();
     void CreateRenderPass();
-    void Render();
-    
+
+    void Render(Scene& scene);
 private:
-    void RenderForward();
-    void RenderDefered();
+    void RenderForward(RenderGraphBuilder& graphBuilder);
+    void RenderDefered(RenderGraphBuilder& graphBuilder);
+
     ShadingPath m_shadingPath {ShadingPath::Forward};
     RenderBackend& m_backend;
-    std::unique_ptr<RenderGraph> m_renderGraph;
+
+    std::shared_ptr<RenderGraph> m_renderGraph;
 };
 } // namespace wind

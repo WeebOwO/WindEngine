@@ -15,7 +15,7 @@ enum class DataRelation : uint8_t {
 
 class RenderGraphRegister {
 public:
-    [[nodiscard]] auto GetResouece(std::string_view resourceName) {
+    [[nodiscard]] auto GetResource(std::string_view resourceName) {
         return m_resouceLookupTable[std::string(resourceName)];
     }
     void RegisterPassResouce(const std::string& passName, const std::string& resourceName, DataRelation relation);
@@ -24,6 +24,7 @@ public:
     void DecalareOutput(std::span<std::string> outputs);
     void SetupDependency(std::span<std::string> dependencies);
 
+    void UnRegisterAll();
 private:
     std::unordered_map<std::string, ResourceNode*> m_resouceLookupTable;
     std::unordered_map<std::string, std::list<std::string>> m_passReadResources;

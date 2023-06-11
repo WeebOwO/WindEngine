@@ -99,7 +99,8 @@ void EngineImpl::LogicTick(float fs) {
  }
 
 void EngineImpl::RenderTick(float fs) { 
-    m_renderer->Render(); 
+    auto& world = Scene::GetWorld();
+    m_renderer->Render(world); 
 }
 
 // Engine Part
