@@ -31,6 +31,7 @@ public:
 
     void Render(Scene& scene);
 private:
+    void InitForwardPassResource();
     void RenderForward(RenderGraphBuilder& graphBuilder);
     void RenderDefered(RenderGraphBuilder& graphBuilder);
 

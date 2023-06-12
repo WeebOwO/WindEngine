@@ -1,6 +1,7 @@
 #include "Node.h"
 
 #include "Runtime/Render/RHI/Backend.h"
+
 #include "Runtime/Render/RenderGraph/RenderGraphBuilder.h"
 
 namespace wind {
@@ -30,12 +31,10 @@ void PassNode::Init(const std::vector<std::string>& inRoureces,
     }
 }
 
-void PassNode::DeclareColorAttachment(const std::string& name, RenderGraphBuilder& graphBuilder,
-                                      TextureDesc textureDesc, vk::ImageLayout initialLayout,
-                                      vk::ImageLayout finalLayout) {
+void PassNode::DeclareColorAttachment(const std::string& name, const TextureDesc& textureDesc,
+                                      vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) {
     vk::AttachmentDescription colorAttachment{};
-    std::shared_ptr<Image>    colorImage = graphBuilder.CreateRDGTexture(name, textureDesc);
-    auto                      format     = RenderBackend::GetInstance().GetSwapChainSurfaceFormat();
+    auto                      format = RenderBackend::GetInstance().GetSwapChainSurfaceFormat();
 
     colorAttachment.setInitialLayout(vk::ImageLayout::eUndefined)
         .setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal)
@@ -47,26 +46,35 @@ void PassNode::DeclareColorAttachment(const std::string& name, RenderGraphBuilde
         .setSamples(vk::SampleCountFlagBits::e1);
 
     colorAttachmentDescriptions.push_back(colorAttachment);
-    colorAttachments.push_back(colorImage);
-
+    colorTextureDescs[name] = textureDesc;
     outputResources.push_back(name);
 }
 
-void PassNode::DeclareDepthAttachment(const std::string& name, RenderGraphBuilder& graphBuilder,
-                                      TextureDesc textureDesc, vk::ImageLayout initialLayout,
-                                      vk::ImageLayout finalLayout) {
-    auto depthImage = graphBuilder.CreateRDGTexture(name, textureDesc);
+void PassNode::DeclareDepthAttachment(const std::string& name, const TextureDesc& textureDesc,
+                                      vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) {
+
     depthAttachmentDescription.setInitialLayout(vk::ImageLayout::eUndefined)
-        .setFinalLayout(vk::ImageLayout::eDepthAttachmentOptimal)
-        .setFormat(vk::Format::eD32Sfloat)
+        .setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal)
+        .setFormat(textureDesc.format)
         .setLoadOp(vk::AttachmentLoadOp::eClear)
         .setStoreOp(vk::AttachmentStoreOp::eStore)
         .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
         .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
         .setSamples(vk::SampleCountFlagBits::e1);
 
-    depthAttachment = depthImage;
+    depthTextureDesc[name] = textureDesc;
     outputResources.push_back(name);
+}
+
+void PassNode::ConstructResource(RenderGraphBuilder& graphBuilder) {
+    for (const auto& [name, desc] : colorTextureDescs) {
+        colorAttachments.push_back(graphBuilder.CreateRDGTexture(name, desc));
+    }
+
+    const auto [depthTextureName, desc] = *depthTextureDesc.begin();
+    depthAttachment                     = graphBuilder.CreateRDGTexture(depthTextureName, desc);
+
+    CreateFrameBuffer(renderRect.width, renderRect.height);
 }
 
 void PassNode::CreateFrameBuffer(uint32_t width, uint32_t height) {
@@ -102,7 +110,7 @@ void PassNode::CreateRenderPass() {
     }
 
     depthAttachmentRenference.setAttachment(colorAttachmentDescriptions.size())
-        .setLayout(vk::ImageLayout::eDepthAttachmentOptimal);
+        .setLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
     vk::SubpassDescription subpassDescription;
     subpassDescription.setColorAttachmentCount(colorAttachmentDescriptions.size())

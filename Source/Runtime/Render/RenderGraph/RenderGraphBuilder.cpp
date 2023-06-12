@@ -1,5 +1,6 @@
 #include "RenderGraphBuilder.h"
 
+#include "Runtime/Render/RHI/Backend.h"
 #include "Runtime/Render/RHI/Image.h"
 #include "Runtime/Render/RenderGraph/Node.h"
 
@@ -11,6 +12,16 @@ namespace wind {
     std::shared_ptr<RDGRenderTarget> RenderGraphBuilder::CreateRDGRenderTarget(const std::string& name, uint32_t width, uint32_t height) {
         RDGRenderTarget renderTarget;
         return nullptr;
+    }
+
+    void RenderGraphBuilder::Compile() {
+        for(auto& pass : m_renderGraph->m_passNodes) {
+            pass.ConstructResource(*this);
+        }
+    }
+
+    void RenderGraphBuilder::Exec() {
+        m_renderGraph->Exec();
     }
 
     std::shared_ptr<Image> RenderGraphBuilder::CreateRDGTexture(const std::string& resourceName, const TextureDesc& textureDesc) {

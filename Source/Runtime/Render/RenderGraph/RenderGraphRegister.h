@@ -1,13 +1,12 @@
 #pragma once
 
-#include <stdint.h>
-#include <string_view>
-#include <unordered_map>
 #include <string>
-
-#include "Runtime/Render/RenderGraph/Node.h"
+#include <span>
+#include <unordered_map>
 
 namespace wind {
+class ResourceNode;
+
 enum class DataRelation : uint8_t {
     Read = 0,
     Write

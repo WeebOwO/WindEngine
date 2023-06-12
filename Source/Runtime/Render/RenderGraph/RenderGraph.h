@@ -8,6 +8,8 @@
 #include "Runtime/Render/RenderGraph/RenderGraphRegister.h"
 
 namespace wind {
+class PassNode;
+class ResourceNode;
 
 class RenderGraph {
 public:
@@ -16,7 +18,6 @@ public:
     ~RenderGraph() = default;
 
     void Setup();
-    void Compile();
     void Exec();
 
 private:

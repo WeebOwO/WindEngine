@@ -174,7 +174,7 @@ void Image::Destroy() {
 
 void Image::InitViews(const vk::Image& image, vk::Format format) {
     m_handle = image;
-    format   = format;
+    m_format = format;
 
     auto& backend          = RenderBackend::GetInstance();
     auto  subresourceRange = GetDefaultImageSubresourceRange(*this);

@@ -1,4 +1,5 @@
 #include "RenderGraph.h"
+#include "Runtime/Render/RenderGraph/Node.h"
 
 namespace wind {
 void RenderGraph::AddResourceNode(const std::string& name, ResourceNode resource) {
@@ -13,4 +14,9 @@ void RenderGraph::AddRenderPass(std::string_view passName, PassSetupFunc setupFu
     m_passNodes.push_back(passNode);
     return;
 }
+
+void RenderGraph::Exec() {
+
+}
+
 } // namespace wind

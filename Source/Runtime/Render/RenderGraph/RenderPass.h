@@ -1,11 +1,12 @@
 #pragma once
 
-#include "Runtime/Render/RHI/CommandBuffer.h"
-#include "vulkan/vulkan.hpp"
 
 #include <functional>
 #include <vector>
 
+#include <vulkan/vulkan.hpp>
+
+#include "Runtime/Render/RHI/CommandBuffer.h"
 #include "Runtime/Render/RHI/Shader.h"
 
 namespace wind {
@@ -29,6 +30,7 @@ private:
     // depth and stencil state info
     vk::PipelineDepthStencilStateCreateInfo m_depthStencilStateCreateInfo;
     // extra blend state setting
+    vk::PipelineColorBlendAttachmentState m_colorBlendAttachment;
     vk::PipelineColorBlendStateCreateInfo m_PipelineColorBlendStateCreateInfo;
     // pipelineLayoutCreateInfo
     vk::PipelineLayoutCreateInfo m_pipelineLayoutCreateInfo;

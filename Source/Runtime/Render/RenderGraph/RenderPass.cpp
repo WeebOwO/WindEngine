@@ -58,12 +58,13 @@ RenderProcessBuilder& RenderProcessBuilder::SetShader(const std::string& vertexS
 
 RenderProcessBuilder& RenderProcessBuilder::SetBlendState(bool blendEnable) {
     vk::PipelineColorBlendAttachmentState colorBlendAttachment;
-    colorBlendAttachment.setBlendEnable(blendEnable)
+    m_colorBlendAttachment.setBlendEnable(VkBool32(blendEnable))
         .setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
                            vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
 
-    m_PipelineColorBlendStateCreateInfo.setLogicOpEnable(false).setAttachments(
-        colorBlendAttachment);
+    m_PipelineColorBlendStateCreateInfo.
+    setLogicOpEnable(false)
+    .setAttachments(m_colorBlendAttachment);
     return *this;
 }
 

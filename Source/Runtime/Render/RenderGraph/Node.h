@@ -3,6 +3,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 
@@ -12,13 +13,15 @@
 #include "Runtime/Render/RHI/Image.h"
 
 #include "Runtime/Render/RenderGraph/RenderPass.h"
+#include "Runtime/Render/RenderGraph/RenderResource.h"
 
 namespace wind {
+class RenderGraph;
 class RenderGraphRegister;
 class CommandBuffer;
 class PassNode;
 class RenderGraphBuilder;
-class TextureDesc;
+class RenderProcess;
 
 using PassExecFunc  = std::function<void(CommandBuffer, RenderGraphRegister)>;
 using PassSetupFunc = std::function<PassExecFunc(PassNode&)>;
@@ -47,12 +50,14 @@ public:
               const std::vector<std::string>& outputResources);
 
     void CreateFrameBuffer(uint32_t width, uint32_t height); 
+    void SetRenderRect(uint32_t width, uint32_t height) {renderRect.width = width, renderRect.height = height;}
+    void DeclareColorAttachment(const std::string& name, const TextureDesc& textureDesc, vk::ImageLayout intialLayout = vk::ImageLayout::eUndefined, vk::ImageLayout finalLayout = vk::ImageLayout::eColorAttachmentOptimal);
+    void DeclareDepthAttachment(const std::string& name, const TextureDesc& textureDesc, vk::ImageLayout intialLayout = vk::ImageLayout::eUndefined, vk::ImageLayout finalLayout = vk::ImageLayout::eDepthAttachmentOptimal);
 
-    void DeclareColorAttachment(const std::string& name, RenderGraphBuilder& graphBuilder, TextureDesc textureDesc, vk::ImageLayout intialLayout = vk::ImageLayout::eUndefined, vk::ImageLayout finalLayout = vk::ImageLayout::eColorAttachmentOptimal);
-    void DeclareDepthAttachment(const std::string& name, RenderGraphBuilder& graphBuilder, TextureDesc textureDesc, vk::ImageLayout intialLayout = vk::ImageLayout::eUndefined, vk::ImageLayout finalLayout = vk::ImageLayout::eDepthAttachmentOptimal);
+    void ConstructResource(RenderGraphBuilder& graphBuilder);
 
     void CreateRenderPass();
-
+    
     std::string     passName;
     vk::RenderPass  renderPass;
     vk::Framebuffer frameBuffer;
@@ -68,6 +73,13 @@ public:
     
     std::vector<std::string> dependencyResources{};
     std::vector<std::string> outputResources{};
+
+    std::unordered_map<std::string, TextureDesc> colorTextureDescs;
+    std::unordered_map<std::string, TextureDesc> depthTextureDesc;
+    // set for render pass
+    struct RenderRect {
+        uint32_t width, height;
+    } renderRect;
 };
 
 } // namespace wind
