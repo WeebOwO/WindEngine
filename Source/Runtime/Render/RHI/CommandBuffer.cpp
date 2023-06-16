@@ -69,23 +69,30 @@ void CommandBuffer::SetRenderArea(const Image& image) {
 }
 
 
-// void CommandBuffer::BeginRenderPass(const PassNode& passNode, const ResourceNode& resourceNode) {
-//     vk::RenderPassBeginInfo beginInfo;
-//     beginInfo.setRenderPass(passNode.renderPassHandle)
-//              .setRenderArea(passNode.renderArea)
-//              .setClearValueCount(1)
-//              .setClearValues(passNode.clearValues)
-//              .setFramebuffer(resourceNode.framebuffers[resourceNode.presentImageIndex]);
-//     m_handle.beginRenderPass(beginInfo, {});
-// }
+void CommandBuffer::BeginRenderPass(PassNode* passNode) {
+    vk::RenderPassBeginInfo beginInfo;
+    vk::Rect2D rect = {{}, {passNode->renderRect.width, passNode->renderRect.height}};
+    
+    std::vector<vk::ClearValue> clearValues = passNode->colorClearValue;
+    clearValues.push_back(passNode->depthClearValue);
+    beginInfo.setRenderPass(passNode->renderPass)
+             .setRenderArea(rect)
+             .setClearValueCount(1)
+             .setClearValues(clearValues)
+             .setFramebuffer(passNode->frameBuffer);
 
-// void CommandBuffer::EndRenderPass() {
-//     m_handle.endRenderPass();
-// }
+    m_handle.beginRenderPass(beginInfo, {});
+}
 
-// void CommandBuffer::BindPipeline(const PassNode& passNode) {
-//     m_handle.bindPipeline(passNode.pipelineType, passNode.pipeline);
-// }
+void CommandBuffer::EndRenderPass() {
+    m_handle.endRenderPass();
+}
+
+void CommandBuffer::BindPipeline(PassNode* passNode) {
+    auto renderProcess = passNode->pipelineState->GetPipeline();
+    m_handle.bindPipeline(renderProcess.bindPoint, renderProcess.pipeline);
+}
+
 void CommandBuffer::Dispatch(uint32_t x, uint32_t y, uint32_t z) { m_handle.dispatch(x, y, z); }
 
 void CommandBuffer::CopyImage(const ImageInfo& source, const ImageInfo& distance) {

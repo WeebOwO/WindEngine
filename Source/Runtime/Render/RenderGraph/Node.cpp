@@ -19,6 +19,12 @@ void PassNode::Init(const std::string& passName, const std::vector<std::string>&
     }
 }
 
+PassNode::~PassNode() {
+    auto& device = RenderBackend::GetInstance().GetDevice();
+    device.destroyRenderPass(renderPass);
+    device.destroyFramebuffer(frameBuffer);
+}
+
 void PassNode::Init(const std::vector<std::string>& inRoureces,
                     const std::vector<std::string>& outputResources) {
     if (!inRoureces.empty()) {
@@ -45,6 +51,9 @@ void PassNode::DeclareColorAttachment(const std::string& name, const TextureDesc
         .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
         .setSamples(vk::SampleCountFlagBits::e1);
 
+    vk::ClearValue temp;
+    temp.setColor({0.1f, 0.1f, 0.1f, 0.1f});
+    colorClearValue.push_back(temp);
     colorAttachmentDescriptions.push_back(colorAttachment);
     colorTextureDescs[name] = textureDesc;
     outputResources.push_back(name);
@@ -61,7 +70,9 @@ void PassNode::DeclareDepthAttachment(const std::string& name, const TextureDesc
         .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
         .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
         .setSamples(vk::SampleCountFlagBits::e1);
-
+    vk::ClearValue temp;
+    depthClearValue.setDepthStencil({1.0f, 0});
+    
     depthTextureDesc[name] = textureDesc;
     outputResources.push_back(name);
 }
@@ -72,7 +83,7 @@ void PassNode::ConstructResource(RenderGraphBuilder& graphBuilder) {
     }
 
     const auto [depthTextureName, desc] = *depthTextureDesc.begin();
-    depthAttachment                     = graphBuilder.CreateRDGTexture(depthTextureName, desc);
+    depthAttachment = graphBuilder.CreateRDGTexture(depthTextureName, desc);
 
     CreateFrameBuffer(renderRect.width, renderRect.height);
 }
@@ -118,7 +129,7 @@ void PassNode::CreateRenderPass() {
         .setPDepthStencilAttachment(&depthAttachmentRenference)
         .setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
 
-    std::vector<vk::AttachmentDescription> attachments = colorAttachmentDescriptions;
+    std::pmr::vector<vk::AttachmentDescription> attachments = colorAttachmentDescriptions;
     attachments.emplace_back(depthAttachmentDescription);
 
     vk::RenderPassCreateInfo renderPassCreateInfo;

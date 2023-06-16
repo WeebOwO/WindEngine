@@ -6,7 +6,6 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include "Runtime/Render/RHI/CommandBuffer.h"
 #include "Runtime/Render/RHI/Shader.h"
 
 namespace wind {
@@ -14,7 +13,7 @@ class RenderProcess;
 
 class RenderProcessBuilder {
 public:
-    RenderProcessBuilder& SetShader(GraphicsShader graphicsShader);
+    RenderProcessBuilder& SetShader(GraphicsShader* graphicsShader);
     RenderProcessBuilder& SetShader(const std::string& vertexShaderFile, const std::string& fragShaderFile);
     RenderProcessBuilder& SetBlendState(bool blendEnable);
     RenderProcessBuilder& SetDepthSetencilTestState(bool depthTestEnable, bool depthWriteEnable,
@@ -41,12 +40,15 @@ public:
     friend class RenderProcessBuilder;
     RenderProcess(vk::Pipeline pipeline, vk::PipelineLayout pipelineLayout, vk::PipelineBindPoint bindPoint)
     :m_pipeline({pipeline, pipelineLayout, bindPoint}) {}
+    ~RenderProcess();
 
     struct Pipeline {
         vk::Pipeline          pipeline;
         vk::PipelineLayout    pipelineLayout;
         vk::PipelineBindPoint bindPoint;
     };
+
+    [[nodiscard]] auto GetPipeline() {return m_pipeline;}
 private:
     Pipeline m_pipeline;
 };

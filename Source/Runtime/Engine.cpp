@@ -2,15 +2,15 @@
 
 #include <memory>
 
-#include "RUntime/Render/Renderer.h"
+#include "RUntime/Render/ForwardSceneRenderer.h"
 #include "Runtime/Base/Log.h"
 #include "Runtime/Input/Input.h"
 #include "Runtime/Render/RHI/Backend.h"
 #include "Runtime/Scene/Camera.h"
 #include "Runtime/Scene/Scene.h"
 
-static constexpr uint32_t WIDTH  = 1920;
-static constexpr uint32_t HEIGHT = 1080;
+static constexpr uint32_t WIDTH  = 800;
+static constexpr uint32_t HEIGHT = 600;
 
 namespace wind {
 class EngineImpl {
@@ -22,7 +22,7 @@ public:
         RenderBackend::Init(setting);
         Scene::Init();
         InputManger::Init(m_window.GetWindow());
-        m_renderer = std::make_unique<Renderer>();
+        m_renderer = std::make_unique<ForwardRenderer>();
     }
 
     ~EngineImpl() = default;

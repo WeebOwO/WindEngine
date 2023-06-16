@@ -2,8 +2,7 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include "Runtime/Render/Rhi/Buffer.h"
-#include "Runtime/Render/Rhi/Image.h"
+#include "Runtime/Render/RenderGraph/Node.h"
 
 namespace wind {
     
@@ -77,8 +76,8 @@ public:
 
     void Dispatch(uint32_t x, uint32_t y, uint32_t z);
 
-    // void BeginRenderPass(const PassNode& passNode, const ResourceNode& resourceNode);
-    // void EndRenderPass();
+    void BeginRenderPass(PassNode* passNode);
+    void EndRenderPass();
 
     void CopyImage(const ImageInfo& source, const ImageInfo& distance);
     void CopyBufferToImage(const BufferInfo& source, const ImageInfo& distance);
@@ -95,7 +94,7 @@ public:
     void TransferLayout(std::span<Image> images, ImageUsage::Bits oldLayout,
                         ImageUsage::Bits newLayout);
 
-    // void BindPipeline(const PassNode& passNode);
+    void BindPipeline(PassNode* passNode);
 
     template <typename... Buffers> void BindVertexBuffers(const Buffers&... vertexBuffers) {
         constexpr size_t BufferCount          = sizeof...(Buffers);

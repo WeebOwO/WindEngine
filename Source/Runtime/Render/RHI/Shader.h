@@ -1,6 +1,9 @@
 #pragma once
 
+#include <memory>
+#include <string>
 #include <unordered_map>
+
 #include <vulkan/vulkan.hpp>
 
 namespace wind {
@@ -8,11 +11,11 @@ namespace wind {
 class GraphicsShader {
 public:
     struct ShaderMetaData {
-        uint32_t set;
-        uint32_t binding;
+        uint32_t           set;
+        uint32_t           binding;
         vk::DescriptorType descriptorType;
-    };  
-    
+    };
+
     GraphicsShader(std::string_view vertexShaderfilePath, std::string_view fragmentShaderFilePath);
 
     ~GraphicsShader();
@@ -20,9 +23,20 @@ public:
     [[nodiscard]] auto GetFragmentShaderModule() const { return m_fragShader; }
 
 private:
-    void             CollectSpirvMetaData(std::vector<uint32_t> spivrBinary);
-    vk::ShaderModule m_vertexShader;
-    vk::ShaderModule m_fragShader;
+    void                        CollectSpirvMetaData(std::vector<uint32_t> spivrBinary);
+    vk::ShaderModule            m_vertexShader;
+    vk::ShaderModule            m_fragShader;
     std::vector<ShaderMetaData> m_shaderMetaDatas;
 };
+
+class ShaderFactory {
+public:
+    static std::shared_ptr<GraphicsShader> CreateGraphicsShader(const std::string& name,
+                                                                const std::string& vertexFilePath,
+                                                                const std::string& fragFilePath);
+
+private:
+    static std::unordered_map<std::string, std::shared_ptr<GraphicsShader>> m_shaderCache;
+};
+
 } // namespace wind

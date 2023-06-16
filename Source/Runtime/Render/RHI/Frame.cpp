@@ -1,7 +1,7 @@
 #include "Frame.h"
 
+#include "Runtime/Render/RHI/Backend.h"
 #include "Runtime/Render/RHI/StageBuffer.h"
-#include "Runtime/Render/Rhi/Backend.h"
 
 namespace wind {
 void VirtualFrameProvider::Init(size_t frameCount, size_t stageBufferSize) {
@@ -55,28 +55,55 @@ void VirtualFrameProvider::StartFrame() {
 }
 
 void VirtualFrameProvider::EndFrame() {
-    auto& frame         = GetCurrentFrame();
-    auto& vulkanContext = RenderBackend::GetInstance();
+    auto& frame   = this->GetCurrentFrame();
+    auto& backend = RenderBackend::GetInstance();
+
+    auto lastPresentImageUsage = backend.GetSwapchainImageUsage(m_presentImageIndex);
+    // reset present swapchain usage
+    auto& presentImage = backend.AcquireSwapchainImage(m_presentImageIndex, ImageUsage::UNKNOWN);
+
+    auto subresourceRange = GetDefaultImageSubresourceRange(presentImage);
+
+    // here we assume that present image is not written directly, but transfered from other image
+    vk::ImageMemoryBarrier presentImageTransferDstToPresent;
+    presentImageTransferDstToPresent
+        .setSrcAccessMask(ImageUsageToAccessFlags(lastPresentImageUsage))
+        .setDstAccessMask(vk::AccessFlagBits::eMemoryRead)
+        .setOldLayout(ImageUsageToImageLayout(lastPresentImageUsage))
+        .setNewLayout(vk::ImageLayout::ePresentSrcKHR)
+        .setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+        .setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
+        .setImage(presentImage.GetNativeHandle())
+        .setSubresourceRange(subresourceRange);
+
+    frame.Commands.GetNativeHandle().pipelineBarrier(
+        ImageUsageToPipelineStage(lastPresentImageUsage), vk::PipelineStageFlagBits::eBottomOfPipe,
+        {}, // dependency flags
+        {}, // memory barriers
+        {}, // buffer barriers
+        presentImageTransferDstToPresent);
 
     frame.Commands.End();
 
-    std::array waitDstStageMask = {
-        (vk::PipelineStageFlags)vk::PipelineStageFlagBits::eColorAttachmentOutput};
+    frame.StagingBuffer.Flush();
+    frame.StagingBuffer.Reset();
+
+    std::array waitDstStageMask = {(vk::PipelineStageFlags)vk::PipelineStageFlagBits::eTransfer};
 
     vk::SubmitInfo submitInfo;
-    submitInfo.setWaitSemaphores(vulkanContext.GetImageAvailableSemaphore())
+    submitInfo.setWaitSemaphores(backend.GetImageAvailableSemaphore())
         .setWaitDstStageMask(waitDstStageMask)
-        .setSignalSemaphores(vulkanContext.GetRenderingFinishedSemaphore())
+        .setSignalSemaphores(backend.GetRenderingFinishedSemaphore())
         .setCommandBuffers(frame.Commands.GetNativeHandle());
 
-    RenderBackend::GetInstance().GetGraphicsQueue().submit(std::array{submitInfo},
-                                                           frame.CommandQueueFence);
+    backend.GetGraphicsQueue().submit(std::array{submitInfo}, frame.CommandQueueFence);
+
     vk::PresentInfoKHR presentInfo;
-    presentInfo.setWaitSemaphores(vulkanContext.GetRenderingFinishedSemaphore())
-        .setSwapchains(vulkanContext.GetSwapchain())
+    presentInfo.setWaitSemaphores(backend.GetRenderingFinishedSemaphore())
+        .setSwapchains(backend.GetSwapchain())
         .setImageIndices(m_presentImageIndex);
 
-    auto presetSucceeded = vulkanContext.GetPresentQueue().presentKHR(presentInfo);
+    auto presetSucceeded = backend.GetPresentQueue().presentKHR(presentInfo);
     assert(presetSucceeded == vk::Result::eSuccess);
 
     m_currentFrame = (m_currentFrame + 1) % m_virtualFrames.size();

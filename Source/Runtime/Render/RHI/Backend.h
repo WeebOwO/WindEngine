@@ -7,13 +7,10 @@
 
 #include <vulkan/vulkan.hpp>
 
-#include <GLFW/glfw3.h>
-
 #include "Runtime/Base/Macro.h"
 #include "Runtime/Render/RHI/Descriptors.h"
 #include "Runtime/Render/RHI/Frame.h"
 #include "Runtime/Render/Window.h"
-
 
 namespace wind {
 
@@ -92,7 +89,7 @@ public:
         m_swapchainImageUsages[index] = usage;
         return m_swapchainImages[index];
     }
-    [[nodiscard]] const auto& GetCurrentSwapChainImage() const {
+    [[nodiscard]] auto& GetCurrentSwapChainImage() const {
         return m_swapchainImages[m_virtualFrames.GetPresentImageIndex()];
     }
     [[nodiscard]] const auto     IsRenderingEnabled() const { return m_renderingEnabled; }
@@ -100,13 +97,13 @@ public:
     [[nodiscard]] const auto     GetCurrentImageIndex() {
         return m_virtualFrames.GetPresentImageIndex();
     }
-    [[nodiscard]] const auto& GetCurrentFrame() const { return m_virtualFrames.GetCurrentFrame(); }
+    [[nodiscard]] auto& GetCurrentFrame() const { return m_virtualFrames.GetCurrentFrame(); }
     [[nodiscard]] const auto& GetDescriptorLayoutCache() const { return m_descriptorLayoutCache; }
     [[nodiscard]] const auto& GetDescriptorAllocator() const { return m_descriptorAllocator; }
     [[nodiscard]] auto& GetStagingBuffer() {
         return m_virtualFrames.GetCurrentFrame().StagingBuffer;
     }
-
+    [[nodiscard]] auto GetMaxFrameInFlight() {return m_createSetting.maxFrameInflight;}
 private:
     std::vector<const char*> GetRequiredExtensions();
     void                     CreateInstance();

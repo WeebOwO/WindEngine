@@ -34,7 +34,7 @@ std::vector<char> ReadFile(std::string_view filename) {
 std::vector<uint32_t> ReadSpirvBinaryFile(std::string_view filename) {
     std::ifstream file(filename.data(), std::ios::binary);
 
-    if (!file.is_open()) { WIND_CORE_ERROR("Failed to open file!"); }
+    if (!file.is_open()) { WIND_CORE_ERROR("Failed to open file with file path {}!", filename); }
 
     std::vector<char> spirv((std::istreambuf_iterator<char>(file)),
                             (std::istreambuf_iterator<char>()));

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Runtime/Base/Macro.h"
 #include <string>
 #include <span>
 #include <unordered_map>
@@ -15,6 +16,9 @@ enum class DataRelation : uint8_t {
 class RenderGraphRegister {
 public:
     [[nodiscard]] auto GetResource(std::string_view resourceName) {
+        if(m_resouceLookupTable.find(std::string(resourceName)) == m_resouceLookupTable.end()) {
+            WIND_CORE_WARN("Fail to find {}", resourceName);
+        }
         return m_resouceLookupTable[std::string(resourceName)];
     }
     void RegisterPassResouce(const std::string& passName, const std::string& resourceName, DataRelation relation);
@@ -25,8 +29,8 @@ public:
 
     void UnRegisterAll();
 private:
-    std::unordered_map<std::string, ResourceNode*> m_resouceLookupTable;
-    std::unordered_map<std::string, std::list<std::string>> m_passReadResources;
-    std::unordered_map<std::string, std::list<std::string>> m_passWriteResources;
+    std::pmr::unordered_map<std::string, ResourceNode*> m_resouceLookupTable;
+    std::pmr::unordered_map<std::string, std::list<std::string>> m_passReadResources;
+    std::pmr::unordered_map<std::string, std::list<std::string>> m_passWriteResources;
 };
 } // namespace wind

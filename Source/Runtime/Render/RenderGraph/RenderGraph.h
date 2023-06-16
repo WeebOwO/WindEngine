@@ -14,20 +14,19 @@ class ResourceNode;
 class RenderGraph {
 public:
     friend class RenderGraphBuilder;
-
-    ~RenderGraph() = default;
+    ~RenderGraph();
 
     void Setup();
     void Exec();
 
 private:
     void AddRenderPass(std::string_view passName, PassSetupFunc setupFunc);
-    void AddResourceNode(const std::string& name, ResourceNode resource);
+    void AddResourceNode(const std::string& name, ResourceNode* resource);
     
 private:
-    std::vector<PassNode>     m_passNodes;
-    std::vector<ResourceNode> m_resourceNodes;
-    RenderGraphRegister       m_graphRegister;
+    std::vector<PassNode*>     m_passNodes;
+    std::vector<ResourceNode*> m_resourceNodes;
+    RenderGraphRegister        m_graphRegister;
 };
 
 } // namespace wind

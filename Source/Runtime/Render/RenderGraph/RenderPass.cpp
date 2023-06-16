@@ -7,9 +7,9 @@
 
 
 namespace wind {
-RenderProcessBuilder& RenderProcessBuilder::SetShader(GraphicsShader graphicsShader) {
-    vk::ShaderModule vertexShaderModule = graphicsShader.GetVertexShaderModule();
-    vk::ShaderModule fragShaderModule   = graphicsShader.GetFragmentShaderModule();
+RenderProcessBuilder& RenderProcessBuilder::SetShader(GraphicsShader* graphicsShader) {
+    vk::ShaderModule vertexShaderModule = graphicsShader->GetVertexShaderModule();
+    vk::ShaderModule fragShaderModule   = graphicsShader->GetFragmentShaderModule();
 
     m_shaderStageCreateInfos.resize(2);
 
@@ -52,7 +52,7 @@ RenderProcessBuilder& RenderProcessBuilder::SetShader(const std::string& vertexS
         .setModule(fsModule)
         .setStage(vk::ShaderStageFlagBits::eFragment)
         .setPName("main");
-    
+
     return *this;
 }
 
@@ -94,13 +94,13 @@ std::shared_ptr<RenderProcess> RenderProcessBuilder::BuildGraphicProcess() {
     // vertex input
     vk::PipelineVertexInputStateCreateInfo inputStateCreateInfo;
 
-    auto vertexAttributeDescriptions = Vertex::GetVertexInputAttributeDescriptions();
-    auto vertexInputBindings         = Vertex::GetInputBindingDescription();
+    // auto vertexAttributeDescriptions = Vertex::GetVertexInputAttributeDescriptions();
+    // auto vertexInputBindings         = Vertex::GetInputBindingDescription();
 
-    inputStateCreateInfo.setVertexAttributeDescriptions(vertexAttributeDescriptions)
-        .setVertexAttributeDescriptionCount(vertexAttributeDescriptions.size())
-        .setVertexBindingDescriptions(vertexInputBindings)
-        .setVertexBindingDescriptionCount(1);
+    // inputStateCreateInfo.setVertexAttributeDescriptions(vertexAttributeDescriptions)
+    //     .setVertexAttributeDescriptionCount(vertexAttributeDescriptions.size())
+    //     .setVertexBindingDescriptions(vertexInputBindings)
+    //     .setVertexBindingDescriptionCount(1);
 
     // Input Assembly
     vk::PipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo;
@@ -148,5 +148,12 @@ std::shared_ptr<RenderProcess> RenderProcessBuilder::BuildGraphicProcess() {
 
     return std::make_shared<RenderProcess>(pipeline, pipelineLayout,
                                            vk::PipelineBindPoint::eGraphics);
+}
+
+RenderProcess::~RenderProcess() {
+    auto& device = RenderBackend::GetInstance().GetDevice();
+
+    device.destroyPipelineLayout(m_pipeline.pipelineLayout);
+    device.destroyPipeline(m_pipeline.pipeline);
 }
 } // namespace wind

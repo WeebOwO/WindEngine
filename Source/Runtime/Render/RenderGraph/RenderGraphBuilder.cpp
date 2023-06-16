@@ -16,7 +16,7 @@ namespace wind {
 
     void RenderGraphBuilder::Compile() {
         for(auto& pass : m_renderGraph->m_passNodes) {
-            pass.ConstructResource(*this);
+            pass->ConstructResource(*this);
         }
     }
 
@@ -26,10 +26,11 @@ namespace wind {
 
     std::shared_ptr<Image> RenderGraphBuilder::CreateRDGTexture(const std::string& resourceName, const TextureDesc& textureDesc) {
         std::shared_ptr<Image> texture = std::make_shared<Image>(textureDesc.width, textureDesc.height, textureDesc.format, textureDesc.usage, textureDesc.memoryUsage, textureDesc.options);
-        ResourceNode node;
-        node.resourceName = resourceName;
-        node.resourceHandle = texture;
-        node.resoueceType = RenderResoueceType::Image;
+        ResourceNode* node = new ResourceNode();
+        
+        node->resourceName = resourceName;
+        node->imageHandle = texture;
+        node->resoueceType = RenderResoueceType::Image;
 
         m_renderGraph->AddResourceNode(resourceName, node);
         return texture;

@@ -10,15 +10,9 @@
 #include "Runtime/Render/RenderGraph/RenderPass.h"
 
 namespace wind {
+enum class MeshPassType { BasePass = 0 };
 
-enum class MeshPassType {
-    BasePass = 0
-};
-
-enum class ShadingPath  {
-    Forward, 
-    Deferred
-};
+enum class ShadingPath { Forward, Deferred };
 
 class Scene;
 
@@ -27,17 +21,14 @@ public:
     PERMIT_COPY(Renderer)
     PERMIT_MOVE(Renderer)
     Renderer();
-    void CreateRenderPass();
+    virtual ~Renderer();
+    virtual void Render(Scene& scene) = 0;
+    virtual void Init();
+    virtual void Quit();
 
-    void Render(Scene& scene);
-private:
-    void InitForwardPassResource();
-    void RenderForward(RenderGraphBuilder& graphBuilder);
-    void RenderDefered(RenderGraphBuilder& graphBuilder);
-
-    ShadingPath m_shadingPath {ShadingPath::Forward};
-    RenderBackend& m_backend;
-
-    std::shared_ptr<RenderGraph> m_renderGraph;
+protected:
+    RenderBackend&                            m_backend;
+    std::vector<std::shared_ptr<RenderGraph>> m_renderGraphs;
 };
+
 } // namespace wind
