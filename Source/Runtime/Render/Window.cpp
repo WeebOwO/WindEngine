@@ -1,7 +1,5 @@
 #include "Window.h"
 
-#include "Runtime/Scene/Scene.h"
-
 namespace wind {
 
 Window::Window(uint32_t width, uint32_t height, std::string_view title): m_windowInfo(WindowInfo{width, height, std::string(title)}) {

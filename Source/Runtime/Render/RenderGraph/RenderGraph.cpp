@@ -7,8 +7,13 @@
 
 namespace wind {
 RenderGraph::~RenderGraph() {
+    auto& device = RenderBackend::GetInstance().GetDevice();
+    device.waitIdle();
     for (auto passNode : m_passNodes) {
         delete passNode;
+    }
+    for(auto resourceNode : m_resourceNodes) {
+        delete resourceNode;
     }
 }
 
@@ -18,7 +23,7 @@ void RenderGraph::AddResourceNode(const std::string& name, ResourceNode* resourc
 }
 
 void RenderGraph::AddRenderPass(std::string_view passName, PassSetupFunc setupFunc) {
-    PassNode* passNode     = new PassNode();
+    auto* passNode     = new PassNode();
     passNode->passName     = passName;
     passNode->passCallback = setupFunc(passNode);
     m_passNodes.push_back(passNode);

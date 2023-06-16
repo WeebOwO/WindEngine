@@ -52,7 +52,9 @@ void PassNode::DeclareColorAttachment(const std::string& name, const TextureDesc
         .setSamples(vk::SampleCountFlagBits::e1);
 
     vk::ClearValue temp;
-    temp.setColor({0.1f, 0.1f, 0.1f, 0.1f});
+    vk::ClearColorValue color;
+    color.setFloat32(std::array<float, 4>{0.1f, 0.1f, 0.1f, 0.1f});
+    temp.setColor(color);
     colorClearValue.push_back(temp);
     colorAttachmentDescriptions.push_back(colorAttachment);
     colorTextureDescs[name] = textureDesc;

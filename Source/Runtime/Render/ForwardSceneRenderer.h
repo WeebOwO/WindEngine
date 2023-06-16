@@ -1,5 +1,4 @@
 #include "Renderer.h"
-#include "Runtime/Render/Renderer.h"
 
 namespace wind {
 class ForwardRenderer : public Renderer {

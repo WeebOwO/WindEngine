@@ -1,9 +1,10 @@
 #pragma once
 
-#include "Runtime/Base/Macro.h"
 #include <string>
 #include <span>
 #include <unordered_map>
+
+#include "Runtime/Base/Macro.h"
 
 namespace wind {
 class ResourceNode;

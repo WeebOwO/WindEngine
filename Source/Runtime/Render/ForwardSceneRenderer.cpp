@@ -4,10 +4,11 @@ namespace wind {
 ForwardRenderer::ForwardRenderer() { Init(); }
 
 void ForwardRenderer::Init() {
-    const auto [width, height]    = RenderBackend::GetInstance().GetSurfaceExtent();
-    const auto defaultColorFormat = RenderBackend::GetInstance().GetSwapChainSurfaceFormat();
 
+    const auto defaultColorFormat = RenderBackend::GetInstance().GetSwapChainSurfaceFormat();
+    const auto [width, height]    = RenderBackend::GetInstance().GetSurfaceExtent();
     for (const auto renderGraph : m_renderGraphs) {
+
         RenderGraphBuilder graphBuilder(renderGraph.get());
 
         TextureDesc backBufferDesc{width,
@@ -24,7 +25,7 @@ void ForwardRenderer::Init() {
                                     MemoryUsage::GPU_ONLY,
                                     ImageOptions::DEFAULT};
 
-        graphBuilder.AddRenderPass("OpaquePass", [&](PassNode* passNode) {
+        graphBuilder.AddRenderPass("OpaquePass", [=](PassNode* passNode) {
             passNode->DeclareColorAttachment("BackBuffer", backBufferDesc);
             passNode->DeclareDepthAttachment("OpaqueDepthBuffer", depthBufferDesc);
 
