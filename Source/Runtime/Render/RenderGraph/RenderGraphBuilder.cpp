@@ -1,8 +1,6 @@
 #include "RenderGraphBuilder.h"
 
 #include "Runtime/Render/RHI/Backend.h"
-#include "Runtime/Render/RHI/Image.h"
-#include "Runtime/Render/RenderGraph/Node.h"
 
 namespace wind {
     void RenderGraphBuilder::AddRenderPass(std::string_view passName, PassSetupFunc setupFunc) {
@@ -24,9 +22,13 @@ namespace wind {
         m_renderGraph->Exec();
     }
 
+    void RenderGraphBuilder::SetBackBufferName(std::string_view backBufferName) {
+        m_renderGraph->SetBackBufferName(backBufferName);
+    }
+
     std::shared_ptr<Image> RenderGraphBuilder::CreateRDGTexture(const std::string& resourceName, const TextureDesc& textureDesc) {
         std::shared_ptr<Image> texture = std::make_shared<Image>(textureDesc.width, textureDesc.height, textureDesc.format, textureDesc.usage, textureDesc.memoryUsage, textureDesc.options);
-        ResourceNode* node = new ResourceNode();
+        auto* node = new ResourceNode();
         
         node->resourceName = resourceName;
         node->imageHandle = texture;

@@ -80,7 +80,7 @@ void CommandBuffer::BeginRenderPass(PassNode* passNode) {
              .setClearValueCount(1)
              .setClearValues(clearValues)
              .setFramebuffer(passNode->frameBuffer);
-
+    
     m_handle.beginRenderPass(beginInfo, {});
 }
 

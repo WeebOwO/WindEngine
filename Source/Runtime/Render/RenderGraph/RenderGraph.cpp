@@ -1,9 +1,6 @@
 #include "RenderGraph.h"
 
 #include "Runtime/Render/RHI/Backend.h"
-#include "Runtime/Render/RHI/CommandBuffer.h"
-#include "Runtime/Render/RHI/Image.h"
-#include "Runtime/Render/RenderGraph/Node.h"
 
 namespace wind {
 RenderGraph::~RenderGraph() {
@@ -30,6 +27,9 @@ void RenderGraph::AddRenderPass(std::string_view passName, PassSetupFunc setupFu
     return;
 }
 
+void RenderGraph::SetBackBufferName(std::string_view name) {
+    m_backBufferName = name;
+}
 void RenderGraph::Exec() {
     auto&    backend            = RenderBackend::GetInstance();
     auto&    frame              = backend.GetCurrentFrame();
@@ -42,7 +42,7 @@ void RenderGraph::Exec() {
         passNode->passCallback(frameCommandBuffer, &m_graphRegister);
         frameCommandBuffer.EndRenderPass();
     }
-    ResourceNode* output = m_graphRegister.GetResource("BackBuffer");
+    ResourceNode* output = m_graphRegister.GetResource(m_backBufferName);
     auto& presentImage =
         RenderBackend::GetInstance().AcquireSwapchainImage(presentImageIndex, ImageUsage::TRANSFER_DESTINATION);
 

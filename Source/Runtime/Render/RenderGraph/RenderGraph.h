@@ -22,8 +22,9 @@ public:
 private:
     void AddRenderPass(std::string_view passName, PassSetupFunc setupFunc);
     void AddResourceNode(const std::string& name, ResourceNode* resource);
-    
+    void SetBackBufferName(std::string_view name);
 private:
+    std::string m_backBufferName;
     std::vector<PassNode*>     m_passNodes;
     std::vector<ResourceNode*> m_resourceNodes;
     RenderGraphRegister        m_graphRegister;

@@ -14,6 +14,7 @@ public:
     RenderGraphBuilder(RenderGraph* renderGraph) : m_renderGraph(renderGraph) {}
     
     void AddRenderPass(std::string_view passName, PassSetupFunc setupFunc);
+    void SetBackBufferName(std::string_view backBufferName);
     void Compile();
     void Exec();
 
