@@ -15,10 +15,10 @@ Model::Model(Builder builder)
     auto& stageBuffer = backend.GetStagingBuffer();
     auto  cmdBuffer   = backend.BeginSingleTimeCommand();
 
-    m_vertexBuffer = std::make_unique<Buffer>(
+    m_vertexBuffer = std::make_shared<Buffer>(
         vertexBufferSize, BufferUsage::VERTEX_BUFFER | BufferUsage::TRANSFER_DESTINATION,
         MemoryUsage::GPU_ONLY);
-    m_indexBuffer = std::make_unique<Buffer>(
+    m_indexBuffer = std::make_shared<Buffer>(
         indexBufferSize, BufferUsage::INDEX_BUFFER | BufferUsage::TRANSFER_DESTINATION,
         MemoryUsage::GPU_ONLY);
 
@@ -46,5 +46,7 @@ void Model::Bind(CommandBuffer cmdbuffer) {
     cmdbuffer.BindIndexBufferUInt32(*m_indexBuffer);
 }
 
-void Model::Draw(CommandBuffer cmdbuffer) { cmdbuffer.DrawIndexed(m_indexCnt, 1); }
+void Model::Draw(CommandBuffer cmdbuffer) { 
+    cmdbuffer.DrawIndexed(m_indexCnt, 1); 
+}
 } // namespace wind

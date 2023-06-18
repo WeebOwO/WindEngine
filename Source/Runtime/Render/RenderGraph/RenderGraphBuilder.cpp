@@ -1,6 +1,7 @@
 #include "RenderGraphBuilder.h"
 
 #include "Runtime/Render/RHI/Backend.h"
+#include "Runtime/Render/RenderGraph/Node.h"
 
 namespace wind {
     void RenderGraphBuilder::AddRenderPass(std::string_view passName, PassSetupFunc setupFunc) {
@@ -12,6 +13,10 @@ namespace wind {
         return nullptr;
     }
 
+    void RenderGraphBuilder::Setup(SceneView* renderScene) {
+        m_renderGraph->Setup(renderScene);
+    }
+    
     void RenderGraphBuilder::Compile() {
         for(auto& pass : m_renderGraph->m_passNodes) {
             pass->ConstructResource(*this);

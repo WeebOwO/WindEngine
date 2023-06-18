@@ -49,11 +49,9 @@ private:
     std::chrono::steady_clock::time_point m_lastTickTimePoint{std::chrono::steady_clock::now()};
 };
 
-void  EngineImpl::AddCamera() {
+void EngineImpl::AddCamera() {
     auto& world = Scene::GetWorld();
     world.SetupCamera(std::make_shared<Camera>(45.0f, 1.0f, 100.0f));
-
-    vk::CommandBuffer cmdBuffer;
 }
 
 float EngineImpl::CalculateDeltaTime() {
@@ -61,22 +59,16 @@ float EngineImpl::CalculateDeltaTime() {
     {
         using namespace std::chrono;
         steady_clock::time_point tickTimePoint = steady_clock::now();
-        auto          timeSpan =
-            duration_cast<duration<float>>(tickTimePoint - m_lastTickTimePoint);
-        dalta = timeSpan.count();
+        auto timeSpan = duration_cast<duration<float>>(tickTimePoint - m_lastTickTimePoint);
+        dalta         = timeSpan.count();
 
         m_lastTickTimePoint = tickTimePoint;
     }
     return dalta;
 }
-void EngineImpl::LoadGameObject() {
-    // Model::Builder builder;
-    // auto& world = Scene::GetWorld();
-    // builder = io::LoadModelFromFilePath("../../../../assets/meshes/skybox.obj");
-    // world.AddModel(builder);
 
+void EngineImpl::LoadGameObject() {
     Model::Builder builder;
-    builder.indices = {0, 1, 2};
 
     Vertex v1, v2, v3;
     v1.position = glm::vec3(0.0, -0.5, 0.0);
@@ -88,19 +80,19 @@ void EngineImpl::LoadGameObject() {
     world.AddModel(builder);
 }
 
-void EngineImpl::LogicTick(float fs) { 
+void EngineImpl::LogicTick(float fs) {
     // window handle the flfw event
-    auto& world = Scene::GetWorld();
-    auto camera = world.GetActiveCamera();
+    auto& world  = Scene::GetWorld();
+    auto  camera = world.GetActiveCamera();
     m_window.OnUpdate(fs);
     // update camera related things
     camera->OnResize(m_window.width(), m_window.height());
-    camera->OnUpdate(fs);   
- }
+    camera->OnUpdate(fs);
+}
 
-void EngineImpl::RenderTick(float fs) { 
+void EngineImpl::RenderTick(float fs) {
     auto& world = Scene::GetWorld();
-    m_renderer->Render(world); 
+    m_renderer->Render(world);
 }
 
 // Engine Part

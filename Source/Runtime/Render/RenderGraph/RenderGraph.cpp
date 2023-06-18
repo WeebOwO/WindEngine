@@ -1,6 +1,8 @@
 #include "RenderGraph.h"
 
 #include "Runtime/Render/RHI/Backend.h"
+#include "Runtime/Render/RenderGraph/Node.h"
+#include "Runtime/Scene/SceneView.h"
 
 namespace wind {
 RenderGraph::~RenderGraph() {
@@ -29,6 +31,11 @@ void RenderGraph::AddRenderPass(std::string_view passName, PassSetupFunc setupFu
 
 void RenderGraph::SetBackBufferName(std::string_view name) {
     m_backBufferName = name;
+}
+void RenderGraph::Setup(SceneView* sceneView) {
+    for(auto* passNode : m_passNodes) {
+        passNode->renderScene = sceneView;
+    }
 }
 void RenderGraph::Exec() {
     auto&    backend            = RenderBackend::GetInstance();

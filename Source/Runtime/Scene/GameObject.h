@@ -33,7 +33,7 @@ public:
     Transform transform;
     std::shared_ptr<Model> model{nullptr};
     std::shared_ptr<Material> material {nullptr};
-
+    
 private:
     GameObject(uint32_t id) : m_id(id) {}
     uint32_t m_id;

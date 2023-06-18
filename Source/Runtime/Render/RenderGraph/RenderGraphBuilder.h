@@ -3,8 +3,10 @@
 #include <cstdint>
 #include <memory>
 
+#include "Runtime/Render/RenderGraph/Node.h"
 #include "Runtime/Render/RenderGraph/RenderGraph.h"
 #include "Runtime/Render/RenderGraph/RenderResource.h"
+#include "Runtime/Scene/Scene.h"
 
 namespace wind {
 
@@ -15,6 +17,7 @@ public:
     
     void AddRenderPass(std::string_view passName, PassSetupFunc setupFunc);
     void SetBackBufferName(std::string_view backBufferName);
+    void Setup(SceneView* renderScene);
     void Compile();
     void Exec();
 

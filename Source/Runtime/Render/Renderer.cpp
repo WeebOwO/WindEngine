@@ -23,6 +23,6 @@ Renderer::~Renderer() {
 }
 
 void Renderer::Quit() {
-
+    WIND_CORE_INFO("Quit renderer");
 }
 } // namespace wind

@@ -23,6 +23,7 @@ class CommandBuffer;
 class PassNode;
 class RenderGraphBuilder;
 class RenderProcess;
+class SceneView;
 
 using PassExecFunc  = std::function<void(CommandBuffer&, RenderGraphRegister*)>;
 using PassSetupFunc = std::function<PassExecFunc(PassNode*)>;
@@ -94,6 +95,8 @@ public:
     struct RenderRect {
         uint32_t width, height;
     } renderRect;
+
+    SceneView* renderScene = nullptr;
 };
 
 } // namespace wind

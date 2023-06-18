@@ -6,6 +6,7 @@
 #include "Runtime/Base/Macro.h"
 #include "Runtime/Render/RHI/Buffer.h"
 #include "Runtime/Resource/Mesh.h"
+#include "Runtime/Resource/MeshBatch.h"
 #include "Runtime/Scene/Camera.h"
 #include "Runtime/Scene/GameObject.h"
 
@@ -32,9 +33,11 @@ public:
 
     void SetupCamera(std::shared_ptr<Camera> camera) { m_activeCamera = camera; }
     
+    void BuildMeshBatch();
 private:
     Scene();
     std::vector<GameObject>              m_worldObjects;
     std::shared_ptr<Camera>              m_activeCamera;
+    std::vector<MeshBatch>               m_MeshBatch;
 };
 } // namespace wind

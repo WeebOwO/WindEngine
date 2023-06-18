@@ -3,11 +3,13 @@
 #include <memory>
 
 namespace wind {
-ForwardRenderer::ForwardRenderer() { Init(); }
+ForwardRenderer::ForwardRenderer() {
+    Init();
+}
 
 void AddForWardBasePass(RenderGraphBuilder& graphBuilder) {
     const auto defaultColorFormat = RenderBackend::GetInstance().GetSwapChainSurfaceFormat();
-    const auto [width, height] = RenderBackend::GetInstance().GetSurfaceExtent();
+    const auto [width, height]    = RenderBackend::GetInstance().GetSurfaceExtent();
     TextureDesc backBufferDesc{width,
                                height,
                                defaultColorFormat,
@@ -31,8 +33,8 @@ void AddForWardBasePass(RenderGraphBuilder& graphBuilder) {
 
         RenderProcessBuilder renderProcessBuilder;
 
-        std::shared_ptr<GraphicsShader> shader = ShaderFactory::CreateGraphicsShader("OpaqueShader", "Triangle.vert.spv",
-                                                          "Triangle.frag.spv");
+        std::shared_ptr<GraphicsShader> shader = ShaderFactory::CreateGraphicsShader(
+            "OpaqueShader", "Triangle.vert.spv", "Triangle.frag.spv");
 
         renderProcessBuilder.SetBlendState(false)
             .SetShader(shader.get())
@@ -41,7 +43,9 @@ void AddForWardBasePass(RenderGraphBuilder& graphBuilder) {
 
         passNode->pipelineState = renderProcessBuilder.BuildGraphicProcess();
 
-        return [](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
+        return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
+            auto* sceneView = passNode->renderScene;
+            
             cmdBuffer.Draw(3, 1);
         };
     });
@@ -58,8 +62,10 @@ void ForwardRenderer::Init() {
 
 void ForwardRenderer::Render(Scene& scene) {
     m_backend.StartFrame();
+    InitView(scene);
     auto               currentImageIndex = m_backend.GetCurrentImageIndex();
     RenderGraphBuilder graphBuilder{m_renderGraphs[currentImageIndex].get()};
+    graphBuilder.Setup(m_sceneView);
     graphBuilder.Exec();
     m_backend.EndFrame();
 }

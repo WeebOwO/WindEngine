@@ -10,6 +10,8 @@
     class(class &&)           = delete; \
     class& operator=(class&&) = delete;
 
+#define BIT(i) 1 << i
+
 // Core log macros
 #define WIND_CORE_TRACE(...) ::wind::Log::GetCoreLogger()->trace(__VA_ARGS__)
 #define WIND_CORE_INFO(...) ::wind::Log::GetCoreLogger()->info(__VA_ARGS__)

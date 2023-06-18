@@ -25,10 +25,10 @@ struct Vertex {
             .setInputRate(vk::VertexInputRate::eVertex);
         return vertexInputBindingDescription;
     };
-    
+
     static std::vector<vk::VertexInputAttributeDescription> GetVertexInputAttributeDescriptions() {
         std::vector<vk::VertexInputAttributeDescription> vertexInputAttributeDescription(5);
-        
+
         vertexInputAttributeDescription[0]
             .setBinding(0)
             .setLocation(0)
@@ -72,14 +72,18 @@ public:
 
     Model(Builder builder);
     ~Model();
-    
+
     void Bind(CommandBuffer cmdbuffer);
     void Draw(CommandBuffer cmdbuffer);
-    
+
+    [[nodiscard]] auto GetVerTexBuffer() { return m_vertexBuffer; }
+    [[nodiscard]] auto GetIndexBuffer() { return m_indexBuffer; }
+
 private:
-    std::unique_ptr<Buffer> m_vertexBuffer{nullptr};
-    std::unique_ptr<Buffer> m_indexBuffer{nullptr};
+    std::shared_ptr<Buffer> m_vertexBuffer{nullptr};
+    std::shared_ptr<Buffer> m_indexBuffer{nullptr};
     uint32_t                m_vertexCnt{0};
     uint32_t                m_indexCnt{0};
+    bool                    m_isDynamic{false};
 };
 } // namespace wind

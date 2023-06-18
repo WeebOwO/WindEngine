@@ -16,7 +16,7 @@ public:
     friend class RenderGraphBuilder;
     ~RenderGraph();
 
-    void Setup();
+    void Setup(SceneView* sceneView);
     void Exec();
 
 private:
