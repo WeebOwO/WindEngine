@@ -95,6 +95,9 @@ public:
     struct RenderRect {
         uint32_t width, height;
     } renderRect;
+     
+    std::vector<vk::DescriptorSetLayout> descriptorSetLayouts;
+    std::vector<vk::DescriptorSet> descriptorSets;
 
     SceneView* renderScene = nullptr;
 };

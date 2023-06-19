@@ -27,6 +27,9 @@ private:
     vk::ShaderModule            m_vertexShader;
     vk::ShaderModule            m_fragShader;
     std::vector<ShaderMetaData> m_shaderMetaDatas;
+
+    std::vector<vk::DescriptorSetLayout> m_descriptorSetLayouts;
+    std::vector<vk::DescriptorSet> m_descriptorSets;
 };
 
 class ShaderFactory {

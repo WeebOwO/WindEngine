@@ -9,7 +9,7 @@ ForwardRenderer::ForwardRenderer() {
 
 void AddForWardBasePass(RenderGraphBuilder& graphBuilder) {
     const auto defaultColorFormat = RenderBackend::GetInstance().GetSwapChainSurfaceFormat();
-    const auto [width, height]    = RenderBackend::GetInstance().GetSurfaceExtent();
+    const auto [width, height] = RenderBackend::GetInstance().GetSurfaceExtent();
 
     TextureDesc backBufferDesc{width,
                                height,
@@ -35,7 +35,7 @@ void AddForWardBasePass(RenderGraphBuilder& graphBuilder) {
         RenderProcessBuilder renderProcessBuilder;
 
         std::shared_ptr<GraphicsShader> shader = ShaderFactory::CreateGraphicsShader(
-            "OpaqueShader", "Triangle.vert.spv", "Triangle.frag.spv");
+            "OpaqueShader", "ForwardBasePass.vert.spv", "ForwardBasePass.frag.spv");
 
         renderProcessBuilder.SetBlendState(false)
             .SetShader(shader.get())
@@ -43,7 +43,7 @@ void AddForWardBasePass(RenderGraphBuilder& graphBuilder) {
             .SetDepthSetencilTestState(true, true, false, vk::CompareOp::eLessOrEqual);
 
         passNode->pipelineState = renderProcessBuilder.BuildGraphicProcess();
-
+        
         return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
             auto* Scene = passNode->renderScene->GetOwnScene();
             for(auto& gameObject : Scene->GetWorld().GetWorldGameObjects()) {
