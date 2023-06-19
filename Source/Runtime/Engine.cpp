@@ -77,6 +77,7 @@ void EngineImpl::LoadGameObject() {
 
     auto& world      = Scene::GetWorld();
     builder.vertices = {v1, v2, v3};
+    builder.indices = {0, 1, 2};
     world.AddModel(builder);
 }
 

@@ -94,13 +94,13 @@ std::shared_ptr<RenderProcess> RenderProcessBuilder::BuildGraphicProcess() {
     // vertex input
     vk::PipelineVertexInputStateCreateInfo inputStateCreateInfo;
 
-    // auto vertexAttributeDescriptions = Vertex::GetVertexInputAttributeDescriptions();
-    // auto vertexInputBindings         = Vertex::GetInputBindingDescription();
+    auto vertexAttributeDescriptions = Vertex::GetVertexInputAttributeDescriptions();
+    auto vertexInputBindings         = Vertex::GetInputBindingDescription();
 
-    // inputStateCreateInfo.setVertexAttributeDescriptions(vertexAttributeDescriptions)
-    //     .setVertexAttributeDescriptionCount(vertexAttributeDescriptions.size())
-    //     .setVertexBindingDescriptions(vertexInputBindings)
-    //     .setVertexBindingDescriptionCount(1);
+    inputStateCreateInfo.setVertexAttributeDescriptions(vertexAttributeDescriptions)
+        .setVertexAttributeDescriptionCount(vertexAttributeDescriptions.size())
+        .setVertexBindingDescriptions(vertexInputBindings)
+        .setVertexBindingDescriptionCount(1);
 
     // Input Assembly
     vk::PipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo;

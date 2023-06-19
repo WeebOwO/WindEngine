@@ -28,12 +28,12 @@ public:
 protected:
     virtual void Init();
     virtual void Quit();
-    virtual void InitView(Scene& scene);
+    virtual void InitView(Scene& scene) = 0;
     
 protected:
     RenderBackend&                            m_backend;
     std::vector<std::shared_ptr<RenderGraph>> m_renderGraphs;
-    SceneView*                                m_sceneView {nullptr};
+    std::unique_ptr<SceneView>                m_sceneView;
 };
 
 } // namespace wind

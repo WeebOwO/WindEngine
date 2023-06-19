@@ -10,6 +10,7 @@ ForwardRenderer::ForwardRenderer() {
 void AddForWardBasePass(RenderGraphBuilder& graphBuilder) {
     const auto defaultColorFormat = RenderBackend::GetInstance().GetSwapChainSurfaceFormat();
     const auto [width, height]    = RenderBackend::GetInstance().GetSurfaceExtent();
+
     TextureDesc backBufferDesc{width,
                                height,
                                defaultColorFormat,
@@ -44,11 +45,17 @@ void AddForWardBasePass(RenderGraphBuilder& graphBuilder) {
         passNode->pipelineState = renderProcessBuilder.BuildGraphicProcess();
 
         return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
-            auto* sceneView = passNode->renderScene;
-            
-            cmdBuffer.Draw(3, 1);
+            auto* Scene = passNode->renderScene->GetOwnScene();
+            for(auto& gameObject : Scene->GetWorld().GetWorldGameObjects()) {
+                gameObject.model->Bind(cmdBuffer);
+                gameObject.model->Draw(cmdBuffer);
+            }
         };
     });
+}
+
+void ForwardRenderer::InitView(Scene& scene) {
+    m_sceneView->SetScene(&scene);
 }
 
 void ForwardRenderer::Init() {
@@ -65,7 +72,7 @@ void ForwardRenderer::Render(Scene& scene) {
     InitView(scene);
     auto               currentImageIndex = m_backend.GetCurrentImageIndex();
     RenderGraphBuilder graphBuilder{m_renderGraphs[currentImageIndex].get()};
-    graphBuilder.Setup(m_sceneView);
+    graphBuilder.Setup(m_sceneView.get());
     graphBuilder.Exec();
     m_backend.EndFrame();
 }
