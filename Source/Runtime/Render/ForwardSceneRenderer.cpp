@@ -1,6 +1,7 @@
 #include "ForwardSceneRenderer.h"
-
 #include <memory>
+
+#include "Runtime/Scene/SceneView.h"
 
 namespace wind {
 ForwardRenderer::ForwardRenderer() {
@@ -46,11 +47,14 @@ void AddForWardBasePass(RenderGraphBuilder& graphBuilder) {
         
         return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
             auto* Scene = passNode->renderScene->GetOwnScene();
+            ViewInfo viewInfo = passNode->renderScene->GetViewInfo();
+            viewInfo.UpdateCameraBuffer(Scene->GetActiveCamera().get());
+            
             for(auto& gameObject : Scene->GetWorld().GetWorldGameObjects()) {
                 gameObject.model->Bind(cmdBuffer);
                 gameObject.model->Draw(cmdBuffer);
             }
-        };
+        };        
     });
 }
 

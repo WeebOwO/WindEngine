@@ -55,7 +55,7 @@ private:
 
     PoolSizes descriptorSizes;
 
-    vk::DescriptorPool              m_currentPool{nullptr};
+    vk::DescriptorPool              m_currentPool {nullptr};
     std::vector<vk::DescriptorPool> m_usedPools;
     std::vector<vk::DescriptorPool> m_freePools;
 };
@@ -78,4 +78,5 @@ private:
     std::shared_ptr<DescriptorLayoutCache> m_cache;
     std::shared_ptr<DescriptorAllocator> m_alloc;
 };
+
 } // namespace wind

@@ -69,7 +69,7 @@ public:
     void ConstructResource(RenderGraphBuilder& graphBuilder);
 
     void CreateRenderPass();
-
+    
     std::string     passName;
     vk::RenderPass  renderPass;
     vk::Framebuffer frameBuffer;
@@ -96,7 +96,6 @@ public:
         uint32_t width, height;
     } renderRect;
      
-    std::vector<vk::DescriptorSetLayout> descriptorSetLayouts;
     std::vector<vk::DescriptorSet> descriptorSets;
 
     SceneView* renderScene = nullptr;

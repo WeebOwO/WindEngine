@@ -17,42 +17,17 @@ RenderProcessBuilder& RenderProcessBuilder::SetShader(GraphicsShader* graphicsSh
         .setModule(vertexShaderModule)
         .setStage(vk::ShaderStageFlagBits::eVertex)
         .setPName("main");
+    
     m_shaderStageCreateInfos[1]
         .setModule(fragShaderModule)
         .setStage(vk::ShaderStageFlagBits::eFragment)
         .setPName("main");
-
-    return *this;
-}
-
-RenderProcessBuilder& RenderProcessBuilder::SetShader(const std::string& vertexShaderFile,
-                                                      const std::string& fragShaderFile) {
-    auto& device = RenderBackend::GetInstance().GetDevice();
-
-    auto vertexSpirvCode = io::ReadSpirvBinaryFile(vertexShaderFile);
-    auto fragSpirvCode   = io::ReadSpirvBinaryFile(fragShaderFile);
-
-    vk::ShaderModuleCreateInfo shaderModuleCrateInfo;
-    shaderModuleCrateInfo.setPCode(vertexSpirvCode.data())
-                         .setCodeSize(vertexSpirvCode.size() * sizeof(uint32_t));
-
-    vk::ShaderModule vsModule = device.createShaderModule(shaderModuleCrateInfo);
     
-    shaderModuleCrateInfo.setPCode(fragSpirvCode.data())
-                         .setCodeSize(fragSpirvCode.size() * sizeof(uint32_t));                         
-    vk::ShaderModule fsModule = device.createShaderModule(shaderModuleCrateInfo);
+    const auto& desLayouts = graphicsShader->GetDescriptorSetLayouts();
 
-    m_shaderStageCreateInfos.resize(2);
-
-    m_shaderStageCreateInfos[0]
-        .setModule(vsModule)
-        .setStage(vk::ShaderStageFlagBits::eVertex)
-        .setPName("main");
-    m_shaderStageCreateInfos[1]
-        .setModule(fsModule)
-        .setStage(vk::ShaderStageFlagBits::eFragment)
-        .setPName("main");
-
+    m_pipelineLayoutCreateInfo.setSetLayoutCount(desLayouts.size())
+                              .setSetLayouts(desLayouts);
+    
     return *this;
 }
 
@@ -128,9 +103,8 @@ std::shared_ptr<RenderProcess> RenderProcessBuilder::BuildGraphicProcess() {
     vk::PipelineMultisampleStateCreateInfo multisampleStateCreateInfo;
     multisampleStateCreateInfo.setSampleShadingEnable(false).setRasterizationSamples(
         vk::SampleCountFlagBits::e1);
-
-    vk::PipelineLayoutCreateInfo pipelineLayoutCreateInfo;
-    vk::PipelineLayout pipelineLayout = device.createPipelineLayout(pipelineLayoutCreateInfo);
+    
+    vk::PipelineLayout pipelineLayout = device.createPipelineLayout(m_pipelineLayoutCreateInfo);
 
     vk::GraphicsPipelineCreateInfo createInfo;
     createInfo.setPVertexInputState(&inputStateCreateInfo)

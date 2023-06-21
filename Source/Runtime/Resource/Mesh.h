@@ -73,8 +73,8 @@ public:
     Model(Builder builder);
     ~Model();
 
-    void Bind(CommandBuffer cmdbuffer);
-    void Draw(CommandBuffer cmdbuffer);
+    void Bind(CommandBuffer& cmdbuffer);
+    void Draw(CommandBuffer& cmdbuffer);
 
     [[nodiscard]] auto GetVerTexBuffer() { return m_vertexBuffer; }
     [[nodiscard]] auto GetIndexBuffer() { return m_indexBuffer; }

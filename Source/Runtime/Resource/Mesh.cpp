@@ -41,12 +41,12 @@ Model::~Model() {
     m_vertexBuffer.reset();
 }
 
-void Model::Bind(CommandBuffer cmdbuffer) {
+void Model::Bind(CommandBuffer& cmdbuffer) {
     cmdbuffer.BindVertexBuffers(*m_vertexBuffer);
     cmdbuffer.BindIndexBufferUInt32(*m_indexBuffer);
 }
 
-void Model::Draw(CommandBuffer cmdbuffer) { 
+void Model::Draw(CommandBuffer& cmdbuffer) { 
     cmdbuffer.DrawIndexed(m_indexCnt, 1); 
 }
 } // namespace wind

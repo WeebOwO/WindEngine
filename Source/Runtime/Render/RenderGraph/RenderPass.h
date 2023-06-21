@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <functional>
 #include <vector>
 
@@ -14,7 +13,6 @@ class RenderProcess;
 class RenderProcessBuilder {
 public:
     RenderProcessBuilder& SetShader(GraphicsShader* graphicsShader);
-    RenderProcessBuilder& SetShader(const std::string& vertexShaderFile, const std::string& fragShaderFile);
     RenderProcessBuilder& SetBlendState(bool blendEnable);
     RenderProcessBuilder& SetDepthSetencilTestState(bool depthTestEnable, bool depthWriteEnable,
                                                     bool          stencilTestEnable,
