@@ -22,7 +22,7 @@ public:
     [[nodiscard]] auto GetVertexShaderModule() const { return m_vertexShader; }
     [[nodiscard]] auto GetFragmentShaderModule() const { return m_fragShader; }
     [[nodiscard]] auto GetShaderReflectionData() const { return m_reflectionDatas; }
-    [[nodiscard]] auto GetDescriptorSetLayouts() const { return m_DescriptorSetLayouts; }
+    [[nodiscard]] auto& GetDescriptorSetLayouts() const { return m_DescriptorSetLayouts; }
 
 private:
     void GenerateVulkanDescriptorSetLayout();

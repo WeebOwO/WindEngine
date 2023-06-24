@@ -20,9 +20,6 @@ void GraphicsShader::GenerateVulkanDescriptorSetLayout() {
             BindMetaData metaData = m_reflectionDatas[resoueceName];
             vk::DescriptorSetLayoutBinding binding;
             vk::ShaderStageFlags stageFlags = metaData.shaderStageFlags.front();
-            for(const auto flag : metaData.shaderStageFlags) {
-                stageFlags |= flag;
-            }
             binding.setBinding(metaData.binding)
                    .setDescriptorCount(1)
                    .setDescriptorType(metaData.descriptorType)

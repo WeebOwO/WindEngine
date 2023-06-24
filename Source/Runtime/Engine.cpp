@@ -82,7 +82,7 @@ void EngineImpl::LoadGameObject() {
 }
 
 void EngineImpl::LogicTick(float fs) {
-    // window handle the flfw event
+    // window handle the glfw event
     auto& world  = Scene::GetWorld();
     auto  camera = world.GetActiveCamera();
     m_window.OnUpdate(fs);

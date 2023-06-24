@@ -30,7 +30,7 @@ private:
     vk::PipelineColorBlendAttachmentState m_colorBlendAttachment;
     vk::PipelineColorBlendStateCreateInfo m_PipelineColorBlendStateCreateInfo;
     // pipelineLayoutCreateInfo
-    vk::PipelineLayoutCreateInfo m_pipelineLayoutCreateInfo;
+    vk::PipelineLayoutCreateInfo m_pipelineLayoutCreateInfo {};
 };
 
 class RenderProcess {

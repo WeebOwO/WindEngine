@@ -1,12 +1,12 @@
 #include "RenderPass.h"
 
 #include "Runtime/Base/Io.h"
+#include "Runtime/Base/Macro.h"
 #include "Runtime/Render/RHI/Backend.h"
-#include "Runtime/Render/RenderGraph/RenderPass.h"
 #include "Runtime/Resource/Mesh.h"
 
-
 namespace wind {
+
 RenderProcessBuilder& RenderProcessBuilder::SetShader(GraphicsShader* graphicsShader) {
     vk::ShaderModule vertexShaderModule = graphicsShader->GetVertexShaderModule();
     vk::ShaderModule fragShaderModule   = graphicsShader->GetFragmentShaderModule();
@@ -17,17 +17,17 @@ RenderProcessBuilder& RenderProcessBuilder::SetShader(GraphicsShader* graphicsSh
         .setModule(vertexShaderModule)
         .setStage(vk::ShaderStageFlagBits::eVertex)
         .setPName("main");
-    
+
     m_shaderStageCreateInfos[1]
         .setModule(fragShaderModule)
         .setStage(vk::ShaderStageFlagBits::eFragment)
         .setPName("main");
-    
-    const auto& desLayouts = graphicsShader->GetDescriptorSetLayouts();
 
-    m_pipelineLayoutCreateInfo.setSetLayoutCount(desLayouts.size())
-                              .setSetLayouts(desLayouts);
-    
+    auto& shaderLayouts = graphicsShader->GetDescriptorSetLayouts();
+
+    m_pipelineLayoutCreateInfo.setSetLayoutCount(shaderLayouts.size())
+        .setSetLayouts(shaderLayouts);
+
     return *this;
 }
 
@@ -37,9 +37,8 @@ RenderProcessBuilder& RenderProcessBuilder::SetBlendState(bool blendEnable) {
         .setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
                            vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
 
-    m_PipelineColorBlendStateCreateInfo.
-    setLogicOpEnable(false)
-    .setAttachments(m_colorBlendAttachment);
+    m_PipelineColorBlendStateCreateInfo.setLogicOpEnable(false).setAttachments(
+        m_colorBlendAttachment);
     return *this;
 }
 
@@ -103,7 +102,7 @@ std::shared_ptr<RenderProcess> RenderProcessBuilder::BuildGraphicProcess() {
     vk::PipelineMultisampleStateCreateInfo multisampleStateCreateInfo;
     multisampleStateCreateInfo.setSampleShadingEnable(false).setRasterizationSamples(
         vk::SampleCountFlagBits::e1);
-    
+
     vk::PipelineLayout pipelineLayout = device.createPipelineLayout(m_pipelineLayoutCreateInfo);
 
     vk::GraphicsPipelineCreateInfo createInfo;
@@ -118,9 +117,12 @@ std::shared_ptr<RenderProcess> RenderProcessBuilder::BuildGraphicProcess() {
         .setLayout(pipelineLayout)
         .setRenderPass(m_renderPass);
 
-    vk::Pipeline pipeline = device.createGraphicsPipeline({}, createInfo).value;
+    auto createResult = device.createGraphicsPipeline({}, createInfo);
+    if (createResult.result != vk::Result::eSuccess) {
+        WIND_CORE_ERROR("Fail to create Graphics Pipeline");
+    }
 
-    return std::make_shared<RenderProcess>(pipeline, pipelineLayout,
+    return std::make_shared<RenderProcess>(createResult.value, pipelineLayout,
                                            vk::PipelineBindPoint::eGraphics);
 }
 
