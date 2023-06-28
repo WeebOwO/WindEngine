@@ -45,7 +45,7 @@ void ForwardRenderer::AddForWardBasePass(RenderGraphBuilder& graphBuilder) {
             .SetShader(shader.get())
             .SetRenderPass(passNode->renderPass)
             .SetDepthSetencilTestState(true, true, false, vk::CompareOp::eLessOrEqual);
-
+        
         passNode->graphicsShader = shader;
         passNode->pipelineState = renderProcessBuilder.BuildGraphicProcess();
         

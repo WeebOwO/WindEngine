@@ -58,7 +58,7 @@ public:
     Image(Image&& other) noexcept;
     Image& operator=(Image&& other) noexcept;
     ~Image();
-
+    
     void Init(uint32_t width, uint32_t height, vk::Format format, ImageUsage::Value usage,
               MemoryUsage memoryUsage, ImageOptions::Value options);
 

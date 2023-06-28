@@ -14,7 +14,7 @@ static std::vector<const char*> layers = {"VK_LAYER_KHRONOS_validation"};
 namespace wind {
 std::unique_ptr<RenderBackend> RenderBackend::s_instance = nullptr;
 
-void SceneResourcePool::Init() {
+void FrameResourcePool::Init() {
     // create camera uniform buffer
     size_t cameraBufferSize = sizeof(CameraBuffer);
     m_camearaUniformBuffer = std::make_shared<Buffer>(cameraBufferSize, BufferUsage::UNIFORM_BUFFER,
@@ -25,9 +25,10 @@ void SceneResourcePool::Init() {
     m_objectUniformBuffer = std::make_shared<Buffer>(objectBufferSize, BufferUsage::UNIFORM_BUFFER,
                                                      MemoryUsage::CPU_TO_GPU);
     m_predefinedBuffer["ObjectBuffer"] = m_objectUniformBuffer;
+    
 }
 
-void SceneResourcePool::UpdateCameraBuffer(Camera* camera) {
+void FrameResourcePool::UpdateCameraBuffer(Camera* camera) {
     CameraBuffer cameraBuffer{camera->GetView(), camera->GetProjection(),
                               camera->GetView() * camera->GetProjection()};
     m_camearaUniformBuffer->MapMemory();
@@ -35,7 +36,7 @@ void SceneResourcePool::UpdateCameraBuffer(Camera* camera) {
     m_camearaUniformBuffer->UnmapMemory();
 }
 
-BufferInfo SceneResourcePool::GetBuffer(const std::string& bufferName) {
+BufferInfo FrameResourcePool::GetBuffer(const std::string& bufferName) {
     if(m_predefinedBuffer.find(bufferName) == m_predefinedBuffer.end()) {
         WIND_CORE_WARN("Failed to find {}", bufferName);
     }
@@ -159,7 +160,7 @@ void RenderBackend::CreateSceneResourcePools() {
 
 void RenderBackend::QueryQueueFamilyIndices() {
     auto properties = m_physicalDevice.getQueueFamilyProperties();
-  
+    
     for (uint32_t i = 0; const auto& queueFamily : properties) {
         if (queueFamily.queueCount > 0 && queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) {
             WIND_CORE_INFO("Present queue index is {}", i);

@@ -17,8 +17,8 @@
 
 namespace wind {
 
-struct SceneResourcePool {
-    SceneResourcePool();
+struct FrameResourcePool {
+    FrameResourcePool();
     
     struct CameraBuffer {
         glm::mat4 view;
@@ -188,7 +188,7 @@ private:
     std::shared_ptr<DescriptorAllocator>   m_descriptorAllocator;
     std::shared_ptr<DescriptorLayoutCache> m_descriptorLayoutCache;
 
-    std::vector<SceneResourcePool>        m_sceneResourcePools;
+    std::vector<FrameResourcePool>        m_sceneResourcePools;
     uint32_t                              m_presentImageCnt;
     bool                                  m_renderingEnabled{true};
     static std::unique_ptr<RenderBackend> s_instance;
