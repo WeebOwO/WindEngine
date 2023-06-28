@@ -5,10 +5,10 @@
 #include <glm/glm.hpp>
 
 #include "Runtime/Base/Macro.h"
-#include "Runtime/Resource/Material.h"
 
 namespace wind {
 class Model;
+class Material;
 
 struct Transform {
    alignas(16) glm::vec3 location;

@@ -10,9 +10,39 @@
 #include "Runtime/Base/Macro.h"
 #include "Runtime/Render/RHI/Descriptors.h"
 #include "Runtime/Render/RHI/Frame.h"
+#include "Runtime/Render/RHI/Shader.h"
 #include "Runtime/Render/Window.h"
 
+#include "Runtime/Scene/SceneView.h"
+
 namespace wind {
+
+struct SceneResourcePool {
+    SceneResourcePool();
+    
+    struct CameraBuffer {
+        glm::mat4 view;
+        glm::mat4 projection;
+        glm::mat4 viewProjection;
+    };
+
+    struct ObjectBuffer {
+        glm::mat4 model;
+    };
+
+    void Init();
+
+    void UpdateCameraBuffer(Camera* camera);
+    void UpdateObjectBuffer(GameObject* gameObject);
+
+    BufferInfo GetBuffer(const std::string& bufferName);
+    ImageInfo  GetImage(const std::string& ImageName);
+
+private:
+    std::unordered_map<std::string, std::shared_ptr<Buffer>> m_predefinedBuffer ;
+    std::shared_ptr<Buffer>                                  m_camearaUniformBuffer;
+    std::shared_ptr<Buffer>                                  m_objectUniformBuffer;
+};
 
 struct QueueIndices {
     std::optional<uint32_t> graphicsQueueIndex;
@@ -51,7 +81,7 @@ public:
     void EndFrame() { m_virtualFrames.EndFrame(); }
 
     CommandBuffer BeginSingleTimeCommand();
-    void              SubmitSingleTimeCommand(vk::CommandBuffer cmdBuffer);
+    void          SubmitSingleTimeCommand(vk::CommandBuffer cmdBuffer);
 
     void InitVirtualFrame() {
         m_virtualFrames.Init(m_createSetting.maxFrameInflight, m_createSetting.maxStageBufferSize);
@@ -97,13 +127,16 @@ public:
     [[nodiscard]] const auto     GetCurrentImageIndex() {
         return m_virtualFrames.GetPresentImageIndex();
     }
-    [[nodiscard]] auto& GetCurrentFrame() const { return m_virtualFrames.GetCurrentFrame(); }
+    [[nodiscard]] auto&       GetCurrentFrame() const { return m_virtualFrames.GetCurrentFrame(); }
     [[nodiscard]] const auto& GetDescriptorLayoutCache() const { return m_descriptorLayoutCache; }
     [[nodiscard]] const auto& GetDescriptorAllocator() const { return m_descriptorAllocator; }
-    [[nodiscard]] auto& GetStagingBuffer() {
+    [[nodiscard]] auto&       GetStagingBuffer() {
         return m_virtualFrames.GetCurrentFrame().StagingBuffer;
     }
-    [[nodiscard]] auto GetMaxFrameInFlight() {return m_createSetting.maxFrameInflight;}
+    [[nodiscard]] auto  GetMaxFrameInFlight() { return m_createSetting.maxFrameInflight; }
+    [[nodiscard]] auto& GetCurrentResourcePool() { return m_sceneResourcePools[m_virtualFrames.GetPresentImageIndex()]; }
+    [[nodiscard]] auto& GetSceneResourcesPools() {return m_sceneResourcePools;}
+    
 private:
     std::vector<const char*> GetRequiredExtensions();
     void                     CreateInstance();
@@ -117,6 +150,7 @@ private:
     void                     CreateSyncObeject();
     void                     CreateVmaAllocator();
     void                     CreateDescriptorCacheAndAllocator();
+    void                     CreateSceneResourcePools();
 
     BackendCreateSetting m_createSetting;
 
@@ -154,6 +188,7 @@ private:
     std::shared_ptr<DescriptorAllocator>   m_descriptorAllocator;
     std::shared_ptr<DescriptorLayoutCache> m_descriptorLayoutCache;
 
+    std::vector<SceneResourcePool>        m_sceneResourcePools;
     uint32_t                              m_presentImageCnt;
     bool                                  m_renderingEnabled{true};
     static std::unique_ptr<RenderBackend> s_instance;

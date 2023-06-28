@@ -12,6 +12,7 @@
 #include "Runtime/Render/RHI/Buffer.h"
 #include "Runtime/Render/RHI/Image.h"
 
+#include "Runtime/Render/RHI/Shader.h"
 #include "Runtime/Render/RenderGraph/Node.h"
 #include "Runtime/Render/RenderGraph/RenderPass.h"
 #include "Runtime/Render/RenderGraph/RenderResource.h"
@@ -24,12 +25,13 @@ class PassNode;
 class RenderGraphBuilder;
 class RenderProcess;
 class SceneView;
+class SceneResourcePool;
 
 using PassExecFunc  = std::function<void(CommandBuffer&, RenderGraphRegister*)>;
 using PassSetupFunc = std::function<PassExecFunc(PassNode*)>;
 
 enum class RenderResoueceType : uint8_t { Buffer = 0, Image };
-
+enum class PassType : uint8_t { Graphic = 0, Compute };
 class Node {
 protected:
     uint32_t inRefCnt  = 0;
@@ -69,7 +71,8 @@ public:
     void ConstructResource(RenderGraphBuilder& graphBuilder);
 
     void CreateRenderPass();
-    
+
+    PassType        passType {PassType::Graphic};
     std::string     passName;
     vk::RenderPass  renderPass;
     vk::Framebuffer frameBuffer;
@@ -95,10 +98,12 @@ public:
     struct RenderRect {
         uint32_t width, height;
     } renderRect;
-     
-    std::vector<vk::DescriptorSet> descriptorSets;
 
-    SceneView* renderScene = nullptr;
+    std::vector<vk::DescriptorSet>  descriptorSets;
+    std::shared_ptr<GraphicsShader> graphicsShader;
+
+    SceneResourcePool* resourcePool {nullptr};
+    SceneView* renderScene {nullptr};
 };
 
 } // namespace wind

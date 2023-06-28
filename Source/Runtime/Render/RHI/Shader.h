@@ -19,10 +19,12 @@ public:
     GraphicsShader(std::string_view vertexShaderfilePath, std::string_view fragmentShaderFilePath);
 
     ~GraphicsShader();
-    [[nodiscard]] auto GetVertexShaderModule() const { return m_vertexShader; }
-    [[nodiscard]] auto GetFragmentShaderModule() const { return m_fragShader; }
-    [[nodiscard]] auto GetShaderReflectionData() const { return m_reflectionDatas; }
-    [[nodiscard]] auto& GetDescriptorSetLayouts() const { return m_DescriptorSetLayouts; }
+
+    [[nodiscard]] auto  GetVertexShaderModule() const { return m_vertexShader; }
+    [[nodiscard]] auto  GetFragmentShaderModule() const { return m_fragShader; }
+    [[nodiscard]] auto  GetShaderReflesctionData() const { return m_reflectionDatas; }
+    [[nodiscard]] auto& GetDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
+    [[nodiscard]] auto& GetDescriptorBindingGroup() { return m_setGroups; }
 
 private:
     void GenerateVulkanDescriptorSetLayout();
@@ -32,7 +34,8 @@ private:
     std::unordered_map<std::string, BindMetaData>     m_reflectionDatas;
     std::unordered_map<int, std::vector<std::string>> m_setGroups;
 
-    std::vector<vk::DescriptorSetLayout> m_DescriptorSetLayouts;
+    std::vector<vk::DescriptorSetLayout> m_descriptorSetLayouts;
+    std::vector<vk::DescriptorSet>       m_descriptorSet;
 };
 
 class ShaderFactory {

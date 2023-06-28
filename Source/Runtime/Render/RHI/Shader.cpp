@@ -5,6 +5,8 @@
 
 #include "Runtime/Base/Io.h"
 #include "Runtime/Render/RHI/Backend.h"
+#include "Runtime/Render/RHI/Descriptors.h"
+#include "Runtime/Scene/SceneView.h"
 
 namespace wind {
 std::unordered_map<std::string, std::shared_ptr<GraphicsShader>> ShaderFactory::m_shaderCache{};
@@ -15,7 +17,7 @@ void GraphicsShader::GenerateVulkanDescriptorSetLayout() {
     for (const auto& [set, resourceNameVecs] : m_setGroups) {
         vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo; 
         std::vector<vk::DescriptorSetLayoutBinding> layoutBindings;
-
+        
         for(const auto& resoueceName : resourceNameVecs) {
             BindMetaData metaData = m_reflectionDatas[resoueceName];
             vk::DescriptorSetLayoutBinding binding;
@@ -29,7 +31,8 @@ void GraphicsShader::GenerateVulkanDescriptorSetLayout() {
 
         descriptorSetLayoutCreateInfo.setBindingCount(layoutBindings.size())
                                      .setBindings(layoutBindings);
-        m_DescriptorSetLayouts.push_back(device.createDescriptorSetLayout(descriptorSetLayoutCreateInfo));
+        
+        m_descriptorSetLayouts.push_back(device.createDescriptorSetLayout(descriptorSetLayoutCreateInfo));
     }
 }
 
@@ -59,7 +62,7 @@ GraphicsShader::~GraphicsShader() {
     device.destroyShaderModule(m_fragShader);
 
     // destroy our layout
-    for(auto& layout : m_DescriptorSetLayouts) {
+    for(auto& layout : m_descriptorSetLayouts) {
         device.destroyDescriptorSetLayout(layout);
     }
 }

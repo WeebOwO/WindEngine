@@ -26,6 +26,10 @@ namespace wind {
     void RenderGraphBuilder::Exec() {
         m_renderGraph->Exec();
     }
+    
+    void RenderGraphBuilder::SetSceneResourcePool(SceneResourcePool* resourcePool) {
+        
+    }
 
     void RenderGraphBuilder::SetBackBufferName(std::string_view backBufferName) {
         m_renderGraph->SetBackBufferName(backBufferName);

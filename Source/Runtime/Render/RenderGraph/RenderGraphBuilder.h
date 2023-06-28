@@ -17,6 +17,7 @@ public:
     
     void AddRenderPass(std::string_view passName, PassSetupFunc setupFunc);
     void SetBackBufferName(std::string_view backBufferName);
+    void SetSceneResourcePool(SceneResourcePool* resourcePool);
     void Setup(SceneView* renderScene);
     void Compile();
     void Exec();
@@ -27,5 +28,6 @@ public:
     std::shared_ptr<RDGRenderTarget> CreateRDGRenderTarget(const std::string& name, uint32_t width, uint32_t height);
 private:
     RenderGraph* m_renderGraph;
+    SceneResourcePool* m_sceneResourcePool;
 };
 } // namespace wind

@@ -29,7 +29,7 @@ RenderProcessBuilder& RenderProcessBuilder::SetShader(GraphicsShader* graphicsSh
         .setSetLayouts(shaderLayouts);
 
     return *this;
-}
+} 
 
 RenderProcessBuilder& RenderProcessBuilder::SetBlendState(bool blendEnable) {
     vk::PipelineColorBlendAttachmentState colorBlendAttachment;

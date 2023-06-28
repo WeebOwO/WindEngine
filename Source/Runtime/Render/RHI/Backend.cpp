@@ -14,6 +14,35 @@ static std::vector<const char*> layers = {"VK_LAYER_KHRONOS_validation"};
 namespace wind {
 std::unique_ptr<RenderBackend> RenderBackend::s_instance = nullptr;
 
+void SceneResourcePool::Init() {
+    // create camera uniform buffer
+    size_t cameraBufferSize = sizeof(CameraBuffer);
+    m_camearaUniformBuffer = std::make_shared<Buffer>(cameraBufferSize, BufferUsage::UNIFORM_BUFFER,
+                                                      MemoryUsage::CPU_TO_GPU);
+    m_predefinedBuffer["CameraBuffer"] = m_camearaUniformBuffer;
+    // create object uniform buffer
+    size_t objectBufferSize = sizeof(ObjectBuffer);
+    m_objectUniformBuffer = std::make_shared<Buffer>(objectBufferSize, BufferUsage::UNIFORM_BUFFER,
+                                                     MemoryUsage::CPU_TO_GPU);
+    m_predefinedBuffer["ObjectBuffer"] = m_objectUniformBuffer;
+}
+
+void SceneResourcePool::UpdateCameraBuffer(Camera* camera) {
+    CameraBuffer cameraBuffer{camera->GetView(), camera->GetProjection(),
+                              camera->GetView() * camera->GetProjection()};
+    m_camearaUniformBuffer->MapMemory();
+    m_camearaUniformBuffer->CopyData((uint8_t*)&cameraBuffer, sizeof(cameraBuffer), 0);
+    m_camearaUniformBuffer->UnmapMemory();
+}
+
+BufferInfo SceneResourcePool::GetBuffer(const std::string& bufferName) {
+    if(m_predefinedBuffer.find(bufferName) == m_predefinedBuffer.end()) {
+        WIND_CORE_WARN("Failed to find {}", bufferName);
+    }
+    return BufferInfo {*m_predefinedBuffer[bufferName], 0};
+}
+
+
 template <typename T, typename U>
 void RemoveNosupportedElems(std::vector<T>& elems, const std::vector<U>& supportedElems,
                             std::function<bool(const T&, const U&)> eq) {
@@ -118,6 +147,14 @@ void RenderBackend::CreateDevice() {
     createInfo.setQueueCreateInfos(queueCreateInfos).setPEnabledExtensionNames(extensions);
 
     m_device = m_physicalDevice.createDevice(createInfo);
+}
+
+void RenderBackend::CreateSceneResourcePools() {
+    const uint32_t maxFrameInFlight = m_createSetting.maxFrameInflight;
+    m_sceneResourcePools.resize(maxFrameInFlight);
+    for(auto& resourcePool : m_sceneResourcePools) {
+        resourcePool.Init();
+    }
 }
 
 void RenderBackend::QueryQueueFamilyIndices() {
