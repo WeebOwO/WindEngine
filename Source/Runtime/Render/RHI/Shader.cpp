@@ -14,26 +14,21 @@ std::unordered_map<std::string, std::shared_ptr<GraphicsShader>> ShaderFactory::
 void GraphicsShader::GenerateVulkanDescriptorSetLayout() {
     auto& device = RenderBackend::GetInstance().GetDevice();
     
-    for (const auto& [set, resourceNameVecs] : m_setGroups) {
-        vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo; 
-        std::vector<vk::DescriptorSetLayoutBinding> layoutBindings;
-        
-        for(const auto& resoueceName : resourceNameVecs) {
-            BindMetaData metaData = m_reflectionDatas[resoueceName];
-            vk::DescriptorSetLayoutBinding binding;
-            vk::ShaderStageFlags stageFlags = metaData.shaderStageFlags.front();
-            binding.setBinding(metaData.binding)
-                   .setDescriptorCount(1)
-                   .setDescriptorType(metaData.descriptorType)
-                   .setStageFlags(stageFlags);
-            layoutBindings.push_back(binding);
-        }
-
+    vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo; 
+    std::vector<vk::DescriptorSetLayoutBinding> layoutBindings;
+    for(const auto& [resourceName, metaData] : m_reflectionDatas) {
+        vk::DescriptorSetLayoutBinding binding;
+        vk::ShaderStageFlags stageFlags = metaData.shaderStageFlag;
+        binding.setBinding(metaData.binding)
+                .setDescriptorCount(metaData.count)
+                .setDescriptorType(metaData.descriptorType)
+                .setStageFlags(stageFlags);
+        layoutBindings.push_back(binding);
         descriptorSetLayoutCreateInfo.setBindingCount(layoutBindings.size())
                                      .setBindings(layoutBindings);
-        
-        m_descriptorSetLayouts.push_back(device.createDescriptorSetLayout(descriptorSetLayoutCreateInfo));
     }
+
+    m_descriptorSetLayout = device.createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
 }
 
 void GraphicsShader::CollectSpirvMetaData(std::vector<uint32_t> spivrBinary,
@@ -47,13 +42,16 @@ void GraphicsShader::CollectSpirvMetaData(std::vector<uint32_t> spivrBinary,
         if (m_reflectionDatas.find(resource.name) == m_reflectionDatas.end()) {
             uint32_t     set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
             uint32_t     binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-            BindMetaData metaData{binding, vk::DescriptorType::eUniformBuffer};
+            const spirv_cross::SPIRType &type = compiler.get_type(resource.type_id);
+            uint32_t     size = compiler.get_declared_struct_size(type);
+            uint32_t     typeArraySize = type.array.size();
+            uint32_t     count = typeArraySize == 0 ? 1 : type.array[0];
+            BindMetaData metaData{set, binding, count, vk::DescriptorType::eUniformBuffer, shaderFlags};
             WIND_INFO("Here is uniform buffer, set is {}, binding is {}", set, binding);
             m_reflectionDatas[resource.name] = metaData;
-            m_setGroups[set].push_back(resource.name);
         }
-        m_reflectionDatas[resource.name].shaderStageFlags.push_back(shaderFlags);
     }
+
 }
 
 GraphicsShader::~GraphicsShader() {
@@ -62,9 +60,7 @@ GraphicsShader::~GraphicsShader() {
     device.destroyShaderModule(m_fragShader);
 
     // destroy our layout
-    for(auto& layout : m_descriptorSetLayouts) {
-        device.destroyDescriptorSetLayout(layout);
-    }
+    device.destroyDescriptorSetLayout(m_descriptorSetLayout);
 }
 
 GraphicsShader::GraphicsShader(std::string_view vertexShaderfilePath,

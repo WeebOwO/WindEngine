@@ -101,7 +101,7 @@ public:
 
     std::vector<vk::DescriptorSet>  descriptorSets;
     std::shared_ptr<GraphicsShader> graphicsShader;
-
+    
     SceneResourcePool* resourcePool {nullptr};
     SceneView* renderScene {nullptr};
 };

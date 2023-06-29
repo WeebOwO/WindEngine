@@ -4,16 +4,27 @@
 #include <string>
 #include <unordered_map>
 
+#include <variant>
 #include <vulkan/vulkan.hpp>
+
+#include "Runtime/Render/RHI/Buffer.h"
+#include "Runtime/Render/RHI/Image.h"
+#include "Runtime/Render/RHI/Sampler.h"
 
 namespace wind {
 
 class GraphicsShader {
 public:
+    struct ShaderResource {
+        std::variant<std::shared_ptr<Buffer>, std::shared_ptr<Image>> resource;
+    };
+    
     struct BindMetaData {
-        uint32_t                          binding;
-        vk::DescriptorType                descriptorType;
-        std::vector<vk::ShaderStageFlags> shaderStageFlags;
+        uint32_t             set;
+        uint32_t             binding;
+        uint32_t             count;
+        vk::DescriptorType   descriptorType;
+        vk::ShaderStageFlags shaderStageFlag;
     };
 
     GraphicsShader(std::string_view vertexShaderfilePath, std::string_view fragmentShaderFilePath);
@@ -23,20 +34,22 @@ public:
     [[nodiscard]] auto  GetVertexShaderModule() const { return m_vertexShader; }
     [[nodiscard]] auto  GetFragmentShaderModule() const { return m_fragShader; }
     [[nodiscard]] auto  GetShaderReflesctionData() const { return m_reflectionDatas; }
-    [[nodiscard]] auto& GetDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
-    [[nodiscard]] auto& GetDescriptorBindingGroup() { return m_setGroups; }
+    [[nodiscard]] auto& GetDescriptorSetLayouts() const { return m_descriptorSetLayout; }
 
+    void Bind(const std::string resourceName, uint8_t* cpudata);
+    void Bind(const std::string resoueceName, Sampler sampler, uint8_t* cpudata);
+    
 private:
     void GenerateVulkanDescriptorSetLayout();
     void CollectSpirvMetaData(std::vector<uint32_t> spivrBinary, vk::ShaderStageFlags shaderFlags);
     vk::ShaderModule                                  m_vertexShader;
     vk::ShaderModule                                  m_fragShader;
-    std::unordered_map<std::string, BindMetaData>     m_reflectionDatas;
-    std::unordered_map<int, std::vector<std::string>> m_setGroups;
 
-    std::vector<vk::DescriptorSetLayout> m_descriptorSetLayouts;
-    std::vector<vk::DescriptorSet>       m_descriptorSet;
-};
+    std::unordered_map<std::string, BindMetaData>     m_reflectionDatas;
+    
+    vk::DescriptorSetLayout m_descriptorSetLayout;
+    vk::DescriptorSet       m_descriptorSet;
+};  
 
 class ShaderFactory {
 public:

@@ -17,33 +17,6 @@
 
 namespace wind {
 
-struct FrameResourcePool {
-    FrameResourcePool();
-    
-    struct CameraBuffer {
-        glm::mat4 view;
-        glm::mat4 projection;
-        glm::mat4 viewProjection;
-    };
-
-    struct ObjectBuffer {
-        glm::mat4 model;
-    };
-
-    void Init();
-
-    void UpdateCameraBuffer(Camera* camera);
-    void UpdateObjectBuffer(GameObject* gameObject);
-
-    BufferInfo GetBuffer(const std::string& bufferName);
-    ImageInfo  GetImage(const std::string& ImageName);
-
-private:
-    std::unordered_map<std::string, std::shared_ptr<Buffer>> m_predefinedBuffer ;
-    std::shared_ptr<Buffer>                                  m_camearaUniformBuffer;
-    std::shared_ptr<Buffer>                                  m_objectUniformBuffer;
-};
-
 struct QueueIndices {
     std::optional<uint32_t> graphicsQueueIndex;
     std::optional<uint32_t> presentQueueIndex;
@@ -134,8 +107,6 @@ public:
         return m_virtualFrames.GetCurrentFrame().StagingBuffer;
     }
     [[nodiscard]] auto  GetMaxFrameInFlight() { return m_createSetting.maxFrameInflight; }
-    [[nodiscard]] auto& GetCurrentResourcePool() { return m_sceneResourcePools[m_virtualFrames.GetPresentImageIndex()]; }
-    [[nodiscard]] auto& GetSceneResourcesPools() {return m_sceneResourcePools;}
     
 private:
     std::vector<const char*> GetRequiredExtensions();
@@ -150,7 +121,6 @@ private:
     void                     CreateSyncObeject();
     void                     CreateVmaAllocator();
     void                     CreateDescriptorCacheAndAllocator();
-    void                     CreateSceneResourcePools();
 
     BackendCreateSetting m_createSetting;
 
@@ -188,7 +158,6 @@ private:
     std::shared_ptr<DescriptorAllocator>   m_descriptorAllocator;
     std::shared_ptr<DescriptorLayoutCache> m_descriptorLayoutCache;
 
-    std::vector<FrameResourcePool>        m_sceneResourcePools;
     uint32_t                              m_presentImageCnt;
     bool                                  m_renderingEnabled{true};
     static std::unique_ptr<RenderBackend> s_instance;

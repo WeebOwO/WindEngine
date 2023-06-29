@@ -8,6 +8,6 @@ public:
     void Init() override;
     void InitView(Scene& scene) override;
 private:
-    void AddForWardBasePass(RenderGraphBuilder& graphBuilder);
+    void AddForwardBasePass(RenderGraphBuilder& graphBuilder);
 };
 } // namespace wind

@@ -10,9 +10,11 @@
 namespace wind {
 
 struct DefaultLit {
-    struct Parameter {
+    
+};
 
-    };
+struct Transparent {
+
 };
 
 template<typename ShadingModel> 

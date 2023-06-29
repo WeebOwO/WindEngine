@@ -3,15 +3,16 @@
 #include <memory>
 
 #include "Runtime/Render/RHI/Backend.h"
+#include "Runtime/Render/RHI/Descriptors.h"
 #include "Runtime/Render/RenderGraph/Node.h"
 #include "Runtime/Scene/SceneView.h"
 
 namespace wind {
 ForwardRenderer::ForwardRenderer() {
-    Init();
+    Init(); 
 }
 
-void ForwardRenderer::AddForWardBasePass(RenderGraphBuilder& graphBuilder) {
+void ForwardRenderer::AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
     const auto defaultColorFormat = RenderBackend::GetInstance().GetSwapChainSurfaceFormat();
     const auto [width, height] = RenderBackend::GetInstance().GetSurfaceExtent();
 
@@ -28,7 +29,7 @@ void ForwardRenderer::AddForWardBasePass(RenderGraphBuilder& graphBuilder) {
                                 ImageUsage::DEPTH_SPENCIL_ATTACHMENT,
                                 MemoryUsage::GPU_ONLY,
                                 ImageOptions::DEFAULT};
-
+    
     graphBuilder.AddRenderPass("OpaquePass", [=](PassNode* passNode) {
         passNode->DeclareColorAttachment("SceneColor", backBufferDesc);
         passNode->DeclareDepthAttachment("SceneDepth", depthBufferDesc);
@@ -37,9 +38,10 @@ void ForwardRenderer::AddForWardBasePass(RenderGraphBuilder& graphBuilder) {
         passNode->SetRenderRect(width, height);
 
         RenderProcessBuilder renderProcessBuilder;
-
+ 
         std::shared_ptr<GraphicsShader> shader = ShaderFactory::CreateGraphicsShader(
             "OpaqueShader", "ForwardBasePass.vert.spv", "ForwardBasePass.frag.spv");
+        
         
         renderProcessBuilder.SetBlendState(false)
             .SetShader(shader.get())
@@ -48,7 +50,7 @@ void ForwardRenderer::AddForWardBasePass(RenderGraphBuilder& graphBuilder) {
         
         passNode->graphicsShader = shader;
         passNode->pipelineState = renderProcessBuilder.BuildGraphicProcess();
-        
+
         return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
             auto* scene = passNode->renderScene->GetOwnScene();
             
@@ -69,7 +71,7 @@ void ForwardRenderer::Init() {
     for(size_t i = 0; i < m_renderGraphs.size(); ++i) {
         RenderGraphBuilder graphBuilder(m_renderGraphs[i].get());
         graphBuilder.SetBackBufferName("SceneColor");
-        AddForWardBasePass(graphBuilder);
+        AddForwardBasePass(graphBuilder);
         graphBuilder.Compile();
     }
 }
@@ -83,4 +85,4 @@ void ForwardRenderer::Render(Scene& scene) {
     graphBuilder.Exec();
     m_backend.EndFrame();
 }
-} // namespace wind
+} // namespace wind 
