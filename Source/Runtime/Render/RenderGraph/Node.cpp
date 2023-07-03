@@ -86,7 +86,7 @@ void PassNode::ConstructResource(RenderGraphBuilder& graphBuilder) {
 
     const auto [depthTextureName, desc] = *depthTextureDesc.begin();
     depthAttachment = graphBuilder.CreateRDGTexture(depthTextureName, desc);
-
+    
     CreateFrameBuffer(renderRect.width, renderRect.height);
 }
 
@@ -94,18 +94,20 @@ void PassNode::CreateFrameBuffer(uint32_t width, uint32_t height) {
     auto&                      device = RenderBackend::GetInstance().GetDevice();
     vk::FramebufferCreateInfo  frameBufferCreateInfo;
     std::vector<vk::ImageView> views;
+
     for (const auto colorAttachment : colorAttachments) {
         views.push_back(colorAttachment->GetNativeView(ImageView::NATIVE));
     }
 
     views.push_back(depthAttachment->GetNativeView(ImageView::NATIVE));
+
     frameBufferCreateInfo.setRenderPass(renderPass)
         .setAttachmentCount(views.size())
         .setAttachments(views)
         .setWidth(width)
         .setHeight(height)
         .setLayers(1);
-
+    
     frameBuffer = device.createFramebuffer(frameBufferCreateInfo);
 }
 

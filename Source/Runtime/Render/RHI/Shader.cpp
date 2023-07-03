@@ -6,8 +6,6 @@
 
 #include "Runtime/Base/Io.h"
 #include "Runtime/Render/RHI/Backend.h"
-#include "Runtime/Render/RHI/Descriptors.h"
-#include "Runtime/Render/RHI/Shader.h"
 #include "Runtime/Scene/SceneView.h"
 
 namespace wind {
@@ -32,6 +30,43 @@ void GraphicsShader::GenerateVulkanDescriptorSetLayout() {
     m_descriptorSetLayout = device.createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
 }
 
+void GraphicsShader::FinishShaderBinding() {
+    auto& device = RenderBackend::GetInstance().GetDevice();
+    std::vector<vk::WriteDescriptorSet> WriteDescriptorVec;
+    for(const auto& [name, metaData] : m_reflectionDatas) {
+        vk::WriteDescriptorSet writer;
+        if(metaData.descriptorType == vk::DescriptorType::eUniformBuffer) {
+            auto& shaderBufferDesc = m_bufferShaderResource[name];
+            vk::DescriptorBufferInfo bufferInfo;
+            bufferInfo.setBuffer(shaderBufferDesc.buffer->GetNativeHandle())
+                      .setOffset(shaderBufferDesc.offset)
+                      .setRange(shaderBufferDesc.range);
+        
+            writer.setDescriptorType(vk::DescriptorType::eUniformBuffer)
+                  .setDstBinding(metaData.binding)
+                  .setDescriptorCount(metaData.count)
+                  .setBufferInfo(bufferInfo)
+                  .setDstSet(m_descriptorSet);
+
+        }
+        if(metaData.descriptorType == vk::DescriptorType::eCombinedImageSampler) {
+            auto& shaderImageDesc = m_imageShaderResource[name];
+            vk::DescriptorImageInfo imageInfo;
+            imageInfo.setImageLayout(shaderImageDesc.layout)
+                     .setImageView(shaderImageDesc.image->GetNativeView(ImageView::NATIVE))
+                     .setSampler(shaderImageDesc.sampler->GetNativeHandle());
+            
+            writer.setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
+                  .setImageInfo(imageInfo)
+                  .setDescriptorCount(metaData.count)
+                  .setDstBinding(metaData.binding)
+                  .setDstSet(m_descriptorSet);
+        }
+        WriteDescriptorVec.push_back(writer);
+    }
+    device.updateDescriptorSets(WriteDescriptorVec.size(), WriteDescriptorVec.data(), 0, nullptr);
+}
+
 void GraphicsShader::CollectSpirvMetaData(std::vector<uint32_t> spivrBinary,
                                           vk::ShaderStageFlags  shaderFlags) {
     const auto& device = RenderBackend::GetInstance().GetDevice();
@@ -42,7 +77,7 @@ void GraphicsShader::CollectSpirvMetaData(std::vector<uint32_t> spivrBinary,
     for (auto& resource : resources.uniform_buffers) {
         // check our uniform buffer
         if (m_reflectionDatas.find(resource.name) == m_reflectionDatas.end()) {
-            std::string_view resourceName = resource.name;
+            std::string_view resourceName = resource.name; 
             uint32_t     set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
             uint32_t     binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
             const spirv_cross::SPIRType &type = compiler.get_type(resource.type_id);

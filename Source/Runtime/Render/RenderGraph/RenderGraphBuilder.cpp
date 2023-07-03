@@ -27,8 +27,16 @@ namespace wind {
         m_renderGraph->Exec();
     }
     
-    void RenderGraphBuilder::SetSceneResourcePool(SceneResourcePool* resourcePool) {
+    std::shared_ptr<Buffer> RenderGraphBuilder::CreateRDGBuffer(const std::string& resourceName, const BufferDesc& bufferDesc) {
+        std::shared_ptr<Buffer> buffer = std::make_shared<Buffer>(bufferDesc.byteSize, bufferDesc.usage, bufferDesc.memoryUsage);
+        auto* node = new ResourceNode();
+
+        node->resourceName = resourceName;
+        node->bufferHandle = buffer;
+        node->resoueceType = RenderResoueceType::Buffer;
         
+        m_renderGraph->AddResourceNode(resourceName, node);
+        return buffer;
     }
 
     void RenderGraphBuilder::SetBackBufferName(std::string_view backBufferName) {

@@ -3,8 +3,8 @@
 #include <cstdint>
 #include <vulkan/vulkan.hpp>
 
+#include "Runtime/Render/RHI/Buffer.h"
 #include "Runtime/Render/RHI/Image.h"
-#include "Runtime/Render/RHI/Vma.h"
 
 namespace wind {
 struct TextureDesc {
@@ -23,5 +23,9 @@ struct RDGRenderTarget {
     Image    depthAttachment;
 };
 
-struct BufferDesc {};
+struct BufferDesc {
+    size_t             byteSize;
+    BufferUsage::Value usage;
+    MemoryUsage        memoryUsage;
+};
 } // namespace wind

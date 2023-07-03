@@ -14,6 +14,18 @@
 namespace wind {
 struct ShaderBase {};
 
+struct ShaderImageDesc {
+    Image* image;
+    vk::ImageLayout layout;
+    Sampler* sampler;
+};
+
+struct ShaderBufferDesc {
+    Buffer* buffer;
+    size_t offset;
+    size_t range;
+};
+
 class GraphicsShader : public ShaderBase {
 public:
     struct BindMetaData {
@@ -46,8 +58,8 @@ private:
 
     std::unordered_map<std::string, BindMetaData> m_reflectionDatas;
 
-    std::unordered_map<std::string, std::shared_ptr<Image>>  m_imageShaderResource;
-    std::unordered_map<std::string, std::shared_ptr<Buffer>> m_bufferShaderResource;
+    std::unordered_map<std::string, ShaderImageDesc>  m_imageShaderResource;
+    std::unordered_map<std::string, ShaderBufferDesc> m_bufferShaderResource;
 
     vk::DescriptorSetLayout m_descriptorSetLayout;
     vk::DescriptorSet       m_descriptorSet;

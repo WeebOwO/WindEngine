@@ -30,10 +30,11 @@ void ForwardRenderer::AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
                                 MemoryUsage::GPU_ONLY,
                                 ImageOptions::DEFAULT};
     
+    BufferDesc cameraUniformBuffer {};
     graphBuilder.AddRenderPass("OpaquePass", [=](PassNode* passNode) {
         passNode->DeclareColorAttachment("SceneColor", backBufferDesc);
         passNode->DeclareDepthAttachment("SceneDepth", depthBufferDesc);
-
+        
         passNode->CreateRenderPass();
         passNode->SetRenderRect(width, height);
 
@@ -52,7 +53,7 @@ void ForwardRenderer::AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
         return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
             auto* scene = passNode->renderScene->GetOwnScene();
             auto shader = passNode->graphicsShader;
-                     
+            
             for(auto& gameObject : scene->GetWorld().GetWorldGameObjects()) {
                 gameObject.model->Bind(cmdBuffer);
                 gameObject.model->Draw(cmdBuffer);
