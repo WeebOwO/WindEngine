@@ -39,9 +39,7 @@ void ForwardRenderer::AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
 
         RenderProcessBuilder renderProcessBuilder;
  
-        std::shared_ptr<GraphicsShader> shader = ShaderFactory::CreateGraphicsShader(
-            "OpaqueShader", "ForwardBasePass.vert.spv", "ForwardBasePass.frag.spv");
-        
+        std::shared_ptr<GraphicsShader> shader = ShaderFactory::CreateGraphicsShader("ForwardBasePass.vert.spv", "ForwardBasePass.frag.spv");
         
         renderProcessBuilder.SetBlendState(false)
             .SetShader(shader.get())
@@ -50,10 +48,11 @@ void ForwardRenderer::AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
         
         passNode->graphicsShader = shader;
         passNode->pipelineState = renderProcessBuilder.BuildGraphicProcess();
-
+        
         return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
             auto* scene = passNode->renderScene->GetOwnScene();
-            
+            auto shader = passNode->graphicsShader;
+                     
             for(auto& gameObject : scene->GetWorld().GetWorldGameObjects()) {
                 gameObject.model->Bind(cmdBuffer);
                 gameObject.model->Draw(cmdBuffer);

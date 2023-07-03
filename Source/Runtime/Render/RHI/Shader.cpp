@@ -1,15 +1,16 @@
 #include "Shader.h"
 
+#include <memory>
 #include <spirv_cross/spirv_glsl.hpp>
 #include <unordered_map>
 
 #include "Runtime/Base/Io.h"
 #include "Runtime/Render/RHI/Backend.h"
 #include "Runtime/Render/RHI/Descriptors.h"
+#include "Runtime/Render/RHI/Shader.h"
 #include "Runtime/Scene/SceneView.h"
 
 namespace wind {
-std::unordered_map<std::string, std::shared_ptr<GraphicsShader>> ShaderFactory::m_shaderCache{};
 
 void GraphicsShader::GenerateVulkanDescriptorSetLayout() {
     auto& device = RenderBackend::GetInstance().GetDevice();
@@ -37,9 +38,11 @@ void GraphicsShader::CollectSpirvMetaData(std::vector<uint32_t> spivrBinary,
 
     spirv_cross::CompilerGLSL    compiler(std::move(spivrBinary));
     spirv_cross::ShaderResources resources = compiler.get_shader_resources();
-
+    
     for (auto& resource : resources.uniform_buffers) {
+        // check our uniform buffer
         if (m_reflectionDatas.find(resource.name) == m_reflectionDatas.end()) {
+            std::string_view resourceName = resource.name;
             uint32_t     set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
             uint32_t     binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
             const spirv_cross::SPIRType &type = compiler.get_type(resource.type_id);
@@ -47,11 +50,9 @@ void GraphicsShader::CollectSpirvMetaData(std::vector<uint32_t> spivrBinary,
             uint32_t     typeArraySize = type.array.size();
             uint32_t     count = typeArraySize == 0 ? 1 : type.array[0];
             BindMetaData metaData{set, binding, count, vk::DescriptorType::eUniformBuffer, shaderFlags};
-            WIND_INFO("Here is uniform buffer, set is {}, binding is {}", set, binding);
             m_reflectionDatas[resource.name] = metaData;
         }
     }
-
 }
 
 GraphicsShader::~GraphicsShader() {
@@ -88,10 +89,9 @@ GraphicsShader::GraphicsShader(std::string_view vertexShaderfilePath,
 }
 
 std::shared_ptr<GraphicsShader>
-ShaderFactory::CreateGraphicsShader(const std::string& name, const std::string& vertexFilePath,
+ShaderFactory::CreateGraphicsShader(const std::string& vertexFilePath,
                                     const std::string& fragFilePath) {
-    if (m_shaderCache.find(name) != m_shaderCache.end()) { return m_shaderCache[name]; }
-    return m_shaderCache[name] = std::make_shared<GraphicsShader>(vertexFilePath, fragFilePath);
+    return std::make_shared<GraphicsShader>(vertexFilePath, fragFilePath);
 }
 
 } // namespace wind

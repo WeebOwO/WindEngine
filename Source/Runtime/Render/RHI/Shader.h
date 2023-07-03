@@ -12,13 +12,10 @@
 #include "Runtime/Render/RHI/Sampler.h"
 
 namespace wind {
+struct ShaderBase {};
 
-class GraphicsShader {
+class GraphicsShader : public ShaderBase {
 public:
-    struct ShaderResource {
-        std::variant<std::shared_ptr<Buffer>, std::shared_ptr<Image>> resource;
-    };
-    
     struct BindMetaData {
         uint32_t             set;
         uint32_t             binding;
@@ -28,7 +25,7 @@ public:
     };
 
     GraphicsShader(std::string_view vertexShaderfilePath, std::string_view fragmentShaderFilePath);
-
+    
     ~GraphicsShader();
 
     [[nodiscard]] auto  GetVertexShaderModule() const { return m_vertexShader; }
@@ -38,27 +35,29 @@ public:
 
     void Bind(const std::string resourceName, uint8_t* cpudata);
     void Bind(const std::string resoueceName, Sampler sampler, uint8_t* cpudata);
-    
+
+    void FinishShaderBinding();
+
 private:
     void GenerateVulkanDescriptorSetLayout();
     void CollectSpirvMetaData(std::vector<uint32_t> spivrBinary, vk::ShaderStageFlags shaderFlags);
-    vk::ShaderModule                                  m_vertexShader;
-    vk::ShaderModule                                  m_fragShader;
+    vk::ShaderModule m_vertexShader;
+    vk::ShaderModule m_fragShader;
 
-    std::unordered_map<std::string, BindMetaData>     m_reflectionDatas;
-    
+    std::unordered_map<std::string, BindMetaData> m_reflectionDatas;
+
+    std::unordered_map<std::string, std::shared_ptr<Image>>  m_imageShaderResource;
+    std::unordered_map<std::string, std::shared_ptr<Buffer>> m_bufferShaderResource;
+
     vk::DescriptorSetLayout m_descriptorSetLayout;
     vk::DescriptorSet       m_descriptorSet;
-};  
+};
 
 class ShaderFactory {
 public:
     static std::shared_ptr<GraphicsShader>
-    CreateGraphicsShader(const std::string& name, const std::string& vertexFilePath = "",
-                         const std::string& fragFilePath = "");
-
-private:
-    static std::unordered_map<std::string, std::shared_ptr<GraphicsShader>> m_shaderCache;
+    CreateGraphicsShader(const std::string& vertexFilePath = "",
+                         const std::string& fragFilePath   = "");
 };
 
 } // namespace wind

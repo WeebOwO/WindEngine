@@ -99,7 +99,6 @@ public:
         uint32_t width, height;
     } renderRect;
 
-    std::vector<vk::DescriptorSet>  descriptorSets;
     std::shared_ptr<GraphicsShader> graphicsShader;
     
     SceneResourcePool* resourcePool {nullptr};
