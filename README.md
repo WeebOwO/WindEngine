@@ -11,7 +11,7 @@ xmake run
 
 ## Feature
 * RenderGraph 
-* Shader reflection for auto create pipeline layout
+* Shader Reflection For Auto Create Render Pipeline
 * Forward / Deferred Shading (Tiled Based Implementation)
   
 ### Todo
