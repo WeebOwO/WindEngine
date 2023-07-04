@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan.hpp>
 
+#include "Runtime/Render/RHI/Shader.h"
 #include "Runtime/Render/RenderGraph/Node.h"
 
 namespace wind {
@@ -78,6 +79,8 @@ public:
 
     void BeginRenderPass(PassNode* passNode);
     void EndRenderPass();
+
+    void BindDescriptorSet(vk::PipelineBindPoint bindPoint, vk::PipelineLayout layout,vk::DescriptorSet& descriptorSet);
 
     void CopyImage(const ImageInfo& source, const ImageInfo& distance);
     void CopyBufferToImage(const BufferInfo& source, const ImageInfo& distance);

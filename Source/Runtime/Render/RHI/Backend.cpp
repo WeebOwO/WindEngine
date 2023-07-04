@@ -74,6 +74,7 @@ RenderBackend::~RenderBackend() {
     m_device.waitIdle();
     m_virtualFrames.Destroy();
     m_swapchainImages.clear();
+    m_descriptorAllocator->CleanUp();
 
     m_device.destroySemaphore(m_renderingFinishedSemaphore);
     m_device.destroySemaphore(m_imageAvailableSemaphore);

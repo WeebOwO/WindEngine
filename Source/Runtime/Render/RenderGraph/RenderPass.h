@@ -46,7 +46,7 @@ public:
         vk::PipelineBindPoint bindPoint;
     };
 
-    [[nodiscard]] auto GetPipeline() {return m_pipeline;}
+    [[nodiscard]] auto& GetPipeline() {return m_pipeline;}
 private:
     Pipeline m_pipeline;
 };

@@ -450,4 +450,9 @@ void CommandBuffer::TransferLayout(std::span<Image> images, ImageUsage::Bits old
                              {},                                       // buffer barriers
                              barriers);
 }
+
+
+void CommandBuffer::BindDescriptorSet(vk::PipelineBindPoint bindPoint, vk::PipelineLayout layout,vk::DescriptorSet& descriptorSet) {
+    m_handle.bindDescriptorSets(bindPoint, layout, 0, descriptorSet, {});
+}
 } // namespace wind

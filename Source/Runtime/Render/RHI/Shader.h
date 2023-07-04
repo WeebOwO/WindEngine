@@ -15,15 +15,15 @@ namespace wind {
 struct ShaderBase {};
 
 struct ShaderImageDesc {
-    Image* image;
-    vk::ImageLayout layout;
-    Sampler* sampler;
+    std::shared_ptr<Image>   image;
+    vk::ImageLayout          layout;
+    std::shared_ptr<Sampler> sampler;
 };
 
 struct ShaderBufferDesc {
-    Buffer* buffer;
-    size_t offset;
-    size_t range;
+    std::shared_ptr<Buffer> buffer;
+    size_t                  offset;
+    size_t                  range;
 };
 
 class GraphicsShader : public ShaderBase {
@@ -37,19 +37,23 @@ public:
     };
 
     GraphicsShader(std::string_view vertexShaderfilePath, std::string_view fragmentShaderFilePath);
-    
+
     ~GraphicsShader();
 
     [[nodiscard]] auto  GetVertexShaderModule() const { return m_vertexShader; }
     [[nodiscard]] auto  GetFragmentShaderModule() const { return m_fragShader; }
     [[nodiscard]] auto  GetShaderReflesctionData() const { return m_reflectionDatas; }
     [[nodiscard]] auto& GetDescriptorSetLayouts() const { return m_descriptorSetLayout; }
+    [[nodiscard]] auto& GetDescriptorSet() {return m_descriptorSet;}
 
     void Bind(const std::string resourceName, uint8_t* cpudata);
     void Bind(const std::string resoueceName, Sampler sampler, uint8_t* cpudata);
-
+    
     void FinishShaderBinding();
 
+    GraphicsShader& SetShaderResource(std::string_view resourceName, const ShaderBufferDesc& bufferDesc);
+    GraphicsShader& SetShaderResource(std::string_view resourceName, const ShaderImageDesc& imageDesc);
+     
 private:
     void GenerateVulkanDescriptorSetLayout();
     void CollectSpirvMetaData(std::vector<uint32_t> spivrBinary, vk::ShaderStageFlags shaderFlags);

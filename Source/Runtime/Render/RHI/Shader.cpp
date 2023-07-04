@@ -5,14 +5,17 @@
 #include <unordered_map>
 
 #include "Runtime/Base/Io.h"
+#include "Runtime/Base/Macro.h"
 #include "Runtime/Render/RHI/Backend.h"
+#include "Runtime/Render/RHI/Shader.h"
 #include "Runtime/Scene/SceneView.h"
 
 namespace wind {
 
 void GraphicsShader::GenerateVulkanDescriptorSetLayout() {
     auto& device = RenderBackend::GetInstance().GetDevice();
-    
+    auto& allocater = RenderBackend::GetInstance().GetDescriptorAllocator();
+
     vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo; 
     std::vector<vk::DescriptorSetLayoutBinding> layoutBindings;
     for(const auto& [resourceName, metaData] : m_reflectionDatas) {
@@ -28,6 +31,7 @@ void GraphicsShader::GenerateVulkanDescriptorSetLayout() {
     }
 
     m_descriptorSetLayout = device.createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
+    m_descriptorSet = allocater->Allocate(m_descriptorSetLayout);
 }
 
 void GraphicsShader::FinishShaderBinding() {
@@ -37,7 +41,11 @@ void GraphicsShader::FinishShaderBinding() {
         vk::WriteDescriptorSet writer;
         if(metaData.descriptorType == vk::DescriptorType::eUniformBuffer) {
             auto& shaderBufferDesc = m_bufferShaderResource[name];
+            if(shaderBufferDesc.buffer == nullptr) {
+                WIND_CORE_ERROR("Fail to find shader buffer resource which is {}", name);
+            }
             vk::DescriptorBufferInfo bufferInfo;
+            
             bufferInfo.setBuffer(shaderBufferDesc.buffer->GetNativeHandle())
                       .setOffset(shaderBufferDesc.offset)
                       .setRange(shaderBufferDesc.range);
@@ -47,11 +55,14 @@ void GraphicsShader::FinishShaderBinding() {
                   .setDescriptorCount(metaData.count)
                   .setBufferInfo(bufferInfo)
                   .setDstSet(m_descriptorSet);
-
         }
+        
         if(metaData.descriptorType == vk::DescriptorType::eCombinedImageSampler) {
             auto& shaderImageDesc = m_imageShaderResource[name];
             vk::DescriptorImageInfo imageInfo;
+            if(shaderImageDesc.image == nullptr) {
+                 WIND_CORE_ERROR("Fail to find shader image resource which is {}", name);
+            }
             imageInfo.setImageLayout(shaderImageDesc.layout)
                      .setImageView(shaderImageDesc.image->GetNativeView(ImageView::NATIVE))
                      .setSampler(shaderImageDesc.sampler->GetNativeHandle());
@@ -90,8 +101,19 @@ void GraphicsShader::CollectSpirvMetaData(std::vector<uint32_t> spivrBinary,
     }
 }
 
+GraphicsShader& GraphicsShader::SetShaderResource(std::string_view resourceName,const ShaderBufferDesc& bufferDesc) {
+    m_bufferShaderResource[std::string(resourceName)] = bufferDesc;
+    return *this;
+}
+
+GraphicsShader& GraphicsShader::SetShaderResource(std::string_view resourceName, const ShaderImageDesc& imageDesc) {
+    m_imageShaderResource[std::string(resourceName)] = imageDesc;
+    return *this;
+}
+
 GraphicsShader::~GraphicsShader() {
     auto& device = RenderBackend::GetInstance().GetDevice();
+
     device.destroyShaderModule(m_vertexShader);
     device.destroyShaderModule(m_fragShader);
 
