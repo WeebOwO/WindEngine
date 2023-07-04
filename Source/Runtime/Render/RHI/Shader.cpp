@@ -13,65 +13,65 @@
 namespace wind {
 
 void GraphicsShader::GenerateVulkanDescriptorSetLayout() {
-    auto& device = RenderBackend::GetInstance().GetDevice();
+    auto& device    = RenderBackend::GetInstance().GetDevice();
     auto& allocater = RenderBackend::GetInstance().GetDescriptorAllocator();
 
-    vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo; 
+    vk::DescriptorSetLayoutCreateInfo           descriptorSetLayoutCreateInfo;
     std::vector<vk::DescriptorSetLayoutBinding> layoutBindings;
-    for(const auto& [resourceName, metaData] : m_reflectionDatas) {
+    for (const auto& [resourceName, metaData] : m_reflectionDatas) {
         vk::DescriptorSetLayoutBinding binding;
-        vk::ShaderStageFlags stageFlags = metaData.shaderStageFlag;
+        vk::ShaderStageFlags           stageFlags = metaData.shaderStageFlag;
         binding.setBinding(metaData.binding)
-                .setDescriptorCount(metaData.count)
-                .setDescriptorType(metaData.descriptorType)
-                .setStageFlags(stageFlags);
+            .setDescriptorCount(metaData.count)
+            .setDescriptorType(metaData.descriptorType)
+            .setStageFlags(stageFlags);
         layoutBindings.push_back(binding);
         descriptorSetLayoutCreateInfo.setBindingCount(layoutBindings.size())
-                                     .setBindings(layoutBindings);
+            .setBindings(layoutBindings);
     }
 
     m_descriptorSetLayout = device.createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
-    m_descriptorSet = allocater->Allocate(m_descriptorSetLayout);
+    m_descriptorSet       = allocater->Allocate(m_descriptorSetLayout);
 }
 
 void GraphicsShader::FinishShaderBinding() {
-    auto& device = RenderBackend::GetInstance().GetDevice();
+    auto&                               device = RenderBackend::GetInstance().GetDevice();
     std::vector<vk::WriteDescriptorSet> WriteDescriptorVec;
-    for(const auto& [name, metaData] : m_reflectionDatas) {
+    for (const auto& [name, metaData] : m_reflectionDatas) {
         vk::WriteDescriptorSet writer;
-        if(metaData.descriptorType == vk::DescriptorType::eUniformBuffer) {
+        if (metaData.descriptorType == vk::DescriptorType::eUniformBuffer) {
             auto& shaderBufferDesc = m_bufferShaderResource[name];
-            if(shaderBufferDesc.buffer == nullptr) {
+            if (shaderBufferDesc.buffer == nullptr) {
                 WIND_CORE_ERROR("Fail to find shader buffer resource which is {}", name);
             }
             vk::DescriptorBufferInfo bufferInfo;
-            
+
             bufferInfo.setBuffer(shaderBufferDesc.buffer->GetNativeHandle())
-                      .setOffset(shaderBufferDesc.offset)
-                      .setRange(shaderBufferDesc.range);
-        
+                .setOffset(shaderBufferDesc.offset)
+                .setRange(shaderBufferDesc.range);
+
             writer.setDescriptorType(vk::DescriptorType::eUniformBuffer)
-                  .setDstBinding(metaData.binding)
-                  .setDescriptorCount(metaData.count)
-                  .setBufferInfo(bufferInfo)
-                  .setDstSet(m_descriptorSet);
+                .setDstBinding(metaData.binding)
+                .setDescriptorCount(metaData.count)
+                .setBufferInfo(bufferInfo)
+                .setDstSet(m_descriptorSet);
         }
-        
-        if(metaData.descriptorType == vk::DescriptorType::eCombinedImageSampler) {
-            auto& shaderImageDesc = m_imageShaderResource[name];
+
+        if (metaData.descriptorType == vk::DescriptorType::eCombinedImageSampler) {
+            auto&                   shaderImageDesc = m_imageShaderResource[name];
             vk::DescriptorImageInfo imageInfo;
-            if(shaderImageDesc.image == nullptr) {
-                 WIND_CORE_ERROR("Fail to find shader image resource which is {}", name);
+            if (shaderImageDesc.image == nullptr) {
+                WIND_CORE_ERROR("Fail to find shader image resource which is {}", name);
             }
             imageInfo.setImageLayout(shaderImageDesc.layout)
-                     .setImageView(shaderImageDesc.image->GetNativeView(ImageView::NATIVE))
-                     .setSampler(shaderImageDesc.sampler->GetNativeHandle());
-            
+                .setImageView(shaderImageDesc.image->GetNativeView(ImageView::NATIVE))
+                .setSampler(shaderImageDesc.sampler->GetNativeHandle());
+
             writer.setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
-                  .setImageInfo(imageInfo)
-                  .setDescriptorCount(metaData.count)
-                  .setDstBinding(metaData.binding)
-                  .setDstSet(m_descriptorSet);
+                .setImageInfo(imageInfo)
+                .setDescriptorCount(metaData.count)
+                .setDstBinding(metaData.binding)
+                .setDstSet(m_descriptorSet);
         }
         WriteDescriptorVec.push_back(writer);
     }
@@ -84,29 +84,32 @@ void GraphicsShader::CollectSpirvMetaData(std::vector<uint32_t> spivrBinary,
 
     spirv_cross::CompilerGLSL    compiler(std::move(spivrBinary));
     spirv_cross::ShaderResources resources = compiler.get_shader_resources();
-    
+
     for (auto& resource : resources.uniform_buffers) {
         // check our uniform buffer
         if (m_reflectionDatas.find(resource.name) == m_reflectionDatas.end()) {
-            std::string_view resourceName = resource.name; 
-            uint32_t     set = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-            uint32_t     binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-            const spirv_cross::SPIRType &type = compiler.get_type(resource.type_id);
-            uint32_t     size = compiler.get_declared_struct_size(type);
-            uint32_t     typeArraySize = type.array.size();
-            uint32_t     count = typeArraySize == 0 ? 1 : type.array[0];
-            BindMetaData metaData{set, binding, count, vk::DescriptorType::eUniformBuffer, shaderFlags};
+            std::string_view resourceName = resource.name;
+            uint32_t set     = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+            uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+            const spirv_cross::SPIRType& type          = compiler.get_type(resource.type_id);
+            uint32_t                     size          = compiler.get_declared_struct_size(type);
+            uint32_t                     typeArraySize = type.array.size();
+            uint32_t                     count         = typeArraySize == 0 ? 1 : type.array[0];
+            BindMetaData metaData{set, binding, count, vk::DescriptorType::eUniformBuffer,
+                                  shaderFlags};
             m_reflectionDatas[resource.name] = metaData;
         }
     }
 }
 
-GraphicsShader& GraphicsShader::SetShaderResource(std::string_view resourceName,const ShaderBufferDesc& bufferDesc) {
+GraphicsShader& GraphicsShader::SetShaderResource(std::string_view        resourceName,
+                                                  const ShaderBufferDesc& bufferDesc) {
     m_bufferShaderResource[std::string(resourceName)] = bufferDesc;
     return *this;
 }
 
-GraphicsShader& GraphicsShader::SetShaderResource(std::string_view resourceName, const ShaderImageDesc& imageDesc) {
+GraphicsShader& GraphicsShader::SetShaderResource(std::string_view       resourceName,
+                                                  const ShaderImageDesc& imageDesc) {
     m_imageShaderResource[std::string(resourceName)] = imageDesc;
     return *this;
 }

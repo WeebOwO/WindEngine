@@ -1,7 +1,6 @@
 #include "Image.h"
 
 #include "Runtime/Render/RHI/Backend.h"
-#include "Runtime/Render/RHI/Image.h"
 
 namespace wind {
 

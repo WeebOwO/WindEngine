@@ -21,7 +21,7 @@ Model::Model(Builder builder)
     m_indexBuffer = std::make_shared<Buffer>(
         indexBufferSize, BufferUsage::INDEX_BUFFER | BufferUsage::TRANSFER_DESTINATION,
         MemoryUsage::GPU_ONLY);
-
+    
     const auto vertexAllocation = stageBuffer.Submit(utils::MakeView(builder.vertices));
     const auto indexAllocation  = stageBuffer.Submit(utils::MakeView(builder.indices));
 

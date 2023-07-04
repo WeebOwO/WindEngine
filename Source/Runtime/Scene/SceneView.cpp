@@ -1,21 +1,25 @@
 #include "SceneView.h"
 
-#include "Runtime/Base/Macro.h"
-#include "Runtime/Scene/SceneView.h"
-#include "Runtime/Render/RHI/Buffer.h"
-
 namespace wind {
 
 void SceneView::SetScene(Scene* scene) { 
     m_scene = scene;
     auto& camera = m_scene->GetActiveCamera();
     // Update Camera Buffer 
-    m_cameraUniformBuffer.view = camera->GetView();
-    m_cameraUniformBuffer.proj = camera->GetProjection();
-    m_cameraUniformBuffer.viewproj = camera->GetView() * camera->GetProjection();
+    cameraBuffer->view = camera->GetView();
+    cameraBuffer->proj = camera->GetProjection();
+    cameraBuffer->viewproj = camera->GetProjection() * camera->GetView();
+}
+
+SceneView::SceneView() {
+    Init();
 }
 
 SceneView::SceneView(Scene* scene) : m_scene(scene) {
-    
+    Init();
+}
+
+void SceneView::Init() {
+    cameraBuffer = std::make_shared<CameraUnifoirmBuffer>();
 }
 } // namespace wind

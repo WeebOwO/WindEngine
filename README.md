@@ -4,12 +4,19 @@ Currently just a graphic engine based on vulkan, may extend to a game engine in 
 ## Build
 This project is using [xmake](https://xmake.io/) to manage, after download xmake, you can run commands below to build this project.
 
-```
+```shell
 xmake 
 xmake run
 ```
 
+If you want to generate vs project file, you can also run commands below.
+
+```shell
+xmake project -k vsxmake -m "debug,release"
+```
+
 ## Feature
+
 * RenderGraph 
 * Shader Reflection For Auto Create Render Pipeline
 * Forward / Deferred Shading (Tiled Based Implementation)

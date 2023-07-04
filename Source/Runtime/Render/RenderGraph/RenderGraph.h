@@ -3,7 +3,6 @@
 #include <string_view>
 #include <vector>
 
-#include "Runtime/Render/RHI/Image.h"
 #include "Runtime/Render/RenderGraph/Node.h"
 #include "Runtime/Render/RenderGraph/RenderGraphRegister.h"
 

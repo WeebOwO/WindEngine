@@ -15,6 +15,7 @@ layout(set = 0, binding = 1) uniform ObjectBuffer {
 } objectData;
 
 void main() {
+    mat4 v = cameraData.view;
     gl_Position = vec4(position, 1.0);
     fragColor = vec3(1.0, 1.0, 1.0);
 }

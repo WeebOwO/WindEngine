@@ -7,9 +7,9 @@
 
 namespace wind {
 struct CameraUnifoirmBuffer {
-    glm::mat4 view;
-    glm::mat4 proj;
-    glm::mat4 viewproj;
+    alignas(16) glm::mat4 view;
+    alignas(16) glm::mat4 proj;
+    alignas(16) glm::mat4 viewproj;
 };
 
 struct ObjectUniformBuffer {
@@ -20,14 +20,14 @@ struct ObjectUniformBuffer {
 class SceneView {
 public:
     std::shared_ptr<CameraUnifoirmBuffer> cameraBuffer;
-    
-    SceneView() = default;
+
+    SceneView();
     SceneView(Scene* scene);
+    void  Init();
     void  SetScene(Scene* scene);
     auto* GetOwnScene() { return m_scene; }
 
 private:
     Scene* m_scene;
-    CameraUnifoirmBuffer m_cameraUniformBuffer;
 };
 } // namespace wind
