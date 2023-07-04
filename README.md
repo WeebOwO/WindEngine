@@ -9,6 +9,18 @@ xmake
 xmake run
 ```
 
+## Feature
+* RenderGraph 
+* Shader reflection for auto create pipeline layout
+* Forward / Deferred Shading (Tiled Based Implementation)
+  
+### Todo
+- [ ] PBR + IBL
+- [ ] Shadow
+- [ ] Skinned Animation
+- [ ] Post Process pipeline
+- [ ] GPU Driven (Draw Indirect, CS Culling..) 
+
 ## Reference
 *  [Hazel](https://github.com/TheCherno/Hazel)
 *  [Piccolo](https://github.com/BoomingTech/Piccolo)
