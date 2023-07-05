@@ -81,6 +81,7 @@ Model::Builder LoadModelFromFilePath(std::string_view filename) {
 
     builder.vertices = vertices;
     builder.indices  = faces;
+    
     return builder;
 }
 

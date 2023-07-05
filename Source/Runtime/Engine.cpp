@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "RUntime/Render/ForwardSceneRenderer.h"
+#include "Runtime/Base/Io.h"
 #include "Runtime/Base/Log.h"
 #include "Runtime/Input/Input.h"
 #include "Runtime/Render/RHI/Backend.h"
@@ -51,7 +52,7 @@ private:
 
 void EngineImpl::AddCamera() {
     auto& world = Scene::GetWorld();
-    world.SetupCamera(std::make_shared<Camera>(45.0f, 1.0f, 100.0f));
+    world.SetupCamera(std::make_shared<FirstPersonCamera>(45.0f, 1.0f, 100.0f));
 }
 
 float EngineImpl::CalculateDeltaTime() {
@@ -68,16 +69,9 @@ float EngineImpl::CalculateDeltaTime() {
 }
 
 void EngineImpl::LoadGameObject() {
-    Model::Builder builder;
-
-    Vertex v1, v2, v3;
-    v1.position = glm::vec3(0.0, -0.5, 0.0);
-    v2.position = glm::vec3(0.5, 0.5, 0.0);
-    v3.position = glm::vec3(-0.5, 0.5, 0.0);
-
-    auto& world      = Scene::GetWorld();
-    builder.vertices = {v1, v2, v3};
-    builder.indices = {0, 1, 2};
+    auto& world = Scene::GetWorld();
+    Model::Builder builder = io::LoadModelFromFilePath("E:\\WindEngine\\Assets\\Mesh\\skybox.obj");
+    
     world.AddModel(builder);
 }
 

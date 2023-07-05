@@ -8,14 +8,14 @@
 #include "Runtime/Input/Input.h"
 
 namespace wind {
-Camera::Camera(float verticalFOV, float nearClip, float farClip)
+FirstPersonCamera::FirstPersonCamera(float verticalFOV, float nearClip, float farClip)
     : m_verticalFOV(verticalFOV), m_nearClip(nearClip), m_farClip(farClip) {
     m_forwardDirection = glm::vec3(0, 0, -1);
     m_position         = glm::vec3(0, 0, 6);
 }
-constexpr float Camera::GetRotationSpeed() { return 0.3f; }
+constexpr float FirstPersonCamera::GetRotationSpeed() { return 0.3f; }
 
-bool  Camera::OnUpdate(float ts) {
+bool FirstPersonCamera::OnUpdate(float ts) {
     auto      InputManger = InputManger::GetInstance();
     glm::vec2 mousePos    = InputManger->GetMousePosition();
     glm::vec2 delta       = (mousePos - m_lastMousePosition) * 0.002f;
@@ -37,20 +37,16 @@ bool  Camera::OnUpdate(float ts) {
 
     // Movement
     if (InputManger->IsKeyDown(KeyCode::W)) {
-        WIND_INFO("Move forward");
         m_position += m_forwardDirection * speed * ts;
         moved = true;
     } else if (InputManger->IsKeyDown(KeyCode::S)) {
-        WIND_INFO("Move backward");
         m_position -= m_forwardDirection * speed * ts;
         moved = true;
     }
     if (InputManger->IsKeyDown(KeyCode::A)) {
-        WIND_INFO("Move left");
         m_position -= rightDirection * speed * ts;
         moved = true;
     } else if (InputManger->IsKeyDown(KeyCode::D)) {
-        WIND_INFO("Move right");
         m_position += rightDirection * speed * ts;
         moved = true;
     }
@@ -64,14 +60,14 @@ bool  Camera::OnUpdate(float ts) {
 
     // Rotation
     if (delta.x != 0.0f || delta.y != 0.0f) {
-        float pitchDelta = delta.y * GetRotationSpeed();
+        float pitchDelta = -delta.y * GetRotationSpeed();
         float yawDelta   = delta.x * GetRotationSpeed();
 
         glm::quat q =
             glm::normalize(glm::cross(glm::angleAxis(-pitchDelta, rightDirection),
                                        glm::angleAxis(-yawDelta, glm::vec3(0.f, 1.0f, 0.0f))));
         m_forwardDirection = glm::rotate(q, m_forwardDirection);
-
+        
         moved = true;
     }
 
@@ -80,7 +76,7 @@ bool  Camera::OnUpdate(float ts) {
     return moved;
 }
 
-void Camera::OnResize(uint32_t width, uint32_t height) {
+void FirstPersonCamera::OnResize(uint32_t width, uint32_t height) {
     if (width == m_viewportWidth && height == m_viewportHeight) return;
 
     m_viewportWidth  = width;
@@ -89,12 +85,12 @@ void Camera::OnResize(uint32_t width, uint32_t height) {
     RecalculateProjection();
 }
 
-void Camera::RecalculateView() {
+void FirstPersonCamera::RecalculateView() {
     m_view        = glm::lookAt(m_position, m_position + m_forwardDirection, glm::vec3(0, 1, 0));
     m_inverseView = glm::inverse(m_view);
 }
 
-void Camera::RecalculateProjection() {
+void FirstPersonCamera::RecalculateProjection() {
     m_projection        = glm::perspectiveFov(glm::radians(m_verticalFOV), (float)m_viewportWidth,
                                               (float)m_viewportHeight, m_nearClip, m_farClip);
     m_inverseProjection = glm::inverse(m_projection);

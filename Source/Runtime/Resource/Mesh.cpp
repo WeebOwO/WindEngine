@@ -4,6 +4,7 @@
 #include "Runtime/Render/RHI/Backend.h"
 
 #include <memory>
+#include <stdint.h>
 
 namespace wind {
 Model::Model(Builder builder)

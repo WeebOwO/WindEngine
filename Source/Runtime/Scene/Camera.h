@@ -4,9 +4,14 @@
 #include <vector>
 
 namespace wind {
-class Camera {
+
+struct BaseCamera {
+    
+};
+
+class FirstPersonCamera : public BaseCamera {
 public:
-    Camera(float verticalFOV, float nearClip, float farClip);
+    FirstPersonCamera(float verticalFOV, float nearClip, float farClip);
 
     bool OnUpdate(float ts);
     void OnResize(uint32_t width, uint32_t height);

@@ -33,13 +33,17 @@ void ForwardRenderer::AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
 
     // Allocate buffer and image
 
-    std::shared_ptr<Buffer> cameraBuffer = std::make_shared<Buffer>(
-        sizeof(CameraUnifoirmBuffer), BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
-    std::shared_ptr<Buffer> objectBuffer = std::make_shared<Buffer>(
-        sizeof(ObjectUniformBuffer), BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
+    size_t uniformBuffersize = sizeof(CameraUnifoirmBuffer) + sizeof(ObjectUniformBuffer);
+    std::shared_ptr<Buffer> uniformBuffer = std::make_shared<Buffer>(
+        uniformBuffersize, BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
 
-    ShaderBufferDesc camearaShaderBufferDesc{cameraBuffer, 0, sizeof(CameraUnifoirmBuffer)};
-    ShaderBufferDesc objectShaderBufferDesc{objectBuffer, 0, sizeof(ObjectUniformBuffer)};
+    struct BufferData {
+        CameraUnifoirmBuffer camearaUniformDummy;
+        ObjectUniformBuffer objectUniformDummy;
+    };
+
+    ShaderBufferDesc camearaShaderBufferDesc{uniformBuffer, offsetof(BufferData, camearaUniformDummy), sizeof(CameraUnifoirmBuffer)};
+    ShaderBufferDesc objectShaderBufferDesc{uniformBuffer, offsetof(BufferData, objectUniformDummy), sizeof(ObjectUniformBuffer)};
 
     graphBuilder.AddRenderPass("OpaquePass", [=](PassNode* passNode) {
         passNode->DeclareColorAttachment("SceneColor", backBufferDesc);
@@ -54,7 +58,7 @@ void ForwardRenderer::AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
             "ForwardBasePass.vert.spv", "ForwardBasePass.frag.spv");
 
         BasePassShader->SetShaderResource("CameraBuffer", camearaShaderBufferDesc)
-            .SetShaderResource("ObjectBuffer", objectShaderBufferDesc);
+                      .SetShaderResource("ObjectBuffer", objectShaderBufferDesc);
 
         renderProcessBuilder.SetBlendState(false)
             .SetShader(BasePassShader.get())
@@ -70,8 +74,11 @@ void ForwardRenderer::AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
             auto       shader    = passNode->graphicsShader;
             auto&      pso       = passNode->pipelineState->GetPipeline();
             auto&      camera = scene->GetActiveCamera();
-
-            cameraBuffer->CopyData((uint8_t*)sceneView->cameraBuffer.get(), sizeof(CameraUnifoirmBuffer), 0);
+            
+            glm::mat4 model = glm::mat4(1.0);
+            
+            uniformBuffer->CopyData((uint8_t*)sceneView->cameraBuffer.get(), camearaShaderBufferDesc.range, camearaShaderBufferDesc.offset);
+            uniformBuffer->CopyData((uint8_t*)&model, objectShaderBufferDesc.range, objectShaderBufferDesc.offset);
 
             cmdBuffer.BindDescriptorSet(pso.bindPoint, pso.pipelineLayout,
                                         shader->GetDescriptorSet());

@@ -9,6 +9,7 @@ void SceneView::SetScene(Scene* scene) {
     cameraBuffer->view = camera->GetView();
     cameraBuffer->proj = camera->GetProjection();
     cameraBuffer->viewproj = camera->GetProjection() * camera->GetView();
+    cameraBuffer->proj[1][1] *= -1;
 }
 
 SceneView::SceneView() {

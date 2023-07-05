@@ -36,46 +36,55 @@ void GraphicsShader::GenerateVulkanDescriptorSetLayout() {
 
 void GraphicsShader::FinishShaderBinding() {
     auto&                               device = RenderBackend::GetInstance().GetDevice();
-    std::vector<vk::WriteDescriptorSet> WriteDescriptorVec;
+    std::vector<vk::WriteDescriptorSet> writeDescriptorVec;
+
+    std::vector<vk::DescriptorBufferInfo> bufferInfos(m_reflectionDatas.size());
+    std::vector<vk::DescriptorImageInfo> imagesInfos(m_reflectionDatas.size());
+    size_t bufferIdx = 0, imageIdx = 0;
+
     for (const auto& [name, metaData] : m_reflectionDatas) {
         vk::WriteDescriptorSet writer;
+
         if (metaData.descriptorType == vk::DescriptorType::eUniformBuffer) {
             auto& shaderBufferDesc = m_bufferShaderResource[name];
+
             if (shaderBufferDesc.buffer == nullptr) {
                 WIND_CORE_ERROR("Fail to find shader buffer resource which is {}", name);
             }
-            vk::DescriptorBufferInfo bufferInfo;
 
-            bufferInfo.setBuffer(shaderBufferDesc.buffer->GetNativeHandle())
+            bufferInfos[bufferIdx].setBuffer(shaderBufferDesc.buffer->GetNativeHandle())
                 .setOffset(shaderBufferDesc.offset)
                 .setRange(shaderBufferDesc.range);
 
             writer.setDescriptorType(vk::DescriptorType::eUniformBuffer)
                 .setDstBinding(metaData.binding)
                 .setDescriptorCount(metaData.count)
-                .setBufferInfo(bufferInfo)
+                .setBufferInfo(bufferInfos[bufferIdx])
                 .setDstSet(m_descriptorSet);
+            ++bufferIdx;
         }
 
         if (metaData.descriptorType == vk::DescriptorType::eCombinedImageSampler) {
             auto&                   shaderImageDesc = m_imageShaderResource[name];
-            vk::DescriptorImageInfo imageInfo;
+         
             if (shaderImageDesc.image == nullptr) {
                 WIND_CORE_ERROR("Fail to find shader image resource which is {}", name);
             }
-            imageInfo.setImageLayout(shaderImageDesc.layout)
+
+            imagesInfos[imageIdx].setImageLayout(shaderImageDesc.layout)
                 .setImageView(shaderImageDesc.image->GetNativeView(ImageView::NATIVE))
                 .setSampler(shaderImageDesc.sampler->GetNativeHandle());
 
             writer.setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
-                .setImageInfo(imageInfo)
+                .setImageInfo(imagesInfos[imageIdx])
                 .setDescriptorCount(metaData.count)
                 .setDstBinding(metaData.binding)
                 .setDstSet(m_descriptorSet);
+            ++imageIdx;
         }
-        WriteDescriptorVec.push_back(writer);
+        writeDescriptorVec.push_back(writer);
     }
-    device.updateDescriptorSets(WriteDescriptorVec.size(), WriteDescriptorVec.data(), 0, nullptr);
+    device.updateDescriptorSets(writeDescriptorVec.size(), writeDescriptorVec.data(), 0, nullptr);
 }
 
 void GraphicsShader::CollectSpirvMetaData(std::vector<uint32_t> spivrBinary,
@@ -127,14 +136,14 @@ GraphicsShader::~GraphicsShader() {
 GraphicsShader::GraphicsShader(std::string_view vertexShaderfilePath,
                                std::string_view fragmentShaderFilePath) {
     auto& device = RenderBackend::GetInstance().GetDevice();
-
+    
     auto spirvVertexBinary = io::ReadSpirvBinaryFile(vertexShaderfilePath);
     auto spirvFragBinary   = io::ReadSpirvBinaryFile(fragmentShaderFilePath);
 
     // Collect shader meta data
     CollectSpirvMetaData(spirvVertexBinary, vk::ShaderStageFlagBits::eVertex);
     CollectSpirvMetaData(spirvFragBinary, vk::ShaderStageFlagBits::eFragment);
-
+    
     vk::ShaderModuleCreateInfo createInfo;
     createInfo.setPCode(spirvVertexBinary.data())
         .setCodeSize(spirvVertexBinary.size() * sizeof(uint32_t));
