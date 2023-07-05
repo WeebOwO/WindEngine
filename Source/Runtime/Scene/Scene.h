@@ -30,13 +30,13 @@ public:
     auto& GetWorldGameObjects() { return m_worldObjects; }
     auto& GetActiveCamera() { return m_activeCamera; }
 
-    void SetupCamera(std::shared_ptr<FirstPersonCamera> camera) { m_activeCamera = camera; }
+    void SetupCamera(std::shared_ptr<BaseCamera> camera) { m_activeCamera = camera; }
     
     void BuildMeshBatch();
 
 private:
     Scene();
     std::vector<GameObject>            m_worldObjects;
-    std::shared_ptr<FirstPersonCamera> m_activeCamera;
+    std::shared_ptr<BaseCamera> m_activeCamera;
 };
 } // namespace wind

@@ -70,8 +70,7 @@ float EngineImpl::CalculateDeltaTime() {
 
 void EngineImpl::LoadGameObject() {
     auto& world = Scene::GetWorld();
-    Model::Builder builder = io::LoadModelFromFilePath("E:\\WindEngine\\Assets\\Mesh\\skybox.obj");
-    
+    Model::Builder builder = io::LoadModelFromFilePath(R"(D:\Dev\WindEngine\Assets\Mesh\cerberus.fbx)");
     world.AddModel(builder);
 }
 
