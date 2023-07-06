@@ -52,7 +52,7 @@ private:
 
 void EngineImpl::AddCamera() {
     auto& world = Scene::GetWorld();
-    world.SetupCamera(std::make_shared<FirstPersonCamera>(45.0f, 1.0f, 100.0f));
+    world.SetupCamera(std::make_shared<OrbitCamera>(m_window.GetWindow()));
 }
 
 float EngineImpl::CalculateDeltaTime() {
@@ -69,8 +69,8 @@ float EngineImpl::CalculateDeltaTime() {
 }
 
 void EngineImpl::LoadGameObject() {
-    auto& world = Scene::GetWorld();
-    Model::Builder builder = io::LoadModelFromFilePath(R"(D:\Dev\WindEngine\Assets\Mesh\cerberus.fbx)");
+    auto&          world   = Scene::GetWorld();
+    Model::Builder builder = io::LoadModelFromFilePath(R"(..\..\..\..\Assets\Mesh\cerberus.fbx)");
     world.AddModel(builder);
 }
 
@@ -78,6 +78,7 @@ void EngineImpl::LogicTick(float fs) {
     // window handle the glfw event
     auto& world  = Scene::GetWorld();
     auto  camera = world.GetActiveCamera();
+
     m_window.OnUpdate(fs);
     // update camera related things
     camera->OnResize(m_window.width(), m_window.height());
@@ -86,6 +87,9 @@ void EngineImpl::LogicTick(float fs) {
 
 void EngineImpl::RenderTick(float fs) {
     auto& world = Scene::GetWorld();
+
+    auto camera = world.GetActiveCamera();
+
     m_renderer->Render(world);
 }
 

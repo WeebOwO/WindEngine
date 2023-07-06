@@ -19,6 +19,7 @@ public:
     bool IsMouseButtonDown(MouseButton button);
 
     glm::vec2 GetMousePosition();
+    
     void      SetCursorMode(CursorMode mode);
 
     [[nodiscard]] static auto GetInstance() { return s_instance; }

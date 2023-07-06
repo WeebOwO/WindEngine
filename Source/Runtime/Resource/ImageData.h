@@ -2,7 +2,10 @@
 
 #include <vector>
 
+#include "Runtime/Render/RHI/Image.h"
+
 namespace wind {
+
 struct ImageData {
     std::vector<uint8_t>              ByteData;
     Format                            ImageFormat = Format::UNDEFINED;

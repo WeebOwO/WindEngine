@@ -20,13 +20,15 @@ xmake project -k vsxmake -m "debug,release"
 * RenderGraph 
 * Shader Reflection For Auto Create Render Pipeline
 * Forward / Deferred Shading (Tiled Based Implementation)
+* Orbit / FirstPerson Camera 
   
 ### Todo
 - [ ] PBR + IBL
 - [ ] Shadow
 - [ ] Skinned Animation
-- [ ] Post Process pipeline
+- [ ] Post Process Pipeline
 - [ ] GPU Driven (Draw Indirect, CS Culling..) 
+- [ ] Physic Engine Integration
 
 ## Reference
 *  [Hazel](https://github.com/TheCherno/Hazel)

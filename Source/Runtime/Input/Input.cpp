@@ -1,4 +1,5 @@
 #include "Input.h"
+#include "GLFW/glfw3.h"
 #include "Runtime/Base/Macro.h"
 #include "Runtime/Input/KeyCodes.h"
 
@@ -23,6 +24,7 @@ bool InputManger::IsKeyDown(KeyCode keycode) {
 
 bool InputManger::IsMouseButtonDown(MouseButton button) {
     int state = glfwGetMouseButton(m_windowHandle, (int)button);
+    
     return state == GLFW_PRESS;
 }
 
