@@ -10,7 +10,6 @@
 #include "Runtime/Render/Rhi/CommandBuffer.h"
 
 namespace wind {
-
 struct Vertex {
     glm::vec3 position;
     glm::vec3 normal;
@@ -86,4 +85,30 @@ private:
     uint32_t                m_indexCnt{0};
     bool                    m_isDynamic{false};
 };
+
+struct Mesh {
+    struct Material {
+        uint32_t AlbedoIndex;
+        uint32_t NormalIndex;
+        uint32_t MetallicRoughnessIndex;
+        float    RoughnessScale;
+        float    MetallicScale;
+        uint32_t Padding[3];
+    };
+
+    struct Submesh {
+        Buffer   VertexBuffer;
+        Buffer   IndexBuffer;
+        uint32_t MaterialIndex;
+    };
+
+    std::vector<Submesh>  Submeshes;
+    std::vector<Material> Materials;
+    std::vector<Image>    Textures;
+
+    struct MeshData {
+        glm::mat4 Transform{1.0f};
+    } Data;
+};
+
 } // namespace wind

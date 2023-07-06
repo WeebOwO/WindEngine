@@ -87,9 +87,6 @@ void EngineImpl::LogicTick(float fs) {
 
 void EngineImpl::RenderTick(float fs) {
     auto& world = Scene::GetWorld();
-
-    auto camera = world.GetActiveCamera();
-
     m_renderer->Render(world);
 }
 

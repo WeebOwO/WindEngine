@@ -1,10 +1,12 @@
 set_project("WindEngine")
 
-add_requires("glm", "glfw", "glad", "vulkansdk", "spdlog", 'assimp', 'stb', 'vulkan-memory-allocator', 'spirv-cross')
+add_requires("glm", "glfw", "glad", "vulkansdk", "spdlog", 'assimp', 'stb', 'vulkan-memory-allocator', 'spirv-cross', 'tinygltf', 'tinyobjloader')
 
 add_rules("mode.debug", "mode.release")
 
 add_includedirs("Source/")
+add_includedirs("Source/ThirdParty")
+
 set_languages("cxx20")
 set_runtimes("MD")
 
