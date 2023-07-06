@@ -264,11 +264,124 @@ static Format DDSFormatToImageFormat(tinyddsloader::DDSFile::DXGIFormat format) 
     }
 }
 
-ImageData ImageLoader::LoadImageFromFile(const std::string& filepath) {
+static ImageData LoadImageUsingDDSLoader(const std::string& filepath) {
+    ImageData              image;
+    tinyddsloader::DDSFile dds;
+    auto                   result = dds.Load(filepath.c_str());
+    if (result != tinyddsloader::Result::Success) return image;
 
+    dds.Flip();
+    auto imageData    = dds.GetImageData();
+    image.Width       = imageData->m_height;
+    image.Height      = imageData->m_height;
+    image.ImageFormat = DDSFormatToImageFormat(dds.GetFormat());
+    image.ByteData.resize(imageData->m_memSlicePitch);
+    std::copy((const uint8_t*)imageData->m_mem,
+              (const uint8_t*)imageData->m_mem + imageData->m_memSlicePitch,
+              image.ByteData.begin());
+
+    for (uint32_t i = 1; i < dds.GetMipCount(); i++) {
+        auto& mipLevelData = image.MipLevels.emplace_back();
+        auto  mipImageData = dds.GetImageData(i);
+        mipLevelData.resize(mipImageData->m_memSlicePitch);
+        std::copy((const uint8_t*)mipImageData->m_mem,
+                  (const uint8_t*)mipImageData->m_mem + mipImageData->m_memSlicePitch,
+                  mipLevelData.begin());
+    }
+
+    return image;
+}
+
+static std::string ConvertZLIBToDDS(const std::string& filepath) {
+    std::ifstream file(filepath, std::ios::binary);
+    if (!file.good()) return filepath;
+
+    std::vector<char> compressedData{std::istreambuf_iterator<char>(file),
+                                     std::istreambuf_iterator<char>()};
+
+    int   decompressedSize = 0;
+    char* decompressedData = stbi_zlib_decode_malloc(compressedData.data(),
+                                                     (int)compressedData.size(), &decompressedSize);
+
+    std::filesystem::path path{filepath};
+    auto                  ddsFilepath = (path.parent_path() / path.stem()).string() + ".dds";
+    std::ofstream         ddsFile(ddsFilepath, std::ios::binary);
+    ddsFile.write(decompressedData, decompressedSize);
+    free(decompressedData);
+
+    return ddsFilepath;
+}
+
+static ImageData LoadImageUsingZLIBLoader(const std::string& filepath) {
+    auto ddsFilepath = ConvertZLIBToDDS(filepath);
+    return LoadImageUsingDDSLoader(ddsFilepath);
+}
+
+static ImageData LoadImageUsingSTBLoader(const std::string& filepath) {
+    int            width = 0, height = 0, channels = 0;
+    const uint32_t actualChannels = 4;
+
+    stbi_set_flip_vertically_on_load(true);
+    uint8_t* data = stbi_load(filepath.c_str(), &width, &height, &channels, STBI_rgb_alpha);
+    stbi_set_flip_vertically_on_load(false);
+
+    std::vector<uint8_t> vecData;
+    vecData.resize(width * height * actualChannels * sizeof(uint8_t));
+    std::copy(data, data + vecData.size(), vecData.begin());
+    stbi_image_free(data);
+    return ImageData{std::move(vecData), Format::R8G8B8A8_UNORM, (uint32_t)width, (uint32_t)height};
+}
+
+static std::vector<uint8_t> ExtractCubemapFace(const ImageData& image, size_t faceWidth,
+                                               size_t faceHeight, size_t channelCount,
+                                               size_t sliceX, size_t sliceY) {
+    std::vector<uint8_t> result(image.ByteData.size() / 6);
+
+    for (size_t i = 0; i < faceHeight; i++) {
+        size_t y          = (faceHeight - i - 1) + sliceY * faceHeight;
+        size_t x          = sliceX * faceWidth;
+        size_t bytesInRow = faceWidth * channelCount;
+
+        std::memcpy(result.data() + i * bytesInRow,
+                    image.ByteData.data() + (y * image.Width + x) * channelCount, bytesInRow);
+    }
+    return result;
+};
+
+static CubemapData CreateCubemapFromSingleImage(const ImageData& image) {
+    CubemapData cubemapData;
+    cubemapData.FaceFormat = image.ImageFormat;
+    cubemapData.FaceWidth  = image.Width / 4;
+    cubemapData.FaceHeight = image.Height / 3;
+    assert(cubemapData.FaceWidth == cubemapData.FaceHeight);  // single face should be a square
+    assert(cubemapData.FaceFormat == Format::R8G8B8A8_UNORM); // support only this format for now
+    constexpr size_t ChannelCount = 4;
+
+    cubemapData.Faces[0] = ExtractCubemapFace(image, cubemapData.FaceWidth, cubemapData.FaceHeight,
+                                              ChannelCount, 2, 1);
+    cubemapData.Faces[1] = ExtractCubemapFace(image, cubemapData.FaceWidth, cubemapData.FaceHeight,
+                                              ChannelCount, 0, 1);
+    cubemapData.Faces[2] = ExtractCubemapFace(image, cubemapData.FaceWidth, cubemapData.FaceHeight,
+                                              ChannelCount, 1, 2);
+    cubemapData.Faces[3] = ExtractCubemapFace(image, cubemapData.FaceWidth, cubemapData.FaceHeight,
+                                              ChannelCount, 1, 0);
+    cubemapData.Faces[4] = ExtractCubemapFace(image, cubemapData.FaceWidth, cubemapData.FaceHeight,
+                                              ChannelCount, 1, 1);
+    cubemapData.Faces[5] = ExtractCubemapFace(image, cubemapData.FaceWidth, cubemapData.FaceHeight,
+                                              ChannelCount, 3, 1);
+    return cubemapData;
+}
+
+ImageData ImageLoader::LoadImageFromFile(const std::string& filepath) {
+    if (IsDDSImage(filepath)) return LoadImageUsingDDSLoader(filepath);
+    else if (IsZLIBImage(filepath))
+        return LoadImageUsingZLIBLoader(filepath);
+    else
+        return LoadImageUsingSTBLoader(filepath);
 }
 
 CubemapData ImageLoader::LoadCubemapImageFromFile(const std::string& filepath) {
-
+    auto imageData = ImageLoader::LoadImageFromFile(filepath);
+    return CreateCubemapFromSingleImage(imageData);
 }
 } // namespace wind

@@ -17,6 +17,8 @@
 #include "Runtime/Render/RenderGraph/RenderPass.h"
 #include "Runtime/Render/RenderGraph/RenderResource.h"
 
+#include "Runtime/Render/RHI/CommandBuffer.h"
+
 namespace wind {
 class RenderGraph;
 class RenderGraphRegister;
@@ -59,12 +61,13 @@ public:
     void SetRenderRect(uint32_t width, uint32_t height) {
         renderRect.width = width, renderRect.height = height;
     }
-    void
-    DeclareColorAttachment(const std::string& name, const TextureDesc& textureDesc,
+    void DeclareColorAttachment(const std::string& name, const TextureDesc& textureDesc,
+                           ClearColor clearColor = {0.1f, 0.1f, 0.1f, 0.1f},
                            vk::ImageLayout intialLayout = vk::ImageLayout::eUndefined,
                            vk::ImageLayout finalLayout  = vk::ImageLayout::eColorAttachmentOptimal);
-    void
-    DeclareDepthAttachment(const std::string& name, const TextureDesc& textureDesc,
+                
+    void DeclareDepthAttachment(const std::string& name, const TextureDesc& textureDesc,
+                           ClearDepthStencil clearDepthStencil = {1.0f, 0}, 
                            vk::ImageLayout intialLayout = vk::ImageLayout::eUndefined,
                            vk::ImageLayout finalLayout  = vk::ImageLayout::eDepthAttachmentOptimal);
 

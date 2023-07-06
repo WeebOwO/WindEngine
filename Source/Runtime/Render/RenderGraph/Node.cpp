@@ -38,7 +38,8 @@ void PassNode::Init(const std::vector<std::string>& inRoureces,
 }
 
 void PassNode::DeclareColorAttachment(const std::string& name, const TextureDesc& textureDesc,
-                                      vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) {
+                                      ClearColor clearColor, vk::ImageLayout initialLayout,
+                                      vk::ImageLayout finalLayout) {
     vk::AttachmentDescription colorAttachment{};
     auto                      format = RenderBackend::GetInstance().GetSwapChainSurfaceFormat();
 
@@ -51,9 +52,9 @@ void PassNode::DeclareColorAttachment(const std::string& name, const TextureDesc
         .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
         .setSamples(vk::SampleCountFlagBits::e1);
 
-    vk::ClearValue temp;
+    vk::ClearValue      temp;
     vk::ClearColorValue color;
-    color.setFloat32(std::array<float, 4>{0.1f, 0.1f, 0.1f, 0.1f});
+    color.setFloat32(std::array<float, 4>{clearColor.r, clearColor.g, clearColor.b, clearColor.a});
     temp.setColor(color);
     colorClearValue.push_back(temp);
     colorAttachmentDescriptions.push_back(colorAttachment);
@@ -62,6 +63,7 @@ void PassNode::DeclareColorAttachment(const std::string& name, const TextureDesc
 }
 
 void PassNode::DeclareDepthAttachment(const std::string& name, const TextureDesc& textureDesc,
+                                      ClearDepthStencil clearDepthStencil,
                                       vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) {
 
     depthAttachmentDescription.setInitialLayout(vk::ImageLayout::eUndefined)
@@ -72,9 +74,9 @@ void PassNode::DeclareDepthAttachment(const std::string& name, const TextureDesc
         .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
         .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
         .setSamples(vk::SampleCountFlagBits::e1);
-    vk::ClearValue temp;
-    depthClearValue.setDepthStencil({1.0f, 0});
-    
+
+    depthClearValue.setDepthStencil({clearDepthStencil.depth, clearDepthStencil.stencil});
+
     depthTextureDesc[name] = textureDesc;
     outputResources.push_back(name);
 }
@@ -85,8 +87,8 @@ void PassNode::ConstructResource(RenderGraphBuilder& graphBuilder) {
     }
 
     const auto [depthTextureName, desc] = *depthTextureDesc.begin();
-    depthAttachment = graphBuilder.CreateRDGTexture(depthTextureName, desc);
-    
+    depthAttachment                     = graphBuilder.CreateRDGTexture(depthTextureName, desc);
+
     CreateFrameBuffer(renderRect.width, renderRect.height);
 }
 
@@ -107,7 +109,7 @@ void PassNode::CreateFrameBuffer(uint32_t width, uint32_t height) {
         .setWidth(width)
         .setHeight(height)
         .setLayers(1);
-    
+
     frameBuffer = device.createFramebuffer(frameBufferCreateInfo);
 }
 

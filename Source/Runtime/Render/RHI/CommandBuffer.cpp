@@ -1,5 +1,7 @@
 #include "CommandBuffer.h"
 
+#include "Runtime/Render/RenderGraph/Node.h"
+
 namespace wind {
 vk::Filter BlitFilterToNative(BlitFilter filter) {
     switch (filter) {

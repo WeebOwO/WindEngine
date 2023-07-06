@@ -107,6 +107,8 @@ void GraphicsShader::CollectSpirvMetaData(std::vector<uint32_t> spivrBinary,
             BindMetaData metaData{set, binding, count, vk::DescriptorType::eUniformBuffer,
                                   shaderFlags};
             m_reflectionDatas[resource.name] = metaData;
+        } else {
+            m_reflectionDatas[resource.name].shaderStageFlag |= shaderFlags;
         }
     }
 }

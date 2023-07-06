@@ -3,10 +3,9 @@
 #include <vulkan/vulkan.hpp>
 
 #include "Runtime/Render/RHI/Shader.h"
-#include "Runtime/Render/RenderGraph/Node.h"
 
 namespace wind {
-    
+class PassNode;
 struct Rect2D {
     int32_t  offsetWidth  = 0;
     int32_t  offsetHeight = 0;
@@ -109,4 +108,4 @@ public:
 private:
     vk::CommandBuffer m_handle;
 };
-} // namespace wind
+} // namespace wind 
