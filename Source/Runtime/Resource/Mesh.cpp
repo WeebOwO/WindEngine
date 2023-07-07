@@ -35,6 +35,8 @@ Model::Model(Builder builder)
     backend.SubmitSingleTimeCommand(cmdBuffer.GetNativeHandle());
 
     stageBuffer.Reset();
+
+    m_material = builder.material;
 }
 
 Model::~Model() {

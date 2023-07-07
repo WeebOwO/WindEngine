@@ -1,5 +1,10 @@
 #include "ImageLoader.h"
 
+#include "Runtime/Base/Utils.h"
+#include "Runtime/Render/RHI/Backend.h"
+#include "Runtime/Render/RHI/CommandBuffer.h"
+#include "Runtime/Render/RHI/Image.h"
+
 #include <filesystem>
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -372,7 +377,7 @@ static CubemapData CreateCubemapFromSingleImage(const ImageData& image) {
     return cubemapData;
 }
 
-ImageData ImageLoader::LoadImageFromFile(const std::string& filepath) {
+ImageData ImageLoader::LoadImageDataFromFile(const std::string& filepath) {
     if (IsDDSImage(filepath)) return LoadImageUsingDDSLoader(filepath);
     else if (IsZLIBImage(filepath))
         return LoadImageUsingZLIBLoader(filepath);
@@ -380,8 +385,44 @@ ImageData ImageLoader::LoadImageFromFile(const std::string& filepath) {
         return LoadImageUsingSTBLoader(filepath);
 }
 
-CubemapData ImageLoader::LoadCubemapImageFromFile(const std::string& filepath) {
-    auto imageData = ImageLoader::LoadImageFromFile(filepath);
+CubemapData ImageLoader::LoadCubemapDataFromFile(const std::string& filepath) {
+    auto imageData = ImageLoader::LoadImageDataFromFile(filepath);
     return CreateCubemapFromSingleImage(imageData);
+}
+
+void ImageLoader::FillImage(CommandBuffer& commandBuffer, Image& image, const ImageData& imageData,
+                            ImageOptions::Value options) {
+    auto& stageBuffer = RenderBackend::GetInstance().GetStagingBuffer();
+    image.Init(imageData.Width, imageData.Height, ToNative(imageData.ImageFormat),
+               ImageUsage::SHADER_READ | ImageUsage::TRANSFER_SOURCE |
+                   ImageUsage::TRANSFER_DESTINATION,
+               MemoryUsage::GPU_ONLY, options);
+    auto allocation = stageBuffer.Submit(utils::MakeView(imageData.ByteData));
+    commandBuffer.CopyBufferToImage(BufferInfo{stageBuffer.GetBuffer(), allocation.Offset},
+                                    ImageInfo{image, ImageUsage::UNKNOWN, 0, 0});
+    if (options & ImageOptions::MIPMAPS) {
+        if (imageData.MipLevels.empty()) {
+            commandBuffer.GenerateMipLevels(image, ImageUsage::TRANSFER_DESTINATION,
+                                            BlitFilter::LINEAR);
+        } else {
+            uint32_t mipLevel = 1;
+            for (const auto& mipData : imageData.MipLevels) {
+                auto allocation = stageBuffer.Submit(utils::MakeView(mipData));
+                commandBuffer.CopyBufferToImage(
+                    BufferInfo{stageBuffer.GetBuffer(), allocation.Offset},
+                    ImageInfo{image, ImageUsage::TRANSFER_DESTINATION, mipLevel, 0});
+                mipLevel++;
+            }
+        }
+    }
+    commandBuffer.TransferLayout(image, ImageUsage::TRANSFER_DESTINATION, ImageUsage::SHADER_READ);
+}
+
+void ImageLoader::FillImage(Image& image, CommandBuffer& cmdBuffer, const std::string& filepath,
+                            ImageOptions::Value options) {
+    auto& stageBuffer = RenderBackend::GetInstance().GetStagingBuffer();
+    FillImage(cmdBuffer, image, ImageLoader::LoadImageDataFromFile(filepath), options);
+    stageBuffer.Flush();
+    stageBuffer.Reset();
 }
 } // namespace wind

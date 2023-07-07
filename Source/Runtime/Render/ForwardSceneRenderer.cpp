@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "Runtime/Base/Utils.h"
+#include "Runtime/Render/RHI/Shader.h"
 #include "Runtime/Scene/SceneView.h"
 #include "Runtime/Render/RHI/Backend.h"
 
@@ -34,11 +35,12 @@ void ForwardRenderer::AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
         sizeof(CameraUnifoirmBuffer), BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
     std::shared_ptr<Buffer> objectBuffer = std::make_shared<Buffer>(
         sizeof(ObjectUniformBuffer), BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
-
+    
     ShaderBufferDesc camearaShaderBufferDesc{cameraBuffer, 0, sizeof(CameraUnifoirmBuffer)};
     ShaderBufferDesc objectShaderBufferDesc{objectBuffer, 0, sizeof(ObjectUniformBuffer)};
 
     graphBuilder.AddRenderPass("OpaquePass", [=](PassNode* passNode) {
+        // Setup part
         passNode->DeclareColorAttachment("SceneColor", backBufferDesc);
         passNode->DeclareDepthAttachment("SceneDepth", depthBufferDesc);
 
@@ -61,16 +63,21 @@ void ForwardRenderer::AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
         passNode->graphicsShader = BasePassShader;
         passNode->pipelineState  = renderProcessBuilder.BuildGraphicProcess();
 
+        // Execute part
         return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
             auto*      scene     = passNode->renderScene->GetOwnScene();
             SceneView* sceneView = passNode->renderScene;
 
             auto  shader = passNode->graphicsShader;
+
+            // After you bind all resource, call this function
+            shader->FinishShaderBinding();
+
             auto& pso    = passNode->pipelineState->GetPipeline();
             auto& camera = scene->GetActiveCamera();
 
             glm::mat4 model = glm::mat4(1.0);
-
+            
             cameraBuffer->CopyData((uint8_t*)sceneView->cameraBuffer.get(),
                                    camearaShaderBufferDesc.range, camearaShaderBufferDesc.offset);
             objectBuffer->CopyData((uint8_t*)&model, objectShaderBufferDesc.range,
@@ -78,7 +85,7 @@ void ForwardRenderer::AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
 
             cmdBuffer.BindDescriptorSet(pso.bindPoint, pso.pipelineLayout,
                                         shader->GetDescriptorSet());
-
+            
             for (auto& gameObject : scene->GetWorld().GetWorldGameObjects()) {
                 gameObject.model->Bind(cmdBuffer);
                 gameObject.model->Draw(cmdBuffer);
@@ -90,7 +97,6 @@ void ForwardRenderer::AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
 void ForwardRenderer::InitView(Scene& scene) { m_sceneView->SetScene(&scene); }
 
 void ForwardRenderer::Init() {
-    auto& backend = RenderBackend::GetInstance();
     for (size_t i = 0; i < m_renderGraphs.size(); ++i) {
         RenderGraphBuilder graphBuilder(m_renderGraphs[i].get());
         graphBuilder.SetBackBufferName("SceneColor");

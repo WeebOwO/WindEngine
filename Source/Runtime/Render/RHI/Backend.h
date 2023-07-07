@@ -8,6 +8,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include "Runtime/Base/Macro.h"
+#include "Runtime/Render/RHI/CommandBuffer.h"
 #include "Runtime/Render/RHI/Descriptors.h"
 #include "Runtime/Render/RHI/Frame.h"
 #include "Runtime/Render/RHI/Shader.h"
@@ -108,6 +109,9 @@ public:
     }
     [[nodiscard]] auto  GetMaxFrameInFlight() { return m_createSetting.maxFrameInflight; }
     
+    [[nodiscard]] std::vector<vk::CommandBuffer> RequestMultiCommandBuffer(uint32_t count);
+    void SubmitCommands(const std::vector<vk::CommandBuffer>& commandVecs);
+
 private:
     std::vector<const char*> GetRequiredExtensions();
     void                     CreateInstance();

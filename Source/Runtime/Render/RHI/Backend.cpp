@@ -1,13 +1,13 @@
 #include "Backend.h"
 
 #include <functional>
-#include <vector>
 #include <unordered_set>
+#include <vector>
 
 #include <vk_mem_alloc.h>
 
 #include "Runtime/Base/Macro.h"
-
+#include "Runtime/Render/RHI/CommandBuffer.h"
 
 static std::vector<const char*> layers = {"VK_LAYER_KHRONOS_validation"};
 
@@ -121,10 +121,9 @@ void RenderBackend::CreateDevice() {
     m_device = m_physicalDevice.createDevice(createInfo);
 }
 
-
 void RenderBackend::QueryQueueFamilyIndices() {
     auto properties = m_physicalDevice.getQueueFamilyProperties();
-    
+
     for (uint32_t i = 0; const auto& queueFamily : properties) {
         if (queueFamily.queueCount > 0 && queueFamily.queueFlags & vk::QueueFlagBits::eGraphics) {
             WIND_CORE_INFO("Present queue index is {}", i);
@@ -282,6 +281,7 @@ void RenderBackend::CreateDescriptorCacheAndAllocator() {
 
 CommandBuffer RenderBackend::BeginSingleTimeCommand() {
     vk::CommandBufferAllocateInfo allocateInfo;
+
     allocateInfo.setCommandBufferCount(1)
         .setCommandPool(m_coomandPool)
         .setLevel(vk::CommandBufferLevel::ePrimary);
@@ -297,5 +297,31 @@ void RenderBackend::SubmitSingleTimeCommand(vk::CommandBuffer cmdBuffer) {
     vk::SubmitInfo submitInfo;
     submitInfo.setCommandBuffers(cmdBuffer);
     m_graphicsQueue.submit(submitInfo, {});
+}
+
+[[nodiscard]] std::vector<vk::CommandBuffer>
+RenderBackend::RequestMultiCommandBuffer(uint32_t count) {
+    vk::CommandBufferAllocateInfo allocateInfo;
+
+    allocateInfo.setCommandBufferCount(count)
+        .setCommandPool(m_coomandPool)
+        .setLevel(vk::CommandBufferLevel::ePrimary);
+    std::vector<vk::CommandBuffer> immCmdBuffers = m_device.allocateCommandBuffers(allocateInfo);
+
+    for (auto cmdBufferHandle : immCmdBuffers) {
+        vk::CommandBufferBeginInfo beginInfo;
+        beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
+        cmdBufferHandle.begin(beginInfo);
+    }
+    return immCmdBuffers;
+}
+
+void RenderBackend::SubmitCommands(const std::vector<vk::CommandBuffer>& commandVecs) {
+    for (auto& commands : commandVecs) {
+        commands.end();
+        vk::SubmitInfo submitInfo;
+        submitInfo.setCommandBuffers(commands);
+        m_graphicsQueue.submit(submitInfo, {});
+    }
 }
 } // namespace wind

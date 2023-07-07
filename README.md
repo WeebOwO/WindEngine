@@ -35,3 +35,4 @@ xmake project -k vsxmake -m "debug,release"
 *  [Piccolo](https://github.com/BoomingTech/Piccolo)
 *  [SakuraEngine](https://github.com/SakuraEngine/SakuraEngine)
 *  [littleVulkanEngine](https://github.com/blurrypiano/littleVulkanEngine/tree/main)
+*  [PBR](https://github.com/Nadrin/PBR)

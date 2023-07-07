@@ -20,7 +20,8 @@ struct ObjectUniformBuffer {
 class SceneView {
 public:
     std::shared_ptr<CameraUnifoirmBuffer> cameraBuffer;
-
+    std::shared_ptr<ImageData>            skybox;
+    
     SceneView();
     SceneView(Scene* scene);
     void  Init();
