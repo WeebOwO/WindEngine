@@ -43,8 +43,8 @@ public:
     [[nodiscard]] auto  GetVertexShaderModule() const { return m_vertexShader; }
     [[nodiscard]] auto  GetFragmentShaderModule() const { return m_fragShader; }
     [[nodiscard]] auto  GetShaderReflesctionData() const { return m_reflectionDatas; }
-    [[nodiscard]] auto& GetDescriptorSetLayouts() const { return m_descriptorSetLayout; }
-    [[nodiscard]] auto& GetDescriptorSet() {return m_descriptorSet;}
+    [[nodiscard]] auto& GetDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
+    [[nodiscard]] auto& GetDescriptorSet() {return m_descriptorSets;}
 
     void Bind(const std::string resourceName, uint8_t* cpudata);
     void Bind(const std::string resoueceName, Sampler sampler, uint8_t* cpudata);
@@ -65,8 +65,8 @@ private:
     std::unordered_map<std::string, ShaderImageDesc>  m_imageShaderResource;
     std::unordered_map<std::string, ShaderBufferDesc> m_bufferShaderResource;
 
-    vk::DescriptorSetLayout m_descriptorSetLayout;
-    vk::DescriptorSet       m_descriptorSet;
+    std::vector<vk::DescriptorSetLayout> m_descriptorSetLayouts;
+    std::vector<vk::DescriptorSet>       m_descriptorSets;
 };
 
 class ShaderFactory {

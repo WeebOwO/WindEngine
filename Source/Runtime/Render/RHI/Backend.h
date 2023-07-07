@@ -109,8 +109,8 @@ public:
     }
     [[nodiscard]] auto  GetMaxFrameInFlight() { return m_createSetting.maxFrameInflight; }
     
-    [[nodiscard]] std::vector<vk::CommandBuffer> RequestMultiCommandBuffer(uint32_t count);
-    void SubmitCommands(const std::vector<vk::CommandBuffer>& commandVecs);
+    [[nodiscard]] std::vector<CommandBuffer> RequestMultiCommandBuffer(uint32_t count);
+    void SubmitCommands(std::vector<CommandBuffer>& commandVecs);
 
 private:
     std::vector<const char*> GetRequiredExtensions();

@@ -16,22 +16,34 @@ void GraphicsShader::GenerateVulkanDescriptorSetLayout() {
     auto& device    = RenderBackend::GetInstance().GetDevice();
     auto& allocater = RenderBackend::GetInstance().GetDescriptorAllocator();
 
-    vk::DescriptorSetLayoutCreateInfo           descriptorSetLayoutCreateInfo;
-    std::vector<vk::DescriptorSetLayoutBinding> layoutBindings;
+    std::vector<vk::DescriptorSetLayoutCreateInfo> descriptorSetLayoutCreateInfos;
+    std::vector<vk::DescriptorSetLayoutBinding>    layoutBindings;
+
+    std::unordered_map<uint32_t, std::vector<vk::DescriptorSetLayoutBinding>> m_setGroups;
+
     for (const auto& [resourceName, metaData] : m_reflectionDatas) {
         vk::DescriptorSetLayoutBinding binding;
         vk::ShaderStageFlags           stageFlags = metaData.shaderStageFlag;
+        uint32_t                       set        = metaData.set;
+
         binding.setBinding(metaData.binding)
             .setDescriptorCount(metaData.count)
             .setDescriptorType(metaData.descriptorType)
             .setStageFlags(stageFlags);
+
         layoutBindings.push_back(binding);
-        descriptorSetLayoutCreateInfo.setBindingCount(layoutBindings.size())
-            .setBindings(layoutBindings);
+        m_setGroups[set].push_back(binding);
     }
 
-    m_descriptorSetLayout = device.createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
-    m_descriptorSet       = allocater->Allocate(m_descriptorSetLayout);
+    for (const auto& [setIndex, bindingVecs] : m_setGroups) {
+        vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo;
+        descriptorSetLayoutCreateInfo.setBindingCount(bindingVecs.size()).setBindings(bindingVecs);
+        vk::DescriptorSetLayout setLayout =
+            device.createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
+
+        m_descriptorSetLayouts.push_back(setLayout);
+        m_descriptorSets.push_back(allocater->Allocate(setLayout));
+    }
 }
 
 void GraphicsShader::FinishShaderBinding() {
@@ -39,8 +51,8 @@ void GraphicsShader::FinishShaderBinding() {
     std::vector<vk::WriteDescriptorSet> writeDescriptorVec;
 
     std::vector<vk::DescriptorBufferInfo> bufferInfos(m_reflectionDatas.size());
-    std::vector<vk::DescriptorImageInfo> imagesInfos(m_reflectionDatas.size());
-    size_t bufferIdx = 0, imageIdx = 0;
+    std::vector<vk::DescriptorImageInfo>  imagesInfos(m_reflectionDatas.size());
+    size_t                                bufferIdx = 0, imageIdx = 0;
 
     for (const auto& [name, metaData] : m_reflectionDatas) {
         vk::WriteDescriptorSet writer;
@@ -52,7 +64,8 @@ void GraphicsShader::FinishShaderBinding() {
                 WIND_CORE_ERROR("Fail to find shader buffer resource which is {}", name);
             }
 
-            bufferInfos[bufferIdx].setBuffer(shaderBufferDesc.buffer->GetNativeHandle())
+            bufferInfos[bufferIdx]
+                .setBuffer(shaderBufferDesc.buffer->GetNativeHandle())
                 .setOffset(shaderBufferDesc.offset)
                 .setRange(shaderBufferDesc.range);
 
@@ -60,18 +73,19 @@ void GraphicsShader::FinishShaderBinding() {
                 .setDstBinding(metaData.binding)
                 .setDescriptorCount(metaData.count)
                 .setBufferInfo(bufferInfos[bufferIdx])
-                .setDstSet(m_descriptorSet);
+                .setDstSet(m_descriptorSets[metaData.set]);
             ++bufferIdx;
         }
 
         if (metaData.descriptorType == vk::DescriptorType::eCombinedImageSampler) {
-            auto&                   shaderImageDesc = m_imageShaderResource[name];
-         
+            auto& shaderImageDesc = m_imageShaderResource[name];
+
             if (shaderImageDesc.image == nullptr) {
                 WIND_CORE_ERROR("Fail to find shader image resource which is {}", name);
             }
 
-            imagesInfos[imageIdx].setImageLayout(shaderImageDesc.layout)
+            imagesInfos[imageIdx]
+                .setImageLayout(shaderImageDesc.layout)
                 .setImageView(shaderImageDesc.image->GetNativeView(ImageView::NATIVE))
                 .setSampler(shaderImageDesc.sampler->GetNativeHandle());
 
@@ -79,7 +93,7 @@ void GraphicsShader::FinishShaderBinding() {
                 .setImageInfo(imagesInfos[imageIdx])
                 .setDescriptorCount(metaData.count)
                 .setDstBinding(metaData.binding)
-                .setDstSet(m_descriptorSet);
+                .setDstSet(m_descriptorSets[metaData.set]);
             ++imageIdx;
         }
         writeDescriptorVec.push_back(writer);
@@ -111,6 +125,22 @@ void GraphicsShader::CollectSpirvMetaData(std::vector<uint32_t> spivrBinary,
             m_reflectionDatas[resource.name].shaderStageFlag |= shaderFlags;
         }
     }
+
+    for (auto& resource : resources.sampled_images) {
+        if (m_reflectionDatas.find(resource.name) == m_reflectionDatas.end()) {
+            std::string_view resourceName = resource.name;
+            uint32_t set     = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
+            uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+            const spirv_cross::SPIRType& type          = compiler.get_type(resource.type_id);
+            uint32_t                     typeArraySize = type.array.size();
+            uint32_t                     count         = typeArraySize == 0 ? 1 : type.array[0];
+            BindMetaData metaData{set, binding, count, vk::DescriptorType::eCombinedImageSampler,
+                                  shaderFlags};
+            m_reflectionDatas[resource.name] = metaData;
+        } else {
+            m_reflectionDatas[resource.name].shaderStageFlag |= shaderFlags;
+        }
+    }
 }
 
 GraphicsShader& GraphicsShader::SetShaderResource(std::string_view        resourceName,
@@ -132,20 +162,22 @@ GraphicsShader::~GraphicsShader() {
     device.destroyShaderModule(m_fragShader);
 
     // destroy our layout
-    device.destroyDescriptorSetLayout(m_descriptorSetLayout);
+    for (auto& descriptorSetLayout : m_descriptorSetLayouts) {
+        device.destroyDescriptorSetLayout(descriptorSetLayout);
+    }
 }
 
 GraphicsShader::GraphicsShader(std::string_view vertexShaderfilePath,
                                std::string_view fragmentShaderFilePath) {
     auto& device = RenderBackend::GetInstance().GetDevice();
-    
+
     auto spirvVertexBinary = io::ReadSpirvBinaryFile(vertexShaderfilePath);
     auto spirvFragBinary   = io::ReadSpirvBinaryFile(fragmentShaderFilePath);
 
     // Collect shader meta data
     CollectSpirvMetaData(spirvVertexBinary, vk::ShaderStageFlagBits::eVertex);
     CollectSpirvMetaData(spirvFragBinary, vk::ShaderStageFlagBits::eFragment);
-    
+
     vk::ShaderModuleCreateInfo createInfo;
     createInfo.setPCode(spirvVertexBinary.data())
         .setCodeSize(spirvVertexBinary.size() * sizeof(uint32_t));

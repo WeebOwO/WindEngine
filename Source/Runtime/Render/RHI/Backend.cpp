@@ -299,28 +299,29 @@ void RenderBackend::SubmitSingleTimeCommand(vk::CommandBuffer cmdBuffer) {
     m_graphicsQueue.submit(submitInfo, {});
 }
 
-[[nodiscard]] std::vector<vk::CommandBuffer>
+[[nodiscard]] std::vector<CommandBuffer>
 RenderBackend::RequestMultiCommandBuffer(uint32_t count) {
     vk::CommandBufferAllocateInfo allocateInfo;
 
     allocateInfo.setCommandBufferCount(count)
         .setCommandPool(m_coomandPool)
         .setLevel(vk::CommandBufferLevel::ePrimary);
-    std::vector<vk::CommandBuffer> immCmdBuffers = m_device.allocateCommandBuffers(allocateInfo);
-
-    for (auto cmdBufferHandle : immCmdBuffers) {
+    std::vector<vk::CommandBuffer> allocCmdBuffers = m_device.allocateCommandBuffers(allocateInfo);
+    std::vector<CommandBuffer> commandbuffers;
+    for (auto& cmdBufferHandle : allocCmdBuffers) {
         vk::CommandBufferBeginInfo beginInfo;
         beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
         cmdBufferHandle.begin(beginInfo);
+        commandbuffers.emplace_back(CommandBuffer{cmdBufferHandle});
     }
-    return immCmdBuffers;
+    return commandbuffers;
 }
 
-void RenderBackend::SubmitCommands(const std::vector<vk::CommandBuffer>& commandVecs) {
+void RenderBackend::SubmitCommands(std::vector<CommandBuffer>& commandVecs) {
     for (auto& commands : commandVecs) {
-        commands.end();
+        commands.End();
         vk::SubmitInfo submitInfo;
-        submitInfo.setCommandBuffers(commands);
+        submitInfo.setCommandBuffers(commands.GetNativeHandle());
         m_graphicsQueue.submit(submitInfo, {});
     }
 }

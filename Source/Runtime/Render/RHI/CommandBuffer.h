@@ -79,7 +79,7 @@ public:
     void BeginRenderPass(PassNode* passNode);
     void EndRenderPass();
 
-    void BindDescriptorSet(vk::PipelineBindPoint bindPoint, vk::PipelineLayout layout,vk::DescriptorSet& descriptorSet);
+    void BindDescriptorSet(vk::PipelineBindPoint bindPoint, vk::PipelineLayout layout, std::vector<vk::DescriptorSet>& descriptorSets);
 
     void CopyImage(const ImageInfo& source, const ImageInfo& distance);
     void CopyBufferToImage(const BufferInfo& source, const ImageInfo& distance);

@@ -1,10 +1,14 @@
-#version 450
+#version 450 core
 
-layout(location = 0) in vec3 fragColor;
-layout(location = 1) in vec3 localPos;
+layout(location=0) in Vertex
+{
+	vec3 position;
+	vec2 texcoord;
+	mat3 tangentBasis;
+} vin;
 
 layout(location = 0) out vec4 outColor;
 
 void main() {
-    outColor = vec4(fragColor, 1.0);
+    outColor = vec4(vin.position, 1.0);
 }

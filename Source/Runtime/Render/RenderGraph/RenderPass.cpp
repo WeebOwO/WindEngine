@@ -25,7 +25,7 @@ RenderProcessBuilder& RenderProcessBuilder::SetShader(GraphicsShader* graphicsSh
 
     auto& shaderLayouts = graphicsShader->GetDescriptorSetLayouts();
 
-    m_pipelineLayoutCreateInfo.setSetLayoutCount(1)
+    m_pipelineLayoutCreateInfo.setSetLayoutCount(shaderLayouts.size())
         .setSetLayouts(shaderLayouts);
 
     return *this;

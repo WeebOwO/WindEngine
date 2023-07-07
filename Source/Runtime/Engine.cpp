@@ -79,31 +79,37 @@ void EngineImpl::LoadGameObject() {
     Model::Builder builder = io::LoadModelFromFilePath(R"(..\..\..\..\Assets\Mesh\cerberus.fbx)");
     Material       material;
 
-    auto testCommandVecs = RenderBackend::GetInstance().RequestMultiCommandBuffer(4);
+    auto commandVecs = RenderBackend::GetInstance().RequestMultiCommandBuffer(4);
 
     m_threadPool.push_back(std::thread([&]() {
-        ImageLoader::FillImage(*material.albedoTexture, CommandBuffer(testCommandVecs[0]),
+        ImageLoader::FillImage(*material.albedoTexture, commandVecs[0],
                                R"(..\..\..\..\Assets\Textures\cerberus_A.png)",
                                ImageOptions::MIPMAPS);
     }));
+
     m_threadPool.push_back(std::thread([&]() {
-        ImageLoader::FillImage(*material.metallicTexture, CommandBuffer(testCommandVecs[1]),
+        ImageLoader::FillImage(*material.metallicTexture, commandVecs[1],
                                R"(..\..\..\..\Assets\Textures\cerberus_M.png)",
                                ImageOptions::MIPMAPS);
     }));
+
     m_threadPool.push_back(std::thread([&]() {
-        ImageLoader::FillImage(*material.normalTexture, CommandBuffer(testCommandVecs[2]), 
+        ImageLoader::FillImage(*material.normalTexture, commandVecs[2],
                                R"(..\..\..\..\Assets\Textures\cerberus_N.png)",
                                ImageOptions::MIPMAPS);
     }));
+
     m_threadPool.push_back(std::thread([&]() {
-        ImageLoader::FillImage(*material.roughnessTexture, CommandBuffer(testCommandVecs[3]),
+        ImageLoader::FillImage(*material.roughnessTexture, commandVecs[3],
                                R"(..\..\..\..\Assets\Textures\cerberus_R.png)",
                                ImageOptions::MIPMAPS);
     }));
-    for (auto& t : m_threadPool) {
+
+    for (auto& t : m_threadPool) { 
         t.join();
     }
+    
+    RenderBackend::GetInstance().SubmitCommands(commandVecs);
     builder.material = material;
     world.AddModel(builder);
 }
