@@ -7,6 +7,7 @@
 #include "Runtime/Base/Io.h"
 #include "Runtime/Base/Macro.h"
 #include "Runtime/Render/RHI/Backend.h"
+#include "Runtime/Render/RHI/Image.h"
 #include "Runtime/Render/RHI/Shader.h"
 #include "Runtime/Scene/SceneView.h"
 
@@ -85,7 +86,7 @@ void GraphicsShader::FinishShaderBinding() {
             }
 
             imagesInfos[imageIdx]
-                .setImageLayout(shaderImageDesc.layout)
+                .setImageLayout(ImageUsageToImageLayout(shaderImageDesc.usage))
                 .setImageView(shaderImageDesc.image->GetNativeView(ImageView::NATIVE))
                 .setSampler(shaderImageDesc.sampler->GetNativeHandle());
 
@@ -189,6 +190,11 @@ GraphicsShader::GraphicsShader(std::string_view vertexShaderfilePath,
     m_fragShader = device.createShaderModule(createInfo);
 
     GenerateVulkanDescriptorSetLayout();
+}
+
+void GraphicsShader::Bind(const std::string resoueceName, std::shared_ptr<Image> image) {
+    auto& shaderImageDesc = m_imageShaderResource[resoueceName];
+    shaderImageDesc.image = image;
 }
 
 std::shared_ptr<GraphicsShader>

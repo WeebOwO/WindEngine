@@ -20,7 +20,6 @@ namespace wind {
     void RenderGraphBuilder::Compile() {
         for(auto& pass : m_renderGraph->m_passNodes) {
             pass->ConstructResource(*this);
-            pass->graphicsShader->FinishShaderBinding();
         }
     }
 

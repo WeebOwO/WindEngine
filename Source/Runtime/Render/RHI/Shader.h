@@ -16,7 +16,7 @@ struct ShaderBase {};
 
 struct ShaderImageDesc {
     std::shared_ptr<Image>   image;
-    vk::ImageLayout          layout;
+    ImageUsage::Bits         usage;
     std::shared_ptr<Sampler> sampler;
 };
 
@@ -44,16 +44,18 @@ public:
     [[nodiscard]] auto  GetFragmentShaderModule() const { return m_fragShader; }
     [[nodiscard]] auto  GetShaderReflesctionData() const { return m_reflectionDatas; }
     [[nodiscard]] auto& GetDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
-    [[nodiscard]] auto& GetDescriptorSet() {return m_descriptorSets;}
+    [[nodiscard]] auto& GetDescriptorSet() { return m_descriptorSets; }
 
     void Bind(const std::string resourceName, uint8_t* cpudata);
-    void Bind(const std::string resoueceName, Sampler sampler, uint8_t* cpudata);
-    
+    void Bind(const std::string resoueceName, std::shared_ptr<Image> image);
+
     void FinishShaderBinding();
 
-    GraphicsShader& SetShaderResource(std::string_view resourceName, const ShaderBufferDesc& bufferDesc);
-    GraphicsShader& SetShaderResource(std::string_view resourceName, const ShaderImageDesc& imageDesc);
-     
+    GraphicsShader& SetShaderResource(std::string_view        resourceName,
+                                      const ShaderBufferDesc& bufferDesc);
+    GraphicsShader& SetShaderResource(std::string_view       resourceName,
+                                      const ShaderImageDesc& imageDesc);
+
 private:
     void GenerateVulkanDescriptorSetLayout();
     void CollectSpirvMetaData(std::vector<uint32_t> spivrBinary, vk::ShaderStageFlags shaderFlags);

@@ -301,6 +301,7 @@ void RenderBackend::SubmitSingleTimeCommand(vk::CommandBuffer cmdBuffer) {
 
 [[nodiscard]] std::vector<CommandBuffer>
 RenderBackend::RequestMultiCommandBuffer(uint32_t count) {
+    
     vk::CommandBufferAllocateInfo allocateInfo;
 
     allocateInfo.setCommandBufferCount(count)
@@ -309,9 +310,6 @@ RenderBackend::RequestMultiCommandBuffer(uint32_t count) {
     std::vector<vk::CommandBuffer> allocCmdBuffers = m_device.allocateCommandBuffers(allocateInfo);
     std::vector<CommandBuffer> commandbuffers;
     for (auto& cmdBufferHandle : allocCmdBuffers) {
-        vk::CommandBufferBeginInfo beginInfo;
-        beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
-        cmdBufferHandle.begin(beginInfo);
         commandbuffers.emplace_back(CommandBuffer{cmdBufferHandle});
     }
     return commandbuffers;

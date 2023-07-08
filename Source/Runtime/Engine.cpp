@@ -13,10 +13,11 @@
 #include "Runtime/Resource/ImageLoader.h"
 #include "Runtime/Resource/Material.h"
 #include "Runtime/Scene/Camera.h"
+#include "Runtime/Scene/Light.h"
 #include "Runtime/Scene/Scene.h"
 
-static constexpr uint32_t WIDTH  = 800;
-static constexpr uint32_t HEIGHT = 600;
+static constexpr uint32_t WIDTH  = 1920;
+static constexpr uint32_t HEIGHT = 1080;
 
 namespace wind {
 class EngineImpl {
@@ -29,12 +30,12 @@ public:
         Scene::Init();
         InputManger::Init(m_window.GetWindow());
         m_renderer = std::make_unique<ForwardRenderer>();
+        InitScene();
     }
 
     ~EngineImpl() = default;
     void Run() {
         LoadGameObject();
-        AddCamera();
         while (!glfwWindowShouldClose(m_window.GetWindow())) {
             float fs = CalculateDeltaTime();
             LogicTick(fs);
@@ -46,6 +47,7 @@ private:
     void  RenderTick(float ts);
     void  LogicTick(float ts);
     void  LoadGameObject();
+    void  InitScene();
     void  AddCamera();
     float CalculateDeltaTime();
 
@@ -59,6 +61,14 @@ private:
 void EngineImpl::AddCamera() {
     auto& world = Scene::GetWorld();
     world.SetupCamera(std::make_shared<OrbitCamera>(m_window.GetWindow()));
+}
+
+void EngineImpl::InitScene() { 
+    auto& world = Scene::GetWorld();
+    world.SetupCamera(std::make_shared<OrbitCamera>(m_window.GetWindow()));
+    DirectionalLight sun;
+    sun.direction = glm::normalize(glm::vec3{-1.0f,  0.0f, 0.0f});
+    world.AddLightData(sun);
 }
 
 float EngineImpl::CalculateDeltaTime() {
@@ -81,35 +91,43 @@ void EngineImpl::LoadGameObject() {
 
     auto commandVecs = RenderBackend::GetInstance().RequestMultiCommandBuffer(4);
 
-    m_threadPool.push_back(std::thread([&]() {
-        ImageLoader::FillImage(*material.albedoTexture, commandVecs[0],
-                               R"(..\..\..\..\Assets\Textures\cerberus_A.png)",
-                               ImageOptions::MIPMAPS);
-    }));
+    // m_threadPool.push_back(std::thread([&]() {
+    //     ImageLoader::FillImage(*material.albedoTexture, Format::R8G8B8A8_SRGB, commandVecs[0],
+    //                            R"(..\..\..\..\Assets\Textures\cerberus_A.png)",
+    //                            ImageOptions::MIPMAPS);
+    // }));
 
-    m_threadPool.push_back(std::thread([&]() {
-        ImageLoader::FillImage(*material.metallicTexture, commandVecs[1],
-                               R"(..\..\..\..\Assets\Textures\cerberus_M.png)",
-                               ImageOptions::MIPMAPS);
-    }));
+    // m_threadPool.push_back(std::thread([&]() {
+    //     ImageLoader::FillImage(*material.metallicTexture, Format::R8_UNORM, commandVecs[1],
+    //                            R"(..\..\..\..\Assets\Textures\cerberus_M.png)",
+    //                            ImageOptions::MIPMAPS);
+    // }));
 
-    m_threadPool.push_back(std::thread([&]() {
-        ImageLoader::FillImage(*material.normalTexture, commandVecs[2],
-                               R"(..\..\..\..\Assets\Textures\cerberus_N.png)",
-                               ImageOptions::MIPMAPS);
-    }));
+    // m_threadPool.push_back(std::thread([&]() {
+    //     ImageLoader::FillImage(*material.normalTexture, Format::R8G8B8A8_UNORM, commandVecs[2],
+    //                            R"(..\..\..\..\Assets\Textures\cerberus_N.png)",
+    //                            ImageOptions::MIPMAPS);
+    // }));
 
-    m_threadPool.push_back(std::thread([&]() {
-        ImageLoader::FillImage(*material.roughnessTexture, commandVecs[3],
-                               R"(..\..\..\..\Assets\Textures\cerberus_R.png)",
-                               ImageOptions::MIPMAPS);
-    }));
+    // m_threadPool.push_back(std::thread([&]() {
+    //     ImageLoader::FillImage(*material.roughnessTexture, Format::R8_UNORM, commandVecs[3],
+    //                            R"(..\..\..\..\Assets\Textures\cerberus_R.png)",
+    //                            ImageOptions::MIPMAPS);
+    // }));
 
-    for (auto& t : m_threadPool) { 
-        t.join();
-    }
-    
-    RenderBackend::GetInstance().SubmitCommands(commandVecs);
+    // for (auto& t : m_threadPool) {
+    //     t.join();
+    // }
+
+    ImageLoader::FillImage(*material.albedoTexture, Format::R8G8B8A8_SRGB,
+                           R"(..\..\..\..\Assets\Textures\cerberus_A.png)", ImageOptions::MIPMAPS);
+    ImageLoader::FillImage(*material.normalTexture, Format::R8G8B8A8_UNORM,
+                           R"(..\..\..\..\Assets\Textures\cerberus_N.png)", ImageOptions::MIPMAPS);
+    ImageLoader::FillImage(*material.metallicTexture, Format::R8_UNORM,
+                           R"(..\..\..\..\Assets\Textures\cerberus_M.png)", ImageOptions::MIPMAPS);
+    ImageLoader::FillImage(*material.roughnessTexture, Format::R8_UNORM,
+                           R"(..\..\..\..\Assets\Textures\cerberus_R.png)", ImageOptions::MIPMAPS);
+
     builder.material = material;
     world.AddModel(builder);
 }

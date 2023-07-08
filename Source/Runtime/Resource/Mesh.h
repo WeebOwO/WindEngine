@@ -80,7 +80,8 @@ public:
     [[nodiscard]] auto GetVerTexBuffer() { return m_vertexBuffer; }
     [[nodiscard]] auto GetIndexBuffer() { return m_indexBuffer; }
 
-    void SetMaterial(const Material& material) {m_material = material;}
+    void  SetMaterial(const Material& material) { m_material = material; }
+    auto& GetMaterial() { return m_material; }
 
 private:
     std::shared_ptr<Buffer> m_vertexBuffer{nullptr};

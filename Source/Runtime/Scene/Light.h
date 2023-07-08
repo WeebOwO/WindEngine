@@ -5,9 +5,9 @@
 namespace wind {
 
 struct DirectionalLight {
-    alignas(16) glm::vec3 direction {};
-    alignas(16) glm::vec3 intensity {10.0f, 10.0f, 10.0f};
+    alignas(16) glm::vec3 direction{};
     alignas(16) glm::vec3 ligthColor{1.0f, 1.0f, 1.0f};
+    alignas(16) glm::vec3 radiance{1.0f};
 };
 
 struct PointLight {
@@ -15,8 +15,6 @@ struct PointLight {
     float fallScale;
 };
 
-struct SpotLight {
-    
-};
+struct SpotLight {};
 
 } // namespace wind

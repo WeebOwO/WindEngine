@@ -2,103 +2,16 @@
 
 #include <memory>
 
-#include "Runtime/Base/Utils.h"
-#include "Runtime/Render/RHI/Shader.h"
-#include "Runtime/Scene/SceneView.h"
-#include "Runtime/Render/RHI/Backend.h"
+#include "Runtime/Render/PassRendering.h"
 
 namespace wind {
 ForwardRenderer::ForwardRenderer() { Init(); }
 
-// Create Forward Pass and add resource
-void ForwardRenderer::AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
-    const auto defaultColorFormat = RenderBackend::GetInstance().GetSwapChainSurfaceFormat();
-    const auto [width, height]    = RenderBackend::GetInstance().GetSurfaceExtent();
-
-    TextureDesc backBufferDesc{width,
-                               height,
-                               defaultColorFormat,
-                               ImageUsage::COLOR_ATTACHMENT | ImageUsage::TRANSFER_SOURCE,
-                               MemoryUsage::GPU_ONLY,
-                               ImageOptions::DEFAULT};
-
-    TextureDesc depthBufferDesc{width,
-                                height,
-                                vk::Format::eD24UnormS8Uint,
-                                ImageUsage::DEPTH_SPENCIL_ATTACHMENT,
-                                MemoryUsage::GPU_ONLY,
-                                ImageOptions::DEFAULT};
-
-    // Allocate buffer and image
-
-    std::shared_ptr<Buffer> cameraBuffer = std::make_shared<Buffer>(
-        sizeof(CameraUnifoirmBuffer), BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
-    std::shared_ptr<Buffer> objectBuffer = std::make_shared<Buffer>(
-        sizeof(ObjectUniformBuffer), BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
-    
-    ShaderBufferDesc camearaShaderBufferDesc{cameraBuffer, 0, sizeof(CameraUnifoirmBuffer)};
-    ShaderBufferDesc objectShaderBufferDesc{objectBuffer, 0, sizeof(ObjectUniformBuffer)};
-
-    graphBuilder.AddRenderPass("OpaquePass", [=](PassNode* passNode) {
-        // Setup part
-        passNode->DeclareColorAttachment("SceneColor", backBufferDesc);
-        passNode->DeclareDepthAttachment("SceneDepth", depthBufferDesc);
-
-        passNode->CreateRenderPass();
-        passNode->SetRenderRect(width, height);
-
-        RenderProcessBuilder renderProcessBuilder;
-
-        std::shared_ptr<GraphicsShader> BasePassShader = ShaderFactory::CreateGraphicsShader(
-            "ForwardBasePass.vert.spv", "ForwardBasePass.frag.spv");
-
-        BasePassShader->SetShaderResource("CameraBuffer", camearaShaderBufferDesc)
-            .SetShaderResource("ObjectBuffer", objectShaderBufferDesc);
-
-        renderProcessBuilder.SetBlendState(false)
-            .SetShader(BasePassShader.get())
-            .SetRenderPass(passNode->renderPass)
-            .SetDepthSetencilTestState(true, true, false, vk::CompareOp::eLessOrEqual);
-
-        passNode->graphicsShader = BasePassShader;
-        passNode->pipelineState  = renderProcessBuilder.BuildGraphicProcess();
-
-        // Execute part
-        return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
-            auto*      scene     = passNode->renderScene->GetOwnScene();
-            SceneView* sceneView = passNode->renderScene;
-
-            auto  shader = passNode->graphicsShader;
-
-            // After you bind all resource, call this function
-            shader->FinishShaderBinding();
-
-            auto& pso    = passNode->pipelineState->GetPipeline();
-            auto& camera = scene->GetActiveCamera();
-
-            glm::mat4 model = glm::mat4(1.0);
-            
-            cameraBuffer->CopyData((uint8_t*)sceneView->cameraBuffer.get(),
-                                   camearaShaderBufferDesc.range, camearaShaderBufferDesc.offset);
-            objectBuffer->CopyData((uint8_t*)&model, objectShaderBufferDesc.range,
-                                   objectShaderBufferDesc.offset);
-
-            cmdBuffer.BindDescriptorSet(pso.bindPoint, pso.pipelineLayout,
-                                        shader->GetDescriptorSet());
-            
-            for (auto& gameObject : scene->GetWorld().GetWorldGameObjects()) {
-                gameObject.model->Bind(cmdBuffer);
-                gameObject.model->Draw(cmdBuffer);
-            }
-        };
-    });
-}
-
 void ForwardRenderer::InitView(Scene& scene) { m_sceneView->SetScene(&scene); }
 
 void ForwardRenderer::Init() {
-    for (size_t i = 0; i < m_renderGraphs.size(); ++i) {
-        RenderGraphBuilder graphBuilder(m_renderGraphs[i].get());
+    for (auto& renderGraph : m_renderGraphs) {
+        RenderGraphBuilder graphBuilder(renderGraph.get());
         graphBuilder.SetBackBufferName("SceneColor");
         AddForwardBasePass(graphBuilder);
         graphBuilder.Compile();

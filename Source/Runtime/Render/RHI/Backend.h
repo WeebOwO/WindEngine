@@ -140,7 +140,8 @@ private:
     QueueIndices m_queueIndices;
 
     vk::CommandPool m_coomandPool;
-
+    std::vector<vk::CommandPool> m_threadCommandPool;
+    
     vk::SurfaceKHR       m_surface;
     vk::SwapchainKHR     m_swapchain;
     vk::Extent2D         m_surfaceExtent;

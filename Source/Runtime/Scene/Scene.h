@@ -9,11 +9,13 @@
 #include "Runtime/Resource/Mesh.h"
 #include "Runtime/Scene/Camera.h"
 #include "Runtime/Scene/GameObject.h"
+#include "Runtime/Scene/Light.h"
 
 namespace wind {
 
 class Scene {
 public:
+    friend class SceneView;
     static void Init();
 
     static Scene& GetWorld() {
@@ -27,6 +29,7 @@ public:
         gameobject.model = model;
         m_worldObjects.push_back(std::move(gameobject));
     }
+    void AddLightData(const DirectionalLight& directionalLight);
 
     auto& GetWorldGameObjects() { return m_worldObjects; }
     auto& GetActiveCamera() { return m_activeCamera; }
@@ -36,9 +39,10 @@ public:
     void BuildMeshBatch();
 
 private:
-    Scene();
-    std::vector<GameObject>     m_worldObjects;
-    std::shared_ptr<BaseCamera> m_activeCamera;
-    ImageData                   m_SkyBoxData;
+    Scene() = default;
+    std::vector<GameObject>       m_worldObjects;
+    std::shared_ptr<BaseCamera>   m_activeCamera;
+    std::vector<DirectionalLight> m_directionalLights;
+    ImageData                     m_SkyBoxData;
 };
 } // namespace wind

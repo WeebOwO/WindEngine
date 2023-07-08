@@ -16,12 +16,20 @@ struct ObjectUniformBuffer {
     glm::mat4 model;
 };
 
+struct LightUniformBuffer {
+    glm::vec3 lightDirection;
+    glm::vec3 lightIntensity;
+    glm::vec3 lightColor;
+};
+
 // A scene abstraction for renderer side data
 class SceneView {
 public:
     std::shared_ptr<CameraUnifoirmBuffer> cameraBuffer;
-    std::shared_ptr<ImageData>            skybox;
-    
+    std::shared_ptr<Image>                skybox;
+    std::shared_ptr<ObjectUniformBuffer>  objectBuffer;
+    std::shared_ptr<LightUniformBuffer>   lightBuffer;
+
     SceneView();
     SceneView(Scene* scene);
     void  Init();

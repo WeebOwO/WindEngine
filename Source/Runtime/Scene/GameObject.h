@@ -31,8 +31,7 @@ public:
     auto GetId() { return m_id; }
 
     Transform transform;
-    std::shared_ptr<Model> model{nullptr};
-    std::shared_ptr<Material> material {nullptr};
+    std::shared_ptr<Model> model {nullptr};
     
 private:
     GameObject(uint32_t id) : m_id(id) {}

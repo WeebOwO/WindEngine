@@ -6,6 +6,7 @@
 #include "Runtime/Render/RHI/Image.h"
 
 #include <filesystem>
+#include <string>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -22,6 +23,11 @@ static bool IsDDSImage(const std::string& filepath) {
 static bool IsZLIBImage(const std::string& filepath) {
     std::filesystem::path filename{filepath};
     return filename.extension() == ".zlib";
+}
+
+static bool IsHdrImage(const std::string& filePath) {
+    std::filesystem::path filename{filePath};
+    return filename.extension() == ".hdr";
 }
 
 static Format DDSFormatToImageFormat(tinyddsloader::DDSFile::DXGIFormat format) {
@@ -322,7 +328,7 @@ static ImageData LoadImageUsingZLIBLoader(const std::string& filepath) {
     return LoadImageUsingDDSLoader(ddsFilepath);
 }
 
-static ImageData LoadImageUsingSTBLoader(const std::string& filepath) {
+static ImageData LoadImageUsingSTBLoader(const std::string& filepath, Format format) {
     int            width = 0, height = 0, channels = 0;
     const uint32_t actualChannels = 4;
 
@@ -334,7 +340,7 @@ static ImageData LoadImageUsingSTBLoader(const std::string& filepath) {
     vecData.resize(width * height * actualChannels * sizeof(uint8_t));
     std::copy(data, data + vecData.size(), vecData.begin());
     stbi_image_free(data);
-    return ImageData{std::move(vecData), Format::R8G8B8A8_UNORM, (uint32_t)width, (uint32_t)height};
+    return ImageData{std::move(vecData), format, (uint32_t)width, (uint32_t)height, (uint32_t)channels};
 }
 
 static std::vector<uint8_t> ExtractCubemapFace(const ImageData& image, size_t faceWidth,
@@ -377,16 +383,16 @@ static CubemapData CreateCubemapFromSingleImage(const ImageData& image) {
     return cubemapData;
 }
 
-ImageData ImageLoader::LoadImageDataFromFile(const std::string& filepath) {
+ImageData ImageLoader::LoadImageDataFromFile(const std::string& filepath, Format format) {
     if (IsDDSImage(filepath)) return LoadImageUsingDDSLoader(filepath);
     else if (IsZLIBImage(filepath))
         return LoadImageUsingZLIBLoader(filepath);
     else
-        return LoadImageUsingSTBLoader(filepath);
+        return LoadImageUsingSTBLoader(filepath, format);
 }
 
-CubemapData ImageLoader::LoadCubemapDataFromFile(const std::string& filepath) {
-    auto imageData = ImageLoader::LoadImageDataFromFile(filepath);
+CubemapData ImageLoader::LoadCubemapDataFromFile(const std::string& filepath, Format format) {
+    auto imageData = ImageLoader::LoadImageDataFromFile(filepath, format);
     return CreateCubemapFromSingleImage(imageData);
 }
 
@@ -418,11 +424,29 @@ void ImageLoader::FillImage(CommandBuffer& commandBuffer, Image& image, const Im
     commandBuffer.TransferLayout(image, ImageUsage::TRANSFER_DESTINATION, ImageUsage::SHADER_READ);
 }
 
-void ImageLoader::FillImage(Image& image, CommandBuffer& cmdBuffer, const std::string& filepath,
-                            ImageOptions::Value options) {
+void ImageLoader::FillImage(Image& image, Format format, CommandBuffer& cmdBuffer,
+                            const std::string& filepath, ImageOptions::Value options) {
+    auto& backend     = RenderBackend::GetInstance();
     auto& stageBuffer = RenderBackend::GetInstance().GetStagingBuffer();
-    FillImage(cmdBuffer, image, ImageLoader::LoadImageDataFromFile(filepath), options);
+    cmdBuffer.Begin();
+    FillImage(cmdBuffer, image, ImageLoader::LoadImageDataFromFile(filepath, format), options);
+    cmdBuffer.End();
+    backend.SubmitSingleTimeCommand(cmdBuffer.GetNativeHandle());
     stageBuffer.Flush();
+    stageBuffer.Reset();
+}
+
+void ImageLoader::FillImage(Image& image, Format format, const std::string& filepath,
+                            ImageOptions::Value options) {
+    auto& backend       = RenderBackend::GetInstance();
+    auto  commandBuffer = backend.BeginSingleTimeCommand();
+    auto& stageBuffer   = RenderBackend::GetInstance().GetStagingBuffer();
+
+    FillImage(commandBuffer, image, ImageLoader::LoadImageDataFromFile(filepath, format), options);
+
+    stageBuffer.Flush();
+    backend.SubmitSingleTimeCommand(commandBuffer.GetNativeHandle());
+
     stageBuffer.Reset();
 }
 } // namespace wind
