@@ -47,6 +47,7 @@ public:
     RenderResoueceType      resoueceType;
     std::shared_ptr<Image>  imageHandle;
     std::shared_ptr<Buffer> bufferHandle;
+    bool                    external = false;
 };
 
 class PassNode : public Node {
@@ -65,7 +66,7 @@ public:
                            ClearColor clearColor = {0.1f, 0.1f, 0.1f, 0.1f},
                            vk::ImageLayout intialLayout = vk::ImageLayout::eUndefined,
                            vk::ImageLayout finalLayout  = vk::ImageLayout::eColorAttachmentOptimal);
-                
+    
     void DeclareDepthAttachment(const std::string& name, const TextureDesc& textureDesc,
                            ClearDepthStencil clearDepthStencil = {1.0f, 0}, 
                            vk::ImageLayout intialLayout = vk::ImageLayout::eUndefined,

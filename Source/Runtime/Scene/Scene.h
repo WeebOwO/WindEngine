@@ -12,6 +12,11 @@
 #include "Runtime/Scene/Light.h"
 
 namespace wind {
+struct SkyBox {
+    std::shared_ptr<Model> skyBoxModel;
+    std::shared_ptr<Image> skyBoxImage;
+    SkyBox();
+};
 
 class Scene {
 public:
@@ -35,6 +40,7 @@ public:
     auto& GetActiveCamera() { return m_activeCamera; }
 
     void SetupCamera(std::shared_ptr<BaseCamera> camera) { m_activeCamera = camera; }
+    void LoadSkyBox(const std::string &skyBoxModelPath, const std::string& skyboxImagePath);
 
     void BuildMeshBatch();
 
@@ -43,6 +49,6 @@ private:
     std::vector<GameObject>       m_worldObjects;
     std::shared_ptr<BaseCamera>   m_activeCamera;
     std::vector<DirectionalLight> m_directionalLights;
-    ImageData                     m_SkyBoxData;
+    std::shared_ptr<SkyBox>       m_skybox;
 };
 } // namespace wind

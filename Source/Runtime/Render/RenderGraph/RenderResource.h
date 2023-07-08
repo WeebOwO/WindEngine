@@ -16,16 +16,16 @@ struct TextureDesc {
     ImageOptions::Value options;
 };
 
+struct BufferDesc {
+    size_t             byteSize;
+    BufferUsage::Value usage;
+    MemoryUsage        memoryUsage;
+};
+
 struct RDGRenderTarget {
     uint32_t width;
     uint32_t height;
     Image    colorAttachment;
     Image    depthAttachment;
-};
-
-struct BufferDesc {
-    size_t             byteSize;
-    BufferUsage::Value usage;
-    MemoryUsage        memoryUsage;
 };
 } // namespace wind

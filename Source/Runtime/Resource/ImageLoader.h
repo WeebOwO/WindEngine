@@ -16,6 +16,8 @@ public:
                           const std::string& filepath, ImageOptions::Value options);
     static void FillImage(Image& image, Format format, const std::string& filepath,
                           ImageOptions::Value options);
-    static void LoadCubemap(Image& image, const std::string& filepath);
+    static void FillImage(Image& image, ImageData& imageData, ImageOptions::Value options);
+
+    static void LoadCubemap(Image& image, Format format, const std::string& filepath);
 };
 } // namespace wind

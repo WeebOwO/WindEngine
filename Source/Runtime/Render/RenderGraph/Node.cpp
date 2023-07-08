@@ -83,11 +83,11 @@ void PassNode::DeclareDepthAttachment(const std::string& name, const TextureDesc
 
 void PassNode::ConstructResource(RenderGraphBuilder& graphBuilder) {
     for (const auto& [name, desc] : colorTextureDescs) {
-        colorAttachments.push_back(graphBuilder.CreateRDGTexture(name, desc));
+        colorAttachments.push_back(graphBuilder.TryCreateRDGTexture(name, desc));
     }
 
     const auto [depthTextureName, desc] = *depthTextureDesc.begin();
-    depthAttachment                     = graphBuilder.CreateRDGTexture(depthTextureName, desc);
+    depthAttachment                     = graphBuilder.TryCreateRDGTexture(depthTextureName, desc);
 
     CreateFrameBuffer(renderRect.width, renderRect.height);
 }

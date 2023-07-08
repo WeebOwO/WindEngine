@@ -9,7 +9,7 @@ namespace wind {
     }
     
     std::shared_ptr<RDGRenderTarget> RenderGraphBuilder::CreateRDGRenderTarget(const std::string& name, uint32_t width, uint32_t height) {
-        RDGRenderTarget renderTarget;
+        // todo
         return nullptr;
     }
 
@@ -27,7 +27,7 @@ namespace wind {
         m_renderGraph->Exec();
     }
     
-    std::shared_ptr<Buffer> RenderGraphBuilder::CreateRDGBuffer(const std::string& resourceName, const BufferDesc& bufferDesc) {
+    std::shared_ptr<Buffer> RenderGraphBuilder::TryCreateRDGBuffer(const std::string& resourceName, const BufferDesc& bufferDesc) {
         std::shared_ptr<Buffer> buffer = std::make_shared<Buffer>(bufferDesc.byteSize, bufferDesc.usage, bufferDesc.memoryUsage);
         auto* node = new ResourceNode();
 
@@ -43,7 +43,10 @@ namespace wind {
         m_renderGraph->SetBackBufferName(backBufferName);
     }
 
-    std::shared_ptr<Image> RenderGraphBuilder::CreateRDGTexture(const std::string& resourceName, const TextureDesc& textureDesc) {
+    std::shared_ptr<Image> RenderGraphBuilder::TryCreateRDGTexture(const std::string& resourceName, const TextureDesc& textureDesc) {
+        if(m_renderGraph->Contains(resourceName)) {
+            return m_renderGraph->GetImageResourceByName(resourceName);
+        }
         std::shared_ptr<Image> texture = std::make_shared<Image>(textureDesc.width, textureDesc.height, textureDesc.format, textureDesc.usage, textureDesc.memoryUsage, textureDesc.options);
         auto* node = new ResourceNode();
         
@@ -53,5 +56,20 @@ namespace wind {
 
         m_renderGraph->AddResourceNode(resourceName, node);
         return texture;
+    }
+
+    void RenderGraphBuilder::ImportResource(const std::string& resourceName, std::shared_ptr<Image> image) {
+        auto* node = new ResourceNode();
+        node->external = true;
+        node->imageHandle = image;
+        node->resoueceType = RenderResoueceType::Image;
+        m_renderGraph->AddResourceNode(resourceName, node);
+    }
+
+    void RenderGraphBuilder::ImportSceneTextures(SceneView* sceneView) {
+        auto& sceneTextures = sceneView->GetSceneTextures();
+        for(const auto& [name, image] : sceneTextures.SceneTextures) {
+            ImportResource(name, image);
+        }
     }
 }

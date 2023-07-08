@@ -1,24 +1,14 @@
 #include "PassRendering.h"
+#include "Runtime/Scene/SceneView.h"
 
 namespace wind {
 // Create Forward Pass and add resource
 void AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
     const auto defaultColorFormat = RenderBackend::GetInstance().GetSwapChainSurfaceFormat();
-    const auto [width, height]    = RenderBackend::GetInstance().GetSurfaceExtent();
+    const auto [width, height] = RenderBackend::GetInstance().GetSurfaceExtent();
 
-    TextureDesc backBufferDesc{width,
-                               height,
-                               defaultColorFormat,
-                               ImageUsage::COLOR_ATTACHMENT | ImageUsage::TRANSFER_SOURCE,
-                               MemoryUsage::GPU_ONLY,
-                               ImageOptions::DEFAULT};
-
-    TextureDesc depthBufferDesc{width,
-                                height,
-                                vk::Format::eD24UnormS8Uint,
-                                ImageUsage::DEPTH_SPENCIL_ATTACHMENT,
-                                MemoryUsage::GPU_ONLY,
-                                ImageOptions::DEFAULT};
+    TextureDesc backBufferDesc = SceneTexture::SceneTextureDescs["SceneColor"];
+    TextureDesc depthBufferDesc = SceneTexture::SceneTextureDescs["SceneDepth"];
 
     // Allocate shader resource
 
@@ -44,9 +34,9 @@ void AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
 
     graphBuilder.AddRenderPass("OpaquePass", [=](PassNode* passNode) {
         // Setup part
-        passNode->DeclareColorAttachment("SceneColor", backBufferDesc);
-        passNode->DeclareDepthAttachment("SceneDepth", depthBufferDesc);
-
+        passNode->DeclareColorAttachment("SceneColor", SceneTexture::SceneTextureDescs["SceneColor"]);
+        passNode->DeclareDepthAttachment("SceneDepth", SceneTexture::SceneTextureDescs["SceneDepth"]);
+        
         passNode->CreateRenderPass();
         passNode->SetRenderRect(width, height);
 

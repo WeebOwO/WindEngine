@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "Runtime/Render/PassRendering.h"
+#include "Runtime/Scene/SceneView.h"
 
 namespace wind {
 ForwardRenderer::ForwardRenderer() { Init(); }
@@ -10,8 +11,11 @@ ForwardRenderer::ForwardRenderer() { Init(); }
 void ForwardRenderer::InitView(Scene& scene) { m_sceneView->SetScene(&scene); }
 
 void ForwardRenderer::Init() {
+    int createBits = SceneColor | SceneDepth;
+    m_sceneView->CreateSceneTextures(createBits);
     for (auto& renderGraph : m_renderGraphs) {
         RenderGraphBuilder graphBuilder(renderGraph.get());
+        graphBuilder.ImportSceneTextures(m_sceneView.get());
         graphBuilder.SetBackBufferName("SceneColor");
         AddForwardBasePass(graphBuilder);
         graphBuilder.Compile();

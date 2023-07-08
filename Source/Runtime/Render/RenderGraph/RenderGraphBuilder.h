@@ -7,6 +7,7 @@
 #include "Runtime/Render/RenderGraph/RenderGraph.h"
 #include "Runtime/Render/RenderGraph/RenderResource.h"
 #include "Runtime/Scene/Scene.h"
+#include "Runtime/Scene/SceneView.h"
 
 namespace wind {
 
@@ -21,11 +22,14 @@ public:
     void Compile();
     void Exec();
 
-    std::shared_ptr<Image>  CreateRDGTexture(const std::string& resourceName,
-                                             const TextureDesc& textureDesc);
-    std::shared_ptr<Buffer> CreateRDGBuffer(const std::string& resourceName,
-                                            const BufferDesc&  bufferDesc);
+    void ImportResource(const std::string& resourceName, std::shared_ptr<Image> image);
+    void ImportSceneTextures(SceneView* sceneView);
 
+    std::shared_ptr<Image>  TryCreateRDGTexture(const std::string& resourceName,
+                                             const TextureDesc& textureDesc);
+    std::shared_ptr<Buffer> TryCreateRDGBuffer(const std::string& resourceName,
+                                            const BufferDesc&  bufferDesc);
+    
     std::shared_ptr<RDGRenderTarget> CreateRDGRenderTarget(const std::string& name, uint32_t width,
                                                            uint32_t height);
 

@@ -33,7 +33,7 @@ protected:
 protected:
     RenderBackend&                            m_backend;
     std::vector<std::shared_ptr<RenderGraph>> m_renderGraphs;
-    std::unique_ptr<SceneView>                m_sceneView;
+    std::shared_ptr<SceneView>                m_sceneView;
 };
 
 } // namespace wind

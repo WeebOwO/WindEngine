@@ -16,4 +16,8 @@ void RenderGraphRegister::RegisterPassResouce(const std::string& passName,
 void RenderGraphRegister::RegisterResource(const std::string& resoursename, ResourceNode* resource) {
     m_resouceLookupTable[resoursename] = resource;
 }
+
+bool RenderGraphRegister::Contains(const std::string &resourceName) {
+    return m_resouceLookupTable.find(resourceName) != m_resouceLookupTable.end();
+}
 } // namespace wind

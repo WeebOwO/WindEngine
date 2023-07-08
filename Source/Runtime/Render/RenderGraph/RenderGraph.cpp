@@ -57,4 +57,8 @@ void RenderGraph::Exec() {
     ImageInfo dstImageInfo{presentImage, ImageUsage::UNKNOWN};
     frameCommandBuffer.CopyImage(sourceImageInfo, dstImageInfo);
 }
+
+bool RenderGraph::Contains(const std::string& resourceName) {
+    return false;
+}
 } // namespace wind

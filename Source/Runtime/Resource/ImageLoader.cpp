@@ -340,7 +340,8 @@ static ImageData LoadImageUsingSTBLoader(const std::string& filepath, Format for
     vecData.resize(width * height * actualChannels * sizeof(uint8_t));
     std::copy(data, data + vecData.size(), vecData.begin());
     stbi_image_free(data);
-    return ImageData{std::move(vecData), format, (uint32_t)width, (uint32_t)height, (uint32_t)channels};
+    return ImageData{std::move(vecData), format, (uint32_t)width, (uint32_t)height,
+                     (uint32_t)channels};
 }
 
 static std::vector<uint8_t> ExtractCubemapFace(const ImageData& image, size_t faceWidth,
@@ -364,6 +365,7 @@ static CubemapData CreateCubemapFromSingleImage(const ImageData& image) {
     cubemapData.FaceFormat = image.ImageFormat;
     cubemapData.FaceWidth  = image.Width / 4;
     cubemapData.FaceHeight = image.Height / 3;
+    
     assert(cubemapData.FaceWidth == cubemapData.FaceHeight);  // single face should be a square
     assert(cubemapData.FaceFormat == Format::R8G8B8A8_UNORM); // support only this format for now
     constexpr size_t ChannelCount = 4;
@@ -447,6 +449,53 @@ void ImageLoader::FillImage(Image& image, Format format, const std::string& file
     stageBuffer.Flush();
     backend.SubmitSingleTimeCommand(commandBuffer.GetNativeHandle());
 
+    stageBuffer.Reset();
+}
+
+void ImageLoader::FillImage(Image& image, ImageData& imageData, ImageOptions::Value options) {
+    auto& backend       = RenderBackend::GetInstance();
+    auto  commandBuffer = backend.BeginSingleTimeCommand();
+    auto& stageBuffer   = RenderBackend::GetInstance().GetStagingBuffer();
+    FillImage(commandBuffer, image, imageData, options);
+    stageBuffer.Flush();
+    backend.SubmitSingleTimeCommand(commandBuffer.GetNativeHandle());
+
+    stageBuffer.Reset();
+}
+
+void ImageLoader::LoadCubemap(Image& image, Format format, const std::string& filepath) {
+    auto& backend       = RenderBackend::GetInstance();
+    auto  commandBuffer = backend.BeginSingleTimeCommand();
+    auto& stageBuffer = backend.GetStagingBuffer();
+
+    auto cubemapData = ImageLoader::LoadCubemapDataFromFile(filepath, format);
+
+    image.Init(
+        cubemapData.FaceWidth,
+        cubemapData.FaceHeight,
+        ToNative(cubemapData.FaceFormat),
+        ImageUsage::TRANSFER_DESTINATION | ImageUsage::TRANSFER_SOURCE | ImageUsage::SHADER_READ,
+        MemoryUsage::GPU_ONLY,
+        ImageOptions::CUBEMAP | ImageOptions::MIPMAPS
+    );
+
+    for (uint32_t layer = 0; layer < cubemapData.Faces.size(); layer++)
+    {
+        const auto& face = cubemapData.Faces[layer];
+        auto textureAllocation = stageBuffer.Submit(face.data(), face.size());
+
+        commandBuffer.CopyBufferToImage(
+            BufferInfo{ stageBuffer.GetBuffer(), textureAllocation.Offset },
+            ImageInfo{ image, ImageUsage::UNKNOWN, 0, layer }
+        );
+    }
+
+    commandBuffer.GenerateMipLevels(image, ImageUsage::TRANSFER_DESTINATION, BlitFilter::LINEAR);
+    commandBuffer.TransferLayout(image, ImageUsage::TRANSFER_DESTINATION, ImageUsage::SHADER_READ);
+
+    stageBuffer.Flush();
+
+    backend.SubmitSingleTimeCommand(commandBuffer.GetNativeHandle());
     stageBuffer.Reset();
 }
 } // namespace wind
