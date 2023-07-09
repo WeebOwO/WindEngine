@@ -39,8 +39,8 @@ void SceneView::Init() {
 
     SceneTexture::SceneTextureDescs["SceneColor"] = TextureDesc{width,
                                                                 height,
-                                                                vk::Format::eR8G8B8A8Srgb,
-                                                                ImageUsage::COLOR_ATTACHMENT,
+                                                                vk::Format::eB8G8R8A8Unorm,
+                                                                ImageUsage::COLOR_ATTACHMENT | ImageUsage::TRANSFER_SOURCE,
                                                                 MemoryUsage::GPU_ONLY,
                                                                 ImageOptions::DEFAULT};
 
@@ -53,5 +53,22 @@ void SceneView::Init() {
     
 }
 
-void CreateSceneTextures(int createBit) {}
+SceneTexture SceneView::CreateSceneTextures(int createBit) {
+    auto CreateImage = [&](TextureDesc desc) {
+        return std::make_shared<Image>(desc.width, desc.height, desc.format, desc.usage, desc.memoryUsage, desc.options); 
+    };
+    SceneTexture sceneTexture;
+
+    auto& sceneTextureDesc = SceneTexture::SceneTextureDescs;
+    auto& sceneTexturesDict = sceneTexture.SceneTextures;
+    if(createBit & SceneColor) {
+        sceneTexture.sceneColor = CreateImage(sceneTextureDesc["SceneColor"]);
+        sceneTexturesDict["SceneColor"] = sceneTexture.sceneColor;
+    } 
+    if(createBit & SceneDepth) {
+        sceneTexture.sceneDepth = CreateImage(sceneTextureDesc["SceneDepth"]);
+        sceneTexturesDict["SceneDepth"] = sceneTexture.sceneDepth;
+    }
+    return sceneTexture;
+}
 } // namespace wind

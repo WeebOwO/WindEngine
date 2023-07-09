@@ -11,7 +11,6 @@ void AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
     TextureDesc depthBufferDesc = SceneTexture::SceneTextureDescs["SceneDepth"];
 
     // Allocate shader resource
-
     std::shared_ptr<Buffer> cameraBuffer = std::make_shared<Buffer>(
         sizeof(CameraUnifoirmBuffer), BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
     std::shared_ptr<Buffer> objectBuffer = std::make_shared<Buffer>(

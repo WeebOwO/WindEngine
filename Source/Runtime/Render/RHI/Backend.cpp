@@ -179,6 +179,7 @@ void RenderBackend::CreateCmdPool() {
     commandBufferAllocateInfo.setCommandBufferCount(1)
         .setLevel(vk::CommandBufferLevel::ePrimary)
         .setCommandPool(m_coomandPool);
+    m_immediateCmdBuffer = m_device.allocateCommandBuffers(commandBufferAllocateInfo).front();
 }
 
 void RenderBackend::QuerySurfaceProperty() {
@@ -280,35 +281,32 @@ void RenderBackend::CreateDescriptorCacheAndAllocator() {
 }
 
 CommandBuffer RenderBackend::BeginSingleTimeCommand() {
-    vk::CommandBufferAllocateInfo allocateInfo;
 
-    allocateInfo.setCommandBufferCount(1)
-        .setCommandPool(m_coomandPool)
-        .setLevel(vk::CommandBufferLevel::ePrimary);
-    vk::CommandBuffer          immCmdBuffer = m_device.allocateCommandBuffers(allocateInfo).front();
     vk::CommandBufferBeginInfo beginInfo;
     beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
-    immCmdBuffer.begin(beginInfo);
-    return CommandBuffer(immCmdBuffer);
+    m_immediateCmdBuffer.begin(beginInfo);
+    return CommandBuffer(m_immediateCmdBuffer);
 }
 
 void RenderBackend::SubmitSingleTimeCommand(vk::CommandBuffer cmdBuffer) {
     cmdBuffer.end();
     vk::SubmitInfo submitInfo;
     submitInfo.setCommandBuffers(cmdBuffer);
-    m_graphicsQueue.submit(submitInfo, {});
+    m_graphicsQueue.submit(submitInfo, m_immediateFence);
+    auto waitResult = m_device.waitForFences(m_immediateFence, false, UINT64_MAX);
+    assert(waitResult == vk::Result::eSuccess);
+    m_device.resetFences(m_immediateFence);
 }
 
-[[nodiscard]] std::vector<CommandBuffer>
-RenderBackend::RequestMultiCommandBuffer(uint32_t count) {
-    
+[[nodiscard]] std::vector<CommandBuffer> RenderBackend::RequestMultiCommandBuffer(uint32_t count) {
+
     vk::CommandBufferAllocateInfo allocateInfo;
 
     allocateInfo.setCommandBufferCount(count)
         .setCommandPool(m_coomandPool)
         .setLevel(vk::CommandBufferLevel::ePrimary);
     std::vector<vk::CommandBuffer> allocCmdBuffers = m_device.allocateCommandBuffers(allocateInfo);
-    std::vector<CommandBuffer> commandbuffers;
+    std::vector<CommandBuffer>     commandbuffers;
     for (auto& cmdBufferHandle : allocCmdBuffers) {
         commandbuffers.emplace_back(CommandBuffer{cmdBufferHandle});
     }
@@ -320,7 +318,7 @@ void RenderBackend::SubmitCommands(std::vector<CommandBuffer>& commandVecs) {
         commands.End();
         vk::SubmitInfo submitInfo;
         submitInfo.setCommandBuffers(commands.GetNativeHandle());
-        m_graphicsQueue.submit(submitInfo, {});
+        m_graphicsQueue.submit(submitInfo, m_immediateFence);
     }
 }
 } // namespace wind

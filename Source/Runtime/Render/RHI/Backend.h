@@ -155,6 +155,8 @@ private:
 
     vk::Semaphore m_imageAvailableSemaphore;
     vk::Semaphore m_renderingFinishedSemaphore;
+
+    vk::CommandBuffer m_immediateCmdBuffer;
     vk::Fence     m_immediateFence;
 
     VmaAllocator         m_allocator;

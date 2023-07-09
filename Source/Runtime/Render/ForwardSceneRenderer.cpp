@@ -12,10 +12,10 @@ void ForwardRenderer::InitView(Scene& scene) { m_sceneView->SetScene(&scene); }
 
 void ForwardRenderer::Init() {
     int createBits = SceneColor | SceneDepth;
-    m_sceneView->CreateSceneTextures(createBits);
     for (auto& renderGraph : m_renderGraphs) {
         RenderGraphBuilder graphBuilder(renderGraph.get());
-        graphBuilder.ImportSceneTextures(m_sceneView.get());
+        auto sceneTextures = m_sceneView->CreateSceneTextures(createBits);
+        graphBuilder.ImportSceneTextures(sceneTextures);
         graphBuilder.SetBackBufferName("SceneColor");
         AddForwardBasePass(graphBuilder);
         graphBuilder.Compile();

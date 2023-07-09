@@ -58,7 +58,15 @@ void RenderGraph::Exec() {
     frameCommandBuffer.CopyImage(sourceImageInfo, dstImageInfo);
 }
 
+std::shared_ptr<Image> RenderGraph::GetImageResourceByName(const std::string& name) {
+    return m_graphRegister.GetResource(name)->imageHandle;
+}
+
+std::shared_ptr<Buffer> RenderGraph::GetBufferResourceByName(const std::string& name) {
+    return m_graphRegister.GetResource(name)->bufferHandle;
+}
+
 bool RenderGraph::Contains(const std::string& resourceName) {
-    return false;
+    return m_graphRegister.Contains(resourceName);
 }
 } // namespace wind

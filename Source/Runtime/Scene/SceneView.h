@@ -37,8 +37,7 @@ class SceneTexture {
 public: 
     static std::unordered_map<std::string, TextureDesc>     SceneTextureDescs;
     std::unordered_map<std::string, std::shared_ptr<Image>> SceneTextures;
-
-private:
+  
     std::shared_ptr<Image> sceneColor;
     std::shared_ptr<Image> sceneDepth;
     std::shared_ptr<Image> gbufferA;
@@ -60,11 +59,9 @@ public:
     void SetScene(Scene* scene);
 
     auto* GetOwnScene() { return m_scene; }
-    void  CreateSceneTextures(int createBit);
-    auto& GetSceneTextures() { return m_sceneTexture; }
+    SceneTexture CreateSceneTextures(int createBit);
 
 private:
     Scene*       m_scene;
-    SceneTexture m_sceneTexture;
 };
 } // namespace wind

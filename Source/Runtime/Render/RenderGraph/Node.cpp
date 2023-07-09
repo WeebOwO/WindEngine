@@ -41,7 +41,7 @@ void PassNode::DeclareColorAttachment(const std::string& name, const TextureDesc
                                       ClearColor clearColor, vk::ImageLayout initialLayout,
                                       vk::ImageLayout finalLayout) {
     vk::AttachmentDescription colorAttachment{};
-    auto                      format = RenderBackend::GetInstance().GetSwapChainSurfaceFormat();
+    auto                      format = textureDesc.format;
 
     colorAttachment.setInitialLayout(vk::ImageLayout::eUndefined)
         .setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal)

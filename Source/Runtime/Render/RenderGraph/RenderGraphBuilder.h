@@ -23,7 +23,7 @@ public:
     void Exec();
 
     void ImportResource(const std::string& resourceName, std::shared_ptr<Image> image);
-    void ImportSceneTextures(SceneView* sceneView);
+    void ImportSceneTextures(const SceneTexture& sceneTexture);
 
     std::shared_ptr<Image>  TryCreateRDGTexture(const std::string& resourceName,
                                              const TextureDesc& textureDesc);

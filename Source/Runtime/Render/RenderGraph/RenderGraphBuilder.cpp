@@ -60,15 +60,15 @@ namespace wind {
 
     void RenderGraphBuilder::ImportResource(const std::string& resourceName, std::shared_ptr<Image> image) {
         auto* node = new ResourceNode();
+        node->resourceName = resourceName;
         node->external = true;
         node->imageHandle = image;
         node->resoueceType = RenderResoueceType::Image;
         m_renderGraph->AddResourceNode(resourceName, node);
     }
 
-    void RenderGraphBuilder::ImportSceneTextures(SceneView* sceneView) {
-        auto& sceneTextures = sceneView->GetSceneTextures();
-        for(const auto& [name, image] : sceneTextures.SceneTextures) {
+    void RenderGraphBuilder::ImportSceneTextures(const SceneTexture& sceneTexture) {
+        for(const auto& [name, image] : sceneTexture.SceneTextures) {
             ImportResource(name, image);
         }
     }
