@@ -67,7 +67,9 @@ void EngineImpl::InitScene() {
     sun.direction = glm::normalize(glm::vec3{-1.0f, 0.0f, 0.0f});
     world.AddLightData(sun);
 
-    world.LoadSkyBox(R"(..\..\..\..\Assets\Mesh\skybox.obj)", R"(..\..\..\..\Assets\Textures\skybox.png)");
+    world.LoadSkyBox(R"(..\..\..\..\Assets\Mesh\skybox.obj)",
+                     R"(..\..\..\..\Assets\Textures\skybox.png)",
+                     R"(..\..\..\..\Assets\Textures\skybox_irradiance.png)");
 }
 
 float EngineImpl::CalculateDeltaTime() {
@@ -113,20 +115,11 @@ void EngineImpl::LoadGameObject() {
     for (auto& t : m_threadPool) {
         t.join();
     }
-     
+
     ImageLoader::FillImage(*material.albedoTexture, albeoData, ImageOptions::MIPMAPS);
     ImageLoader::FillImage(*material.normalTexture, normalData, ImageOptions::MIPMAPS);
     ImageLoader::FillImage(*material.metallicTexture, metallicdata, ImageOptions::MIPMAPS);
     ImageLoader::FillImage(*material.roughnessTexture, roughnessData, ImageOptions::MIPMAPS);
-
-    // ImageLoader::FillImage(*material.albedoTexture, Format::R8G8B8A8_SRGB,
-    //                        R"(..\..\..\..\Assets\Textures\cerberus_A.png)", ImageOptions::MIPMAPS);
-    // ImageLoader::FillImage(*material.normalTexture, Format::R8G8B8A8_UNORM,
-    //                        R"(..\..\..\..\Assets\Textures\cerberus_N.png)", ImageOptions::MIPMAPS);
-    // ImageLoader::FillImage(*material.metallicTexture, Format::R8_UNORM,
-    //                        R"(..\..\..\..\Assets\Textures\cerberus_M.png)", ImageOptions::MIPMAPS);
-    // ImageLoader::FillImage(*material.roughnessTexture, Format::R8_UNORM,
-    //                        R"(..\..\..\..\Assets\Textures\cerberus_R.png)", ImageOptions::MIPMAPS);
 
     builder.material = material;
     world.AddModel(builder);

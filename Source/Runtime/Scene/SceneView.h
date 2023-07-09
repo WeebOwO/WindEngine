@@ -12,6 +12,12 @@ struct CameraUnifoirmBuffer {
     alignas(16) glm::mat4 view;
     alignas(16) glm::mat4 proj;
     alignas(16) glm::mat4 viewproj;
+    glm::vec3 cameraPos;
+};
+
+struct SkyBoxUniformBuffer {
+    glm::mat4 viewProj;
+    glm::vec3 cameraPos;
 };
 
 struct ObjectUniformBuffer {
@@ -34,10 +40,10 @@ enum SceneTextureCreateBit : int {
 };
 
 class SceneTexture {
-public: 
+public:
     static std::unordered_map<std::string, TextureDesc>     SceneTextureDescs;
     std::unordered_map<std::string, std::shared_ptr<Image>> SceneTextures;
-  
+
     std::shared_ptr<Image> sceneColor;
     std::shared_ptr<Image> sceneDepth;
     std::shared_ptr<Image> gbufferA;
@@ -53,15 +59,20 @@ public:
     std::shared_ptr<Image>                skybox;
     std::shared_ptr<ObjectUniformBuffer>  objectBuffer;
     std::shared_ptr<LightUniformBuffer>   lightBuffer;
+    std::shared_ptr<SkyBoxUniformBuffer>  skyBoxBuffer;
+
+    // For ibl calc
+    std::shared_ptr<Image> iblBrdfLut;
+    std::shared_ptr<Image> skyBoxIrradianceTexture;
 
     SceneView();
     void Init();
     void SetScene(Scene* scene);
 
-    auto* GetOwnScene() { return m_scene; }
+    auto*        GetOwnScene() { return m_scene; }
     SceneTexture CreateSceneTextures(int createBit);
 
 private:
-    Scene*       m_scene;
+    Scene* m_scene;
 };
 } // namespace wind

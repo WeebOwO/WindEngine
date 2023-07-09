@@ -97,6 +97,7 @@ void GraphicsShader::FinishShaderBinding() {
                 .setDstSet(m_descriptorSets[metaData.set]);
             ++imageIdx;
         }
+
         writeDescriptorVec.push_back(writer);
     }
     device.updateDescriptorSets(writeDescriptorVec.size(), writeDescriptorVec.data(), 0, nullptr);

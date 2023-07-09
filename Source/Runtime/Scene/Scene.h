@@ -15,6 +15,7 @@ namespace wind {
 struct SkyBox {
     std::shared_ptr<Model> skyBoxModel;
     std::shared_ptr<Image> skyBoxImage;
+    std::shared_ptr<Image> skyBoxIrradianceImage;
     SkyBox();
 };
 
@@ -40,9 +41,10 @@ public:
     auto& GetActiveCamera() { return m_activeCamera; }
 
     void SetupCamera(std::shared_ptr<BaseCamera> camera) { m_activeCamera = camera; }
-    void LoadSkyBox(const std::string &skyBoxModelPath, const std::string& skyboxImagePath);
+    void LoadSkyBox(const std::string& skyBoxModelPath, const std::string& skyboxImagePath, const std::string& irradianceImagePath);
 
-    void BuildMeshBatch();
+    auto& GetSkybox() { return m_skybox; }
+    void  BuildMeshBatch();
 
 private:
     Scene() = default;

@@ -17,6 +17,8 @@ void ForwardRenderer::Init() {
         auto sceneTextures = m_sceneView->CreateSceneTextures(createBits);
         graphBuilder.ImportSceneTextures(sceneTextures);
         graphBuilder.SetBackBufferName("SceneColor");
+        // Add our renderpass
+        AddSkyboxPass(graphBuilder);
         AddForwardBasePass(graphBuilder);
         graphBuilder.Compile();
     }

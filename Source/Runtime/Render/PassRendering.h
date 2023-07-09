@@ -4,6 +4,7 @@
 #include "Runtime/Scene/SceneView.h"
 
 namespace wind {
+    // RenderOrder SkyBox -> ForwardBasePass
     void AddForwardBasePass(RenderGraphBuilder& graphBuilder);
     void AddSkyboxPass(RenderGraphBuilder& graphBuilder);
 }

@@ -46,7 +46,7 @@ void PassNode::DeclareColorAttachment(const std::string& name, const TextureDesc
     colorAttachment.setInitialLayout(vk::ImageLayout::eUndefined)
         .setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal)
         .setFormat(format)
-        .setLoadOp(vk::AttachmentLoadOp::eClear)
+        .setLoadOp(vk::AttachmentLoadOp::eDontCare)
         .setStoreOp(vk::AttachmentStoreOp::eStore)
         .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
         .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)

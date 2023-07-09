@@ -18,6 +18,7 @@ public:
                                                     bool          stencilTestEnable,
                                                     vk::CompareOp depthCompareMode);
     RenderProcessBuilder& SetRenderPass(vk::RenderPass renderPass);
+    RenderProcessBuilder& SetNeedVerTex(bool condition);
     std::shared_ptr<RenderProcess> BuildGraphicProcess();
     
 private:
@@ -31,6 +32,8 @@ private:
     vk::PipelineColorBlendStateCreateInfo m_PipelineColorBlendStateCreateInfo;
     // pipelineLayoutCreateInfo
     vk::PipelineLayoutCreateInfo m_pipelineLayoutCreateInfo {};
+
+    bool m_needVertexData = true;
 };
 
 class RenderProcess {

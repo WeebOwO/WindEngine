@@ -17,12 +17,12 @@ layout(set = 0, binding = 0) uniform CameraBuffer {
     mat4 view;
     mat4 proj;
 	mat4 viewproj;
+	vec3 viewPos;
 } cameraData;
 
 layout(set = 0, binding = 1) uniform ObjectBuffer {
     mat4 model;
 } objectData;
-
 
 void main() {
     vout.position = position;

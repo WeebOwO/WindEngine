@@ -19,11 +19,11 @@ xmake project -k vsxmake -m "debug,release"
 
 * RenderGraph 
 * Shader Reflection For Auto Create Render Pipeline
-* Forward / Deferred Shading (Tiled Based Implementation)
+* Forward Shading Pipeline
 * Orbit / FirstPerson Camera 
+* PBR + IBL
   
 ### Todo
-- [ ] PBR + IBL
 - [ ] Shadow
 - [ ] Skinned Animation
 - [ ] Post Process Pipeline

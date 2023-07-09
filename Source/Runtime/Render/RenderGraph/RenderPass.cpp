@@ -25,11 +25,10 @@ RenderProcessBuilder& RenderProcessBuilder::SetShader(GraphicsShader* graphicsSh
 
     auto& shaderLayouts = graphicsShader->GetDescriptorSetLayouts();
 
-    m_pipelineLayoutCreateInfo.setSetLayoutCount(shaderLayouts.size())
-        .setSetLayouts(shaderLayouts);
+    m_pipelineLayoutCreateInfo.setSetLayoutCount(shaderLayouts.size()).setSetLayouts(shaderLayouts);
 
     return *this;
-} 
+}
 
 RenderProcessBuilder& RenderProcessBuilder::SetBlendState(bool blendEnable) {
     vk::PipelineColorBlendAttachmentState colorBlendAttachment;
@@ -63,18 +62,24 @@ RenderProcessBuilder& RenderProcessBuilder::SetRenderPass(vk::RenderPass renderP
     return *this;
 }
 
+RenderProcessBuilder& RenderProcessBuilder::SetNeedVerTex(bool condition) {
+    m_needVertexData = condition;
+    return *this;
+}
+
 std::shared_ptr<RenderProcess> RenderProcessBuilder::BuildGraphicProcess() {
     auto& device = RenderBackend::GetInstance().GetDevice();
     // vertex input
     vk::PipelineVertexInputStateCreateInfo inputStateCreateInfo;
-
     auto vertexAttributeDescriptions = Vertex::GetVertexInputAttributeDescriptions();
     auto vertexInputBindings         = Vertex::GetInputBindingDescription();
-
-    inputStateCreateInfo.setVertexAttributeDescriptions(vertexAttributeDescriptions)
-        .setVertexAttributeDescriptionCount(vertexAttributeDescriptions.size())
-        .setVertexBindingDescriptions(vertexInputBindings)
-        .setVertexBindingDescriptionCount(1);
+    
+    if (m_needVertexData) {
+        inputStateCreateInfo.setVertexAttributeDescriptions(vertexAttributeDescriptions)
+            .setVertexAttributeDescriptionCount(vertexAttributeDescriptions.size())
+            .setVertexBindingDescriptions(vertexInputBindings)
+            .setVertexBindingDescriptionCount(1);
+    }
 
     // Input Assembly
     vk::PipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo;
