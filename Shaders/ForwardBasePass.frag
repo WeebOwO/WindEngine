@@ -1,5 +1,9 @@
 #version 450 core
 
+
+const float PI = 3.141592;
+const float Epsilon = 0.00001;
+
 struct Material {
 	vec3 albedo;
 	vec3 normal;
@@ -29,9 +33,25 @@ layout(set = 1, binding = 3) uniform sampler2D roughnessTexture;
 layout(set = 1, binding = 4) uniform samplerCube iblIrradianceTexture;
 layout(set = 1, binding = 5) uniform sampler2D iblSpecBrdfLut;
 
+// GGX/Towbridge-Reitz normal distribution function
+// Term N
+float NdfGGX(float cosLh, float roughness) {
+	float alpha = roughness * roughness;
+	float alphaSq = alpha * alpha;
+
+	float denom = (cosLh * cosLh) * (alphaSq - 1.0) + 1.0;
+	return alphaSq / (PI * denom * denom);
+}
+
+vec3 CalcDirectLighting() {
+
+}
+
 void main() {
 	Material material;
+	// Setup Material
 	vec2 envBRDF = texture(iblSpecBrdfLut, vin.texcoord).rg;
+
 	vec3 lightDir = normalize(lightData.lightDirection);
     material.albedo = texture(albedoTexture, vin.texcoord).rgb;
 	vec3 normal = normalize(2.0 * texture(normalTexture, vin.texcoord).rgb - 1.0);
@@ -39,5 +59,5 @@ void main() {
 	material.metallic = texture(metallicTexture, vin.texcoord).r;
 	material.roughness = texture(roughnessTexture, vin.texcoord).r;
 	
-	outColor = vec4(material.albedo * max(dot(lightDir, material.normal), 0), 1.0);
+	outColor = vec4(material.albedo * max(dot(-lightDir, material.normal), 0), 1.0);
 }
