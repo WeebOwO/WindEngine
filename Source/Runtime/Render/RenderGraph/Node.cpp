@@ -3,6 +3,7 @@
 #include "Runtime/Render/RHI/Backend.h"
 
 #include "Runtime/Render/RenderGraph/RenderGraphBuilder.h"
+#include "Runtime/Render/RenderGraph/RenderPass.h"
 
 namespace wind {
 void PassNode::Init(const std::string& passName, const std::vector<std::string>& inRoureces,
@@ -38,19 +39,19 @@ void PassNode::Init(const std::vector<std::string>& inRoureces,
 }
 
 void PassNode::DeclareColorAttachment(const std::string& name, const TextureDesc& textureDesc,
-                                      ClearColor clearColor, vk::ImageLayout initialLayout,
-                                      vk::ImageLayout finalLayout) {
+                                      TextureOps ops, vk::ImageLayout initialLayout,
+                                      vk::ImageLayout finalLayout, ClearColor clearColor) {
     vk::AttachmentDescription colorAttachment{};
     auto                      format = textureDesc.format;
 
-    colorAttachment.setInitialLayout(vk::ImageLayout::eUndefined)
-        .setFinalLayout(vk::ImageLayout::eColorAttachmentOptimal)
+    colorAttachment.setInitialLayout(initialLayout)
+        .setFinalLayout(finalLayout)
         .setFormat(format)
-        .setLoadOp(vk::AttachmentLoadOp::eDontCare)
-        .setStoreOp(vk::AttachmentStoreOp::eStore)
-        .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
-        .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
-        .setSamples(vk::SampleCountFlagBits::e1);
+        .setLoadOp(ops.load)
+        .setStoreOp(ops.store)
+        .setStencilLoadOp(ops.stencilLoad)
+        .setStencilStoreOp(ops.stencilStore)
+        .setSamples(textureDesc.sampleCount);
 
     vk::ClearValue      temp;
     vk::ClearColorValue color;
@@ -63,18 +64,18 @@ void PassNode::DeclareColorAttachment(const std::string& name, const TextureDesc
 }
 
 void PassNode::DeclareDepthAttachment(const std::string& name, const TextureDesc& textureDesc,
-                                      ClearDepthStencil clearDepthStencil,
-                                      vk::ImageLayout initialLayout, vk::ImageLayout finalLayout) {
+                                      TextureOps loadops, vk::ImageLayout initialLayout,
+                                      vk::ImageLayout   finalLayout,
+                                      ClearDepthStencil clearDepthStencil) {
 
-    depthAttachmentDescription.setInitialLayout(vk::ImageLayout::eUndefined)
-        .setFinalLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal)
+    depthAttachmentDescription.setInitialLayout(initialLayout)
+        .setFinalLayout(finalLayout)
         .setFormat(textureDesc.format)
-        .setLoadOp(vk::AttachmentLoadOp::eClear)
-        .setStoreOp(vk::AttachmentStoreOp::eStore)
-        .setStencilLoadOp(vk::AttachmentLoadOp::eDontCare)
-        .setStencilStoreOp(vk::AttachmentStoreOp::eDontCare)
+        .setLoadOp(loadops.load)
+        .setStoreOp(loadops.store)
+        .setStencilLoadOp(loadops.stencilLoad)
+        .setStencilStoreOp(loadops.stencilStore)
         .setSamples(vk::SampleCountFlagBits::e1);
-
     depthClearValue.setDepthStencil({clearDepthStencil.depth, clearDepthStencil.stencil});
 
     depthTextureDesc[name] = textureDesc;

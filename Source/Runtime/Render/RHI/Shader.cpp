@@ -3,6 +3,7 @@
 #include <memory>
 #include <spirv_cross/spirv_glsl.hpp>
 #include <unordered_map>
+#include <map>
 
 #include "Runtime/Base/Io.h"
 #include "Runtime/Base/Macro.h"
@@ -20,7 +21,7 @@ void GraphicsShader::GenerateVulkanDescriptorSetLayout() {
     std::vector<vk::DescriptorSetLayoutCreateInfo> descriptorSetLayoutCreateInfos;
     std::vector<vk::DescriptorSetLayoutBinding>    layoutBindings;
 
-    std::unordered_map<uint32_t, std::vector<vk::DescriptorSetLayoutBinding>> m_setGroups;
+    std::map<uint32_t, std::vector<vk::DescriptorSetLayoutBinding>> m_setGroups;
 
     for (const auto& [resourceName, metaData] : m_reflectionDatas) {
         vk::DescriptorSetLayoutBinding binding;
@@ -38,7 +39,8 @@ void GraphicsShader::GenerateVulkanDescriptorSetLayout() {
 
     for (const auto& [setIndex, bindingVecs] : m_setGroups) {
         vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo;
-        descriptorSetLayoutCreateInfo.setBindingCount(bindingVecs.size()).setBindings(bindingVecs);
+        descriptorSetLayoutCreateInfo.setBindingCount(bindingVecs.size())
+                                     .setBindings(bindingVecs);
         vk::DescriptorSetLayout setLayout =
             device.createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
 

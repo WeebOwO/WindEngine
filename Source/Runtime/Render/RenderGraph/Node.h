@@ -62,21 +62,25 @@ public:
     void SetRenderRect(uint32_t width, uint32_t height) {
         renderRect.width = width, renderRect.height = height;
     }
-    void DeclareColorAttachment(const std::string& name, const TextureDesc& textureDesc,
-                           ClearColor clearColor = {0.1f, 0.1f, 0.1f, 0.1f},
+    void
+    DeclareColorAttachment(const std::string& name, const TextureDesc& textureDesc,
+                           TextureOps  loadop,
                            vk::ImageLayout intialLayout = vk::ImageLayout::eUndefined,
-                           vk::ImageLayout finalLayout  = vk::ImageLayout::eColorAttachmentOptimal);
-    
-    void DeclareDepthAttachment(const std::string& name, const TextureDesc& textureDesc,
-                           ClearDepthStencil clearDepthStencil = {1.0f, 0}, 
-                           vk::ImageLayout intialLayout = vk::ImageLayout::eUndefined,
-                           vk::ImageLayout finalLayout  = vk::ImageLayout::eDepthAttachmentOptimal);
+                           vk::ImageLayout finalLayout  = vk::ImageLayout::eColorAttachmentOptimal,
+                           ClearColor      clearColor   = {0.1f, 0.1f, 0.1f, 0.1f});
+
+    void
+    DeclareDepthAttachment(const std::string& name, const TextureDesc& textureDesc,
+                           TextureOps    loadop,
+                           vk::ImageLayout   intialLayout = vk::ImageLayout::eUndefined,
+                           vk::ImageLayout   finalLayout = vk::ImageLayout::eDepthAttachmentOptimal,
+                           ClearDepthStencil clearDepthStencil = {1.0f, 0});
 
     void ConstructResource(RenderGraphBuilder& graphBuilder);
 
     void CreateRenderPass();
 
-    PassType        passType {PassType::Graphic};
+    PassType        passType{PassType::Graphic};
     std::string     passName;
     vk::RenderPass  renderPass;
     vk::Framebuffer frameBuffer;
@@ -104,9 +108,9 @@ public:
     } renderRect;
 
     std::shared_ptr<GraphicsShader> graphicsShader;
-    
-    SceneResourcePool* resourcePool {nullptr};
-    SceneView* renderScene {nullptr};
+
+    SceneResourcePool* resourcePool{nullptr};
+    SceneView*         renderScene{nullptr};
 };
 
 } // namespace wind

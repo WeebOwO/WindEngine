@@ -1,4 +1,5 @@
 #include "PassRendering.h"
+#include "Runtime/Render/RenderGraph/RenderPass.h"
 
 namespace wind {
 // Create Forward Pass and add resource
@@ -25,16 +26,21 @@ void AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
     ShaderImageDesc normalTextureDesc{nullptr, ImageUsage::SHADER_READ, BasicSampler};
     ShaderImageDesc matalTextureDesc{nullptr, ImageUsage::SHADER_READ, BasicSampler};
     ShaderImageDesc roughTextureDesc{nullptr, ImageUsage::SHADER_READ, BasicSampler};
-    
+
     ShaderImageDesc iblIrradianceTexture{nullptr, ImageUsage::SHADER_READ, BasicSampler};
     ShaderImageDesc BrdfLutTextureDesc{nullptr, ImageUsage::SHADER_READ, BasicSampler};
 
     graphBuilder.AddRenderPass("OpaquePass", [=](PassNode* passNode) {
         // Setup part
-        passNode->DeclareColorAttachment("SceneColor",
-                                         SceneTexture::SceneTextureDescs["SceneColor"]);
-        passNode->DeclareDepthAttachment("SceneDepth",
-                                         SceneTexture::SceneTextureDescs["SceneDepth"]);
+        TextureOps loadops{vk::AttachmentLoadOp::eLoad, vk::AttachmentStoreOp::eStore,
+                           vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare};
+
+        passNode->DeclareColorAttachment(
+            "SceneColor", SceneTexture::SceneTextureDescs["SceneColor"], loadops,
+            vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eColorAttachmentOptimal);
+        passNode->DeclareDepthAttachment(
+            "SceneDepth", SceneTexture::SceneTextureDescs["SceneDepth"], loadops,
+            vk::ImageLayout::eDepthStencilAttachmentOptimal, vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
         passNode->CreateRenderPass();
         passNode->SetRenderRect(width, height);
@@ -49,11 +55,11 @@ void AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
             .SetShaderResource("ObjectBuffer", objectShaderBufferDesc)
             .SetShaderResource("albedoTexture", albedoTextureDesc)
             .SetShaderResource("normalTexture", normalTextureDesc)
-            .SetShaderResource("metalnessTexture", matalTextureDesc)
+            .SetShaderResource("metallicTexture", matalTextureDesc)
             .SetShaderResource("roughnessTexture", roughTextureDesc)
             .SetShaderResource("iblIrradianceTexture", iblIrradianceTexture)
             .SetShaderResource("iblSpecBrdfLut", BrdfLutTextureDesc);
-            
+
         renderProcessBuilder.SetBlendState(false)
             .SetShader(BasePassShader.get())
             .SetNeedVerTex(true)
@@ -65,8 +71,6 @@ void AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
 
         // Execute part
         return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
-            cmdBuffer.BindPipeline(passNode);
-
             auto*      scene     = passNode->renderScene->GetOwnScene();
             SceneView* sceneView = passNode->renderScene;
 
@@ -93,7 +97,7 @@ void AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
 
                 shader->Bind("albedoTexture", material.albedoTexture);
                 shader->Bind("normalTexture", material.normalTexture);
-                shader->Bind("metalnessTexture", material.metallicTexture);
+                shader->Bind("metallicTexture", material.metallicTexture);
                 shader->Bind("roughnessTexture", material.roughnessTexture);
                 shader->Bind("iblIrradianceTexture", sceneView->skyBoxIrradianceTexture);
                 shader->Bind("iblSpecBrdfLut", sceneView->iblBrdfLut);
@@ -102,7 +106,6 @@ void AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
                 model->Bind(cmdBuffer);
                 model->Draw(cmdBuffer);
             }
-            cmdBuffer.EndRenderPass();
         };
     });
 }

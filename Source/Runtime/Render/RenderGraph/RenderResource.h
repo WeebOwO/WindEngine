@@ -8,12 +8,13 @@
 
 namespace wind {
 struct TextureDesc {
-    uint32_t            width;
-    uint32_t            height;
-    vk::Format          format;
-    ImageUsage::Value   usage;
-    MemoryUsage         memoryUsage;
-    ImageOptions::Value options;
+    uint32_t                width;
+    uint32_t                height;
+    vk::SampleCountFlagBits sampleCount;
+    vk::Format              format;
+    ImageUsage::Value       usage;
+    MemoryUsage             memoryUsage;
+    ImageOptions::Value     options;
 };
 
 struct BufferDesc {

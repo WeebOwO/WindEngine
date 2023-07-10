@@ -48,6 +48,7 @@ void SceneView::Init() {
 
     SceneTexture::SceneTextureDescs["SceneColor"] = TextureDesc{width,
                                                                 height,
+                                                                vk::SampleCountFlagBits::e1,
                                                                 vk::Format::eB8G8R8A8Unorm,
                                                                 ImageUsage::COLOR_ATTACHMENT | ImageUsage::TRANSFER_SOURCE,
                                                                 MemoryUsage::GPU_ONLY,
@@ -55,6 +56,7 @@ void SceneView::Init() {
 
     SceneTexture::SceneTextureDescs["SceneDepth"] =TextureDesc{width,
                                                             height,
+                                                            vk::SampleCountFlagBits::e1,
                                                             vk::Format::eD24UnormS8Uint,
                                                             ImageUsage::DEPTH_SPENCIL_ATTACHMENT,
                                                             MemoryUsage::GPU_ONLY,

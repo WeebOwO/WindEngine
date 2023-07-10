@@ -16,10 +16,16 @@ void AddSkyboxPass(RenderGraphBuilder& graphBuilder) {
     ShaderImageDesc skyBoxImageDesc{nullptr, ImageUsage::SHADER_READ, BasicSampler};
 
     graphBuilder.AddRenderPass("SkyBoxPass", [=](PassNode* passNode) {
-        passNode->DeclareColorAttachment("SceneColor",
-                                         SceneTexture::SceneTextureDescs["SceneColor"]);
-        passNode->DeclareDepthAttachment("SceneDepth",
-                                         SceneTexture::SceneTextureDescs["SceneDepth"]);
+        TextureOps loadops{vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
+                           vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare};
+
+        passNode->DeclareColorAttachment(
+            "SceneColor", SceneTexture::SceneTextureDescs["SceneColor"], loadops,
+            vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal);
+        passNode->DeclareDepthAttachment(
+            "SceneDepth", SceneTexture::SceneTextureDescs["SceneDepth"], loadops,
+            vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilAttachmentOptimal);
+            
         passNode->CreateRenderPass();
         passNode->SetRenderRect(width, height);
 
@@ -41,9 +47,6 @@ void AddSkyboxPass(RenderGraphBuilder& graphBuilder) {
         passNode->pipelineState  = renderProcessBuilder.BuildGraphicProcess();
 
         return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
-            cmdBuffer.BeginRenderPass(passNode);
-            cmdBuffer.BindPipeline(passNode);
-            
             auto* scene = passNode->renderScene->GetOwnScene();
 
             auto       skyBox    = scene->GetSkybox();

@@ -10,6 +10,13 @@
 namespace wind {
 class RenderProcess;
 
+struct TextureOps {
+    vk::AttachmentLoadOp load;
+    vk::AttachmentStoreOp store;
+    vk::AttachmentLoadOp stencilLoad;
+    vk::AttachmentStoreOp stencilStore;
+};
+
 class RenderProcessBuilder {
 public:
     RenderProcessBuilder& SetShader(GraphicsShader* graphicsShader);

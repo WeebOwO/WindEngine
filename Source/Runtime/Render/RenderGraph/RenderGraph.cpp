@@ -44,10 +44,10 @@ void RenderGraph::Exec() {
 
     auto frameCommandBuffer = frame.Commands;
     for (auto* passNode : m_passNodes) {
-        // frameCommandBuffer.BeginRenderPass(passNode);
-        // frameCommandBuffer.BindPipeline(passNode);
+        frameCommandBuffer.BeginRenderPass(passNode);
+        frameCommandBuffer.BindPipeline(passNode);
         passNode->passCallback(frameCommandBuffer, &m_graphRegister);
-        // frameCommandBuffer.EndRenderPass();
+        frameCommandBuffer.EndRenderPass();
     }
     ResourceNode* output       = m_graphRegister.GetResource(m_backBufferName);
     auto&         presentImage = RenderBackend::GetInstance().AcquireSwapchainImage(
