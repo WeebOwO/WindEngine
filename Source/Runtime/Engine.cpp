@@ -12,8 +12,8 @@
 #include "Runtime/Resource/Material.h"
 #include "Runtime/Scene/Scene.h"
 
-static constexpr uint32_t WIDTH  = 800;
-static constexpr uint32_t HEIGHT = 600;
+static constexpr uint32_t WIDTH  = 1080;
+static constexpr uint32_t HEIGHT = 720;
 
 namespace wind {
 class EngineImpl {

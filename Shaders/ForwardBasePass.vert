@@ -25,7 +25,7 @@ layout(set = 0, binding = 1) uniform ObjectBuffer {
 } objectData;
 
 void main() {
-    vout.position = position;
+    vout.position = (objectData.model * vec4(position, 1.0)).xyz;
 	vout.texcoord = vec2(texcoord.x, 1.0-texcoord.y);
 
 	vout.tangentBasis = mat3(tangent, bitangent, normal);
