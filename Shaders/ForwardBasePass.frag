@@ -4,6 +4,11 @@ const float PI = 3.141592;
 const float Epsilon = 0.00001;
 const vec3 Fdielectric = vec3(0.04);
 
+// use this for tonemap
+const float gamma     = 2.2;
+const float exposure  = 1.0;
+const float pureWhite = 1.0;
+
 struct Material {
 	vec3 albedo;
 	vec3 normal;
@@ -39,6 +44,7 @@ layout(set = 1, binding = 2) uniform sampler2D metallicTexture;
 layout(set = 1, binding = 3) uniform sampler2D roughnessTexture;
 layout(set = 1, binding = 4) uniform samplerCube iblIrradianceTexture;
 layout(set = 1, binding = 5) uniform sampler2D iblSpecBrdfLut;
+layout(set = 1, binding = 6) uniform samplerCube iblSepcTexture;
 
 // GGX/Towbridge-Reitz normal distribution function
 // Term N
@@ -70,6 +76,50 @@ vec3 fresnelSchlick(vec3 F0, float cosTheta)
 	return F0 + (vec3(1.0) - F0) * pow(1.0 - cosTheta, 5.0);
 }
 
+vec3 directLightCalc(Material material, vec3 f0, vec3 lo, vec3 li, vec3 lh) {
+	
+	float cosLo = max(0.0, dot(material.normal, lo));
+	vec3 lr = 2.0 * cosLo * material.normal - lo;
+
+	vec3 directLighting = vec3(0);
+
+	vec3 lightradiance = lightData.lightRadiance;
+
+	float cosLi = max(0.0, dot(material.normal, li));
+	float cosLh = max(0.0, dot(material.normal, lh));
+
+	vec3 f = fresnelSchlick(f0, max(0.0, dot(lh, lo)));
+	float d = NdfGGX(cosLh, material.roughness);
+	float g = gaSchlickGGX(cosLi, cosLo, material.roughness);
+
+	vec3 kd = mix(vec3(1.0) - f, vec3(0.0), material.metallic);
+
+	vec3 diffuseBRDF = kd * material.albedo;
+	vec3 specBRDF = (f * d * g) / max(Epsilon, 4.0 * cosLi * cosLh);
+
+	directLighting += (diffuseBRDF + specBRDF) * lightradiance * cosLi;
+	return directLighting;
+}
+
+vec3 iblCalc(Material material, vec3 f0, vec3 lo, vec3 li, vec3 lh) {
+	vec3 irradiance = texture(iblIrradianceTexture, material.normal).rgb;
+	float cosLo = max(0.0, dot(material.normal, lo));
+	vec3 f = fresnelSchlick(f0, cosLo);
+	vec3 lr = 2.0 * cosLo * material.normal - lo;
+	
+	vec3 kd = mix(vec3(1.0) - f, vec3(0.0), material.metallic);
+
+	vec3 diffuseIBL = kd * material.albedo * irradiance;
+
+	int specularTextureLevels = textureQueryLevels(iblSepcTexture);
+	vec3 specularIrradiance = textureLod(iblSepcTexture, lr, material.roughness * specularTextureLevels).rgb;
+
+	vec2 specBRDF = texture(iblSpecBrdfLut, vec2(cosLo, material.roughness)).rg;
+
+	vec3 specularIBL = (f0 * specBRDF.x + specBRDF.y) * specularIrradiance;
+
+	return diffuseIBL + specularIBL;
+}
 void main() {
 	Material material;
 	// Setup Material
@@ -81,28 +131,21 @@ void main() {
 	material.roughness = texture(roughnessTexture, vin.texcoord).r;
 	
 	vec3 eyePosition = cameraData.viewPos;
-
-	// outgoing light and reflection light
-	vec3 lo = normalize(eyePosition - vin.position);
-	float cosLo = max(0.0, dot(material.normal, lo));
-	vec3 lr = 2.0 * cosLo * material.normal - lo;
-
-
-	// // direct light part 
-	vec3 directLighting = vec3(0);
 	vec3 f0 = mix(Fdielectric, material.albedo, material.metallic);
-	
+	vec3 lo = normalize(eyePosition - vin.position);
 	vec3 li = -lightData.lightDirection;
-	// vec3 lightradiance = lightData.lightRadiance;
-
-	// vec3 lh = normalize(li + lo);
-
-	// float cosLi = max(0.0, dot(material.normal, li));
-	// float cosLh = max(0.0, dot(material.normal, lh));
-
-	// vec3 f = fresnelSchlick(f0, max(0.0, dot(lh, lo)));
-	// float d = NdfGGX(cosLh, material.roughness);
-	// float g = gaSchlickGGX(cosLi, cosLo, material.roughness);
-
-	outColor = vec4(directLighting, 1.0);
+	vec3 lh = normalize(li + lo);
+	// direct light part 
+	
+	vec3 directLighting = directLightCalc(material, f0, lo, li, lh);
+	vec3 ambientLighting = iblCalc(material, f0, lo, li, lh);
+	
+	// tonemap and gamma correction
+	vec3 color = directLighting + ambientLighting;
+	float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
+	float mappedLuminance = (luminance * (1.0 + luminance / (pureWhite * pureWhite))) / (1.0 + luminance);
+	
+	vec3 mappedColor = (mappedLuminance / luminance) * color;
+	
+	outColor = vec4(pow(mappedColor, vec3(1.0/gamma)), 1.0);
 }
