@@ -10,6 +10,7 @@
 #include "Runtime/Render/RHI/Backend.h"
 #include "Runtime/Resource/ImageLoader.h"
 #include "Runtime/Resource/Material.h"
+#include "Runtime/Scene/Camera.h"
 #include "Runtime/Scene/Scene.h"
 
 static constexpr uint32_t WIDTH  = 1080;
@@ -25,7 +26,6 @@ public:
         RenderBackend::Init(setting);
         Scene::Init();
         InputManger::Init(m_window.GetWindow());
-        m_renderer = std::make_unique<ForwardRenderer>();
         InitScene();
     }
 
@@ -36,6 +36,13 @@ public:
             float fs = CalculateDeltaTime();
             LogicTick(fs);
             RenderTick(fs);
+        }
+    }
+
+    void SetShowCase(ShowCase showcase) {
+        m_showCase = showcase;
+        if (showcase == ShowCase::Pbr) { 
+            m_renderer = std::make_unique<ForwardRenderer>(); 
         }
     }
 
@@ -52,11 +59,16 @@ private:
     std::unique_ptr<Renderer>             m_renderer{nullptr};
     std::chrono::steady_clock::time_point m_lastTickTimePoint{std::chrono::steady_clock::now()};
     std::vector<std::thread>              m_threadPool;
+    ShowCase                              m_showCase{ShowCase::Pbr};
 };
 
 void EngineImpl::AddCamera() {
     auto& world = Scene::GetWorld();
-    world.SetupCamera(std::make_shared<OrbitCamera>(m_window.GetWindow()));
+    if (m_showCase == ShowCase::Pbr) {
+        world.SetupCamera(std::make_shared<OrbitCamera>(m_window.GetWindow()));
+    } else {
+        world.SetupCamera(std::make_shared<FirstPersonCamera>(45.0f, 0.1f, 100.0f));
+    }
 }
 
 void EngineImpl::InitScene() {
@@ -86,43 +98,50 @@ float EngineImpl::CalculateDeltaTime() {
 }
 
 void EngineImpl::LoadGameObject() {
-    auto&          world   = Scene::GetWorld();
-    Model::Builder builder = io::LoadModelFromFilePath(R"(..\..\..\..\Assets\Mesh\cerberus.fbx)");
-    Material       material;
+    auto& world = Scene::GetWorld();
+    switch (m_showCase) {
+    case ShowCase::Pbr: {
+        Model::Builder builder =
+            io::LoadModelFromFilePath(R"(..\..\..\..\Assets\Mesh\cerberus.fbx)");
+        Material material;
 
-    ImageData albeoData, normalData, metallicdata, roughnessData;
+        ImageData albeoData, normalData, metallicdata, roughnessData;
 
-    m_threadPool.push_back(std::thread([&]() {
-        albeoData = ImageLoader::LoadImageDataFromFile(
-            R"(..\..\..\..\Assets\Textures\cerberus_A.png)", Format::R8G8B8A8_SRGB);
-    }));
+        m_threadPool.push_back(std::thread([&]() {
+            albeoData = ImageLoader::LoadImageDataFromFile(
+                R"(..\..\..\..\Assets\Textures\cerberus_A.png)", Format::R8G8B8A8_SRGB);
+        }));
 
-    m_threadPool.push_back(std::thread([&]() {
-        normalData = ImageLoader::LoadImageDataFromFile(
-            R"(..\..\..\..\Assets\Textures\cerberus_N.png)", Format::R8G8B8A8_UNORM);
-    }));
+        m_threadPool.push_back(std::thread([&]() {
+            normalData = ImageLoader::LoadImageDataFromFile(
+                R"(..\..\..\..\Assets\Textures\cerberus_N.png)", Format::R8G8B8A8_UNORM);
+        }));
 
-    m_threadPool.push_back(std::thread([&]() {
-        metallicdata = ImageLoader::LoadImageDataFromFile(
-            R"(..\..\..\..\Assets\Textures\cerberus_M.png)", Format::R8_UNORM);
-    }));
+        m_threadPool.push_back(std::thread([&]() {
+            metallicdata = ImageLoader::LoadImageDataFromFile(
+                R"(..\..\..\..\Assets\Textures\cerberus_M.png)", Format::R8_UNORM);
+        }));
 
-    m_threadPool.push_back(std::thread([&]() {
-        roughnessData = ImageLoader::LoadImageDataFromFile(
-            R"(..\..\..\..\Assets\Textures\cerberus_R.png)", Format::R8_UNORM);
-    }));
+        m_threadPool.push_back(std::thread([&]() {
+            roughnessData = ImageLoader::LoadImageDataFromFile(
+                R"(..\..\..\..\Assets\Textures\cerberus_R.png)", Format::R8_UNORM);
+        }));
 
-    for (auto& t : m_threadPool) {
-        t.join();
+        for (auto& t : m_threadPool) {
+            t.join();
+        }
+
+        ImageLoader::FillImage(*material.albedoTexture, albeoData, ImageOptions::MIPMAPS);
+        ImageLoader::FillImage(*material.normalTexture, normalData, ImageOptions::MIPMAPS);
+        ImageLoader::FillImage(*material.metallicTexture, metallicdata, ImageOptions::MIPMAPS);
+        ImageLoader::FillImage(*material.roughnessTexture, roughnessData, ImageOptions::MIPMAPS);
+
+        builder.material = material;
+        world.AddModel(builder);
     }
-
-    ImageLoader::FillImage(*material.albedoTexture, albeoData, ImageOptions::MIPMAPS);
-    ImageLoader::FillImage(*material.normalTexture, normalData, ImageOptions::MIPMAPS);
-    ImageLoader::FillImage(*material.metallicTexture, metallicdata, ImageOptions::MIPMAPS);
-    ImageLoader::FillImage(*material.roughnessTexture, roughnessData, ImageOptions::MIPMAPS);
-
-    builder.material = material;
-    world.AddModel(builder);
+    default:
+        break;
+    }
 }
 
 void EngineImpl::LogicTick(float fs) {
@@ -147,4 +166,5 @@ Engine::Engine() : m_impl(std::make_unique<EngineImpl>()) {}
 
 Engine::~Engine() { WIND_CORE_INFO("Engine shutdown"); }
 
+void Engine::SetShowCase(ShowCase showcase) { m_impl->SetShowCase(showcase); }
 } // namespace wind

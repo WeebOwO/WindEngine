@@ -52,6 +52,7 @@ void VirtualFrameProvider::StartFrame() {
     m_presentImageIndex = acquireNextImage.value;
 
     frame.Commands.Begin();
+    m_isFrameRunning = true;
 }
 
 void VirtualFrameProvider::EndFrame() {
@@ -107,6 +108,7 @@ void VirtualFrameProvider::EndFrame() {
     assert(presetSucceeded == vk::Result::eSuccess);
 
     m_currentFrame = (m_currentFrame + 1) % m_virtualFrames.size();
+    m_isFrameRunning = false;
 }
 
 VirtualFrame& VirtualFrameProvider::GetCurrentFrame() { return m_virtualFrames[m_currentFrame]; }
