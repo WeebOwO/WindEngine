@@ -6,7 +6,9 @@
 
 enum ShowCase : uint8_t {
     Pbr = 0, // Showcase for physical based rendering 
-    Sponza = 1 // todo: Showcase for tile based defer shading
+    Sponza = 1, // todo: Showcase for tile based defer shading
+    SkinnedAnimation = 2, // todo: Showcase for skin animation
+    Physics = 3,  // todo: This may not implement in short time
 };
 
 namespace wind {

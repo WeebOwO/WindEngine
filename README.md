@@ -30,7 +30,7 @@ xmake project -k vsxmake -m "debug,release"
 - Skinned Animation
 - Post Process Pipeline
 - GPU Driven (Draw Indirect, CS Culling..) 
-- Physic Engine Integration
+- Physics Engine Integration
 
 ## Screenshot
 
