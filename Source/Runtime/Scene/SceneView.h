@@ -6,6 +6,7 @@
 #include "Runtime/Render/RenderGraph/RenderResource.h"
 #include "Runtime/Scene/GameObject.h"
 #include "Runtime/Scene/Scene.h"
+#include "Runtime/Scene/GPUScene.h"
 
 namespace wind {
 struct CameraUnifoirmBuffer {
@@ -71,8 +72,9 @@ public:
 
     auto*        GetOwnScene() { return m_scene; }
     SceneTexture CreateSceneTextures(int createBit);
-
+    
 private:
     Scene* m_scene;
+    GPUScene m_gpuScene;
 };
 } // namespace wind

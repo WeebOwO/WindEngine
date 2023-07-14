@@ -67,6 +67,10 @@ public:
     void DrawIndexed(uint32_t indexCount, uint32_t instanceCount);
     void DrawIndexed(uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex,
                      uint32_t vertexOffset, uint32_t firstInstance);
+
+    void DrawIndirect(BufferInfo bufferInfo, uint32_t offset, uint32_t drawcount, uint32_t stride);
+    void DrawIndexIndirect(BufferInfo BufferInfo, uint32_t offset, uint32_t drawcount, uint32_t stride);
+ 
     void BindIndexBufferUInt32(const Buffer& indexBuffer);
     void BindIndexBufferUInt16(const Buffer& indexBuffer);
 

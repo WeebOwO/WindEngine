@@ -27,7 +27,7 @@ public:
     void DecalareOutput(std::span<std::string> outputs);
     void SetupDependency(std::span<std::string> dependencies);
 
-    void UnRegisterAll();
+    void UnRegisterAll(); 
 
 private:
     std::pmr::unordered_map<std::string, ResourceNode*>          m_resouceLookupTable;

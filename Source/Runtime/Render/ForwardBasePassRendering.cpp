@@ -91,12 +91,13 @@ void AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
                                    objectShaderBufferDesc.offset);
             lightBuffer->CopyData((uint8_t*)sceneView->lightBuffer.get(), lightBufferDesc.range,
                                   lightBufferDesc.offset);
-
+            
             cmdBuffer.BindDescriptorSet(pso.bindPoint, pso.pipelineLayout,
                                         shader->GetDescriptorSet());
                                         
             shader->Bind("iblSepcTexture", skyBox->skyBoxImage);
             shader->Bind("iblSpecBrdfLut", sceneView->iblBrdfLut);
+
             for (auto& gameObject : scene->GetWorld().GetWorldGameObjects()) {
                 auto& model    = gameObject.model;
                 auto& material = model->GetMaterial();

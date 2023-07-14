@@ -195,6 +195,16 @@ void CommandBuffer::CopyImageToBuffer(const ImageInfo& source, const BufferInfo&
                                distance.resource.get().GetNativeHandle(), imageToBufferCopyInfo);
 }
 
+void CommandBuffer::DrawIndexIndirect(BufferInfo bufferInfo, uint32_t offset, uint32_t drawcount, uint32_t stride) {
+    auto& buffer = bufferInfo.resource.get();
+    m_handle.drawIndexedIndirect(buffer.GetNativeHandle(), offset, drawcount, stride);
+}
+
+void CommandBuffer::DrawIndirect(BufferInfo bufferInfo, uint32_t offset, uint32_t drawcount, uint32_t stride) {
+    auto& buffer = bufferInfo.resource.get();
+    m_handle.drawIndirect(buffer.GetNativeHandle(), offset, drawcount, stride);
+}
+
 void CommandBuffer::CopyBufferToImage(const BufferInfo& source, const ImageInfo& distance) {
     if (distance.usage != ImageUsage::TRANSFER_DESTINATION) {
         auto distanceRange = GetDefaultImageSubresourceRange(distance.resource.get());

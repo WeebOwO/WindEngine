@@ -92,6 +92,12 @@ private:
     bool                    m_isDynamic{false};
 };
 
-struct MeshBatch {};
+struct MeshBatch {
+    std::vector<Vertex>   vertices;
+    std::vector<uint32_t> indices;
+
+    std::shared_ptr<Buffer> m_vertexBuffer{nullptr};
+    std::shared_ptr<Buffer> m_indexBuffer{nullptr};
+};
 
 } // namespace wind
