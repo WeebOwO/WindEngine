@@ -3,10 +3,11 @@
 #include <memory>
 #include <thread>
 
-#include "RUntime/Render/ForwardSceneRenderer.h"
 #include "Runtime/Base/Io.h"
 #include "Runtime/Base/Log.h"
 #include "Runtime/Input/Input.h"
+#include "RUntime/Render/ForwardSceneRenderer.h"
+#include "Runtime/Render/DeferredSceneRenderer.h"
 #include "Runtime/Render/RHI/Backend.h"
 #include "Runtime/Resource/ImageLoader.h"
 #include "Runtime/Resource/Material.h"
@@ -43,6 +44,9 @@ public:
         m_showCase = showcase;
         if (showcase == ShowCase::Pbr) { 
             m_renderer = std::make_unique<ForwardRenderer>(); 
+        }
+        if(showcase == ShowCase::Sponza) {
+            m_renderer = std::make_unique<DeferedSceneRenderer>();
         }
     }
 
@@ -140,9 +144,7 @@ void EngineImpl::LoadGameObject() {
         world.AddModel(builder);
     } 
     case ShowCase::Sponza : {
-        Model::Builder builder;
-        builder.vertices = {};
-        builder.indices = {0, 1, 2};
+        // just draw triangle right now
     }
     default:
         break;

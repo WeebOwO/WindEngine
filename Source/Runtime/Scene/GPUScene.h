@@ -25,11 +25,4 @@ struct RenderBound {
     glm::vec3 extents;
     bool      valid;
 };
-
-class GPUScene {    
-public:
-
-private:
-    
-};
 }; // namespace wind

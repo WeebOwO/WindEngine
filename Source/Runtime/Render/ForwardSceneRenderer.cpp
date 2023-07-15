@@ -1,9 +1,6 @@
 #include "ForwardSceneRenderer.h"
 
-#include <memory>
-
 #include "Runtime/Render/PassRendering.h"
-#include "Runtime/Scene/SceneView.h"
 
 namespace wind {
 ForwardRenderer::ForwardRenderer() { Init(); }

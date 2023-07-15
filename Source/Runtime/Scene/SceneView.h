@@ -32,7 +32,7 @@ struct LightUniformBuffer {
     glm::vec3 lightColor;
 };
 
-enum SceneTextureCreateBit : int {
+enum SceneTextureCreateBit : uint32_t {
     SceneColor = BIT(0),
     SceneDepth = BIT(1),
     GBufferA   = BIT(2),
@@ -77,6 +77,5 @@ public:
     
 private:
     Scene* m_scene;
-    GPUScene m_gpuScene;
 };
 } // namespace wind

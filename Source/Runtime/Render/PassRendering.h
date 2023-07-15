@@ -7,4 +7,9 @@ namespace wind {
     // RenderOrder SkyBox -> ForwardBasePass
     void AddForwardBasePass(RenderGraphBuilder& graphBuilder);
     void AddSkyboxPass(RenderGraphBuilder& graphBuilder);
+    // For defer shading usage
+    void AddDeferedBasePass(RenderGraphBuilder& graphBuilder);
+    void AddShadowPass(RenderGraphBuilder& graphBuilder);
+    void AddBloomPass();
+    void AddSSAOPass();
 }

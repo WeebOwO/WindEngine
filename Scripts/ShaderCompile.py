@@ -2,7 +2,7 @@ import os
 import subprocess
 
 def CompileShader():
-    black_list = ["Triangle.vert", "Triangle.frag"]
+    black_list = []
 
     if not os.path.exists("Shaders/CompiledShader/"):
         os.mkdir("Shaders/CompiledShader/")
