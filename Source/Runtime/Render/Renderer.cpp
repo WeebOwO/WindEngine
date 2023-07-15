@@ -5,7 +5,6 @@
 #include "Runtime/Base/Macro.h"
 #include "Runtime/Render/RHI/Backend.h"
 #include "Runtime/Render/RenderGraph/Node.h"
-#include "Runtime/Render/Renderer.h"
 #include "Runtime/Scene/Scene.h"
 
 namespace wind {
@@ -28,4 +27,7 @@ void Renderer::Quit() {
     WIND_CORE_INFO("Quit renderer");
 }
 
+void Renderer::RenderUI() {
+    return;
+}
 } // namespace wind

@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "Runtime/Render/RenderGraph/RenderResource.h"
+
 #include "Runtime/Scene/GameObject.h"
 #include "Runtime/Scene/Scene.h"
 #include "Runtime/Scene/GPUScene.h"
@@ -38,6 +39,7 @@ enum SceneTextureCreateBit : int {
     GBufferB   = BIT(3),
     GBufferC   = BIT(4),
     GBufferD   = BIT(5),
+    All = SceneColor | SceneDepth | GBufferA | GBufferB | GBufferC | GBufferD
 };
 
 class SceneTexture {

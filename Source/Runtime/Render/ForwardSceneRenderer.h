@@ -1,7 +1,7 @@
 #include "Renderer.h"
 
 namespace wind {
-class ForwardRenderer : public Renderer {
+class ForwardRenderer final : public Renderer {
 public:
     ForwardRenderer();
     void Render(Scene& scene) override;

@@ -138,6 +138,11 @@ void EngineImpl::LoadGameObject() {
 
         builder.material = material;
         world.AddModel(builder);
+    } 
+    case ShowCase::Sponza : {
+        Model::Builder builder;
+        builder.vertices = {};
+        builder.indices = {0, 1, 2};
     }
     default:
         break;

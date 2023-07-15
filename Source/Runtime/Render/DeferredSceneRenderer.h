@@ -3,11 +3,12 @@
 #include "Runtime/Render/Renderer.h"
 
 namespace wind {
-class DeferedSceneRenderer : public Renderer {
+class DeferedSceneRenderer final : public Renderer {
 public:
     DeferedSceneRenderer();
+    void Render(Scene& scene) override;
+protected:
     void Init() override;
     void InitView(Scene& scene) override;
-    void Render(Scene& scene) override;
 };
 } // namespace wind

@@ -28,6 +28,7 @@ public:
 protected:
     virtual void Init();
     virtual void Quit();
+    virtual void RenderUI();
     virtual void InitView(Scene& scene) = 0;
     
 protected:
