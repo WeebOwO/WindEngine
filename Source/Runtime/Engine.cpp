@@ -106,6 +106,7 @@ void EngineImpl::LoadGameObject() {
     auto& world = Scene::GetWorld();
     switch (m_showCase) {
     case ShowCase::Pbr: {
+        // todo: current is hard code our model asset, try get it better
         Model::Builder builder =
             io::LoadModelFromFilePath(R"(..\..\..\..\Assets\Mesh\cerberus.fbx)");
         Material material;

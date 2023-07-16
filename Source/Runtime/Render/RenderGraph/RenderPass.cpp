@@ -71,13 +71,15 @@ std::shared_ptr<RenderProcess> RenderProcessBuilder::BuildGraphicProcess() {
     auto& device = RenderBackend::GetInstance().GetDevice();
     // vertex input
     vk::PipelineVertexInputStateCreateInfo inputStateCreateInfo;
-    auto vertexAttributeDescriptions = Vertex::GetVertexInputAttributeDescriptions();
-    auto vertexInputBindings         = Vertex::GetInputBindingDescription();
-    
+
+    std::vector<vk::VertexInputAttributeDescription> vertexAttributeDescriptions =
+        Vertex::GetVertexInputAttributeDescriptions();
+    vk::VertexInputBindingDescription vertexInputBindings = Vertex::GetInputBindingDescription();
+
     if (m_needVertexData) {
-        inputStateCreateInfo.setVertexAttributeDescriptions(vertexAttributeDescriptions)
-            .setVertexAttributeDescriptionCount(vertexAttributeDescriptions.size())
-            .setVertexBindingDescriptions(vertexInputBindings)
+        inputStateCreateInfo.setVertexAttributeDescriptions(m_vertexAttributeDescriptions)
+            .setVertexAttributeDescriptionCount(m_vertexAttributeDescriptions.size())
+            .setVertexBindingDescriptions(m_vertexInputBinding)
             .setVertexBindingDescriptionCount(1);
     }
 
