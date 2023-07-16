@@ -4,9 +4,9 @@
 #include "Runtime/Render/RHI/Backend.h"
 
 #include <memory>
-#include <stdint.h>
 
 namespace wind {
+
 Model::Model(Builder builder)
     : m_vertexCnt(builder.vertices.size()), m_indexCnt(builder.indices.size()) {
     vk::DeviceSize vertexBufferSize = sizeof(builder.vertices[0]) * m_vertexCnt;
@@ -22,7 +22,7 @@ Model::Model(Builder builder)
     m_indexBuffer = std::make_shared<Buffer>(
         indexBufferSize, BufferUsage::INDEX_BUFFER | BufferUsage::TRANSFER_DESTINATION,
         MemoryUsage::GPU_ONLY);
-    
+
     const auto vertexAllocation = stageBuffer.Submit(utils::MakeView(builder.vertices));
     const auto indexAllocation  = stageBuffer.Submit(utils::MakeView(builder.indices));
 
@@ -49,7 +49,5 @@ void Model::Bind(CommandBuffer& cmdbuffer) {
     cmdbuffer.BindIndexBufferUInt32(*m_indexBuffer);
 }
 
-void Model::Draw(CommandBuffer& cmdbuffer) { 
-    cmdbuffer.DrawIndexed(m_indexCnt, 1); 
-}
+void Model::Draw(CommandBuffer& cmdbuffer) { cmdbuffer.DrawIndexed(m_indexCnt, 1); }
 } // namespace wind

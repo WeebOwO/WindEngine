@@ -11,6 +11,7 @@
 #include "Runtime/Render/RHI/Backend.h"
 #include "Runtime/Resource/ImageLoader.h"
 #include "Runtime/Resource/Material.h"
+#include "Runtime/Resource/GLTFLoader.h"
 #include "Runtime/Scene/Camera.h"
 #include "Runtime/Scene/Scene.h"
 
@@ -145,6 +146,7 @@ void EngineImpl::LoadGameObject() {
     } 
     case ShowCase::Sponza : {
         // just draw triangle right now
+        gltf::GLTFLoader::LoadFromGLTF(R"(..\..\..\..\Assets\Scene\Sponza\glTF\Sponza.gltf)");
     }
     default:
         break;

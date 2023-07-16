@@ -1,6 +1,6 @@
 set_project("WindEngine")
 
-add_requires("glm", "glfw", "glad", "vulkansdk", "spdlog", 'assimp', 'stb', 'vulkan-memory-allocator', 'spirv-cross', 'tinygltf', 'tinyobjloader')
+add_requires("glm", "glfw", "glad", "vulkansdk", "spdlog", 'assimp', 'stb', 'vulkan-memory-allocator', 'spirv-cross')
 
 add_rules("mode.debug", "mode.release")
 
@@ -33,7 +33,7 @@ target("Sandbox")
 target("Runtime")
     set_kind("static")
     add_files("Source/Runtime/**.cpp")
-    add_packages("glfw", "glad", "vulkansdk", "spdlog", "assimp", "stb", "vulkan-memory-allocator", "spirv-cross")
+    add_packages("glfw", "glad", "vulkansdk", "spdlog", "assimp", "stb", "vulkan-memory-allocator", "spirv-cross", 'tinygltf')
 
 
 
