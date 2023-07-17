@@ -49,7 +49,7 @@ void SceneView::Init() {
     SceneTexture::SceneTextureDescs["SceneColor"] = TextureDesc{width,
                                                                 height,
                                                                 vk::SampleCountFlagBits::e1,
-                                                                vk::Format::eB8G8R8A8Unorm,
+                                                                vk::Format::eR16G16B16A16Sfloat,
                                                                 ImageUsage::COLOR_ATTACHMENT | ImageUsage::TRANSFER_SOURCE | ImageUsage::SHADER_READ,
                                                                 MemoryUsage::GPU_ONLY,
                                                                 ImageOptions::DEFAULT};
@@ -57,7 +57,7 @@ void SceneView::Init() {
     SceneTexture::SceneTextureDescs["SceneDepth"] =TextureDesc{width,
                                                             height,
                                                             vk::SampleCountFlagBits::e1,
-                                                            vk::Format::eD24UnormS8Uint,
+                                                            vk::Format::eD32SfloatS8Uint,
                                                             ImageUsage::DEPTH_SPENCIL_ATTACHMENT | ImageUsage::SHADER_READ,
                                                             MemoryUsage::GPU_ONLY,
                                                             ImageOptions::DEFAULT};
@@ -69,7 +69,6 @@ SceneTexture SceneView::CreateSceneTextures(int createBit) {
         return std::make_shared<Image>(desc.width, desc.height, desc.format, desc.usage, desc.memoryUsage, desc.options); 
     };
     SceneTexture sceneTexture;
-
     
     auto& sceneTextureDesc = SceneTexture::SceneTextureDescs;
     auto& sceneTexturesDict = sceneTexture.SceneTextures;

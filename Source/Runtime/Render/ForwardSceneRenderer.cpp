@@ -22,6 +22,7 @@ void ForwardRenderer::Init() {
         // Add our renderpass
         AddSkyboxPass(graphBuilder);
         AddForwardBasePass(graphBuilder);
+        AddBloomSetupPass(graphBuilder);
         AddToneMappingCombinePass(graphBuilder, index);
         graphBuilder.Compile();
         ++index;

@@ -82,6 +82,8 @@ void EngineImpl::InitScene() {
 
     DirectionalLight sun;
     sun.direction = glm::normalize(glm::vec3{-1.0f, 0.0f, 0.0f});
+    sun.radiance = glm::vec3{1.0f, 1.0f, 1.0f};
+
     world.AddLightData(sun);
 
     world.LoadSkyBox(R"(..\..\..\..\Assets\Mesh\skybox.obj)",

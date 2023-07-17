@@ -4,11 +4,6 @@ const float PI = 3.141592;
 const float Epsilon = 0.00001;
 const vec3 Fdielectric = vec3(0.04);
 
-// use this for tonemap
-const float gamma     = 2.2;
-const float exposure  = 1.0;
-const float pureWhite = 1.0;
-
 struct Material {
 	vec3 albedo;
 	vec3 normal;
@@ -142,10 +137,5 @@ void main() {
 	
 	// tonemap and gamma correction
 	vec3 color = directLighting + ambientLighting;
-	float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
-	float mappedLuminance = (luminance * (1.0 + luminance / (pureWhite * pureWhite))) / (1.0 + luminance);
-	
-	vec3 mappedColor = (mappedLuminance / luminance) * color;
-	
-	outColor = vec4(pow(mappedColor, vec3(1.0 / gamma)), 1.0);
+	outColor = vec4(color, 1.0);
 }
