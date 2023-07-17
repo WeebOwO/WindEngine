@@ -1,5 +1,6 @@
 #include "PassRendering.h"
 #include "Runtime/Render/RenderGraph/RenderPass.h"
+#include "Runtime/Resource/Mesh.h"
 
 namespace wind {
 // Create Forward Pass and add resource
@@ -38,7 +39,7 @@ void AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
 
         passNode->DeclareColorAttachment(
             "SceneColor", SceneTexture::SceneTextureDescs["SceneColor"], loadops,
-            vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eColorAttachmentOptimal);
+            vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eShaderReadOnlyOptimal);
         passNode->DeclareDepthAttachment("SceneDepth",
                                          SceneTexture::SceneTextureDescs["SceneDepth"], loadops,
                                          vk::ImageLayout::eDepthStencilAttachmentOptimal,
@@ -66,6 +67,7 @@ void AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
         renderProcessBuilder.SetBlendState(false)
             .SetShader(BasePassShader.get())
             .SetNeedVerTex(true)
+            .SetVertexFactory<Vertex>()
             .SetRenderPass(passNode->renderPass)
             .SetDepthSetencilTestState(true, true, false, vk::CompareOp::eLessOrEqual);
 

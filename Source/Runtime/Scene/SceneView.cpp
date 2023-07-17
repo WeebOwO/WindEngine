@@ -50,15 +50,15 @@ void SceneView::Init() {
                                                                 height,
                                                                 vk::SampleCountFlagBits::e1,
                                                                 vk::Format::eB8G8R8A8Unorm,
-                                                                ImageUsage::COLOR_ATTACHMENT | ImageUsage::TRANSFER_SOURCE,
+                                                                ImageUsage::COLOR_ATTACHMENT | ImageUsage::TRANSFER_SOURCE | ImageUsage::SHADER_READ,
                                                                 MemoryUsage::GPU_ONLY,
                                                                 ImageOptions::DEFAULT};
-
+    
     SceneTexture::SceneTextureDescs["SceneDepth"] =TextureDesc{width,
                                                             height,
                                                             vk::SampleCountFlagBits::e1,
                                                             vk::Format::eD24UnormS8Uint,
-                                                            ImageUsage::DEPTH_SPENCIL_ATTACHMENT,
+                                                            ImageUsage::DEPTH_SPENCIL_ATTACHMENT | ImageUsage::SHADER_READ,
                                                             MemoryUsage::GPU_ONLY,
                                                             ImageOptions::DEFAULT};
     
@@ -70,8 +70,10 @@ SceneTexture SceneView::CreateSceneTextures(int createBit) {
     };
     SceneTexture sceneTexture;
 
+    
     auto& sceneTextureDesc = SceneTexture::SceneTextureDescs;
     auto& sceneTexturesDict = sceneTexture.SceneTextures;
+
     if(createBit & SceneColor) {
         sceneTexture.sceneColor = CreateImage(sceneTextureDesc["SceneColor"]);
         sceneTexturesDict["SceneColor"] = sceneTexture.sceneColor;

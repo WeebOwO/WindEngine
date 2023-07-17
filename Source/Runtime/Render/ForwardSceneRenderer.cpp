@@ -1,6 +1,8 @@
 #include "ForwardSceneRenderer.h"
 
 #include "Runtime/Render/PassRendering.h"
+#include "Runtime/Render/RHI/Backend.h"
+#include "Runtime/Render/RHI/Image.h"
 
 namespace wind {
 ForwardRenderer::ForwardRenderer() { Init(); }
@@ -10,15 +12,19 @@ void ForwardRenderer::InitView(Scene& scene) { m_sceneView->SetScene(&scene); }
 void ForwardRenderer::Init() {
     int createBits = SceneColor | SceneDepth;
     auto sceneTextures = m_sceneView->CreateSceneTextures(createBits);
+    auto& backend = RenderBackend::GetInstance();
     // Call this to init every frame
-    for (auto& renderGraph : m_renderGraphs) {
+    for (uint32_t index = 0; auto& renderGraph : m_renderGraphs) {
         RenderGraphBuilder graphBuilder(renderGraph.get());
         graphBuilder.ImportSceneTextures(sceneTextures);
-        graphBuilder.SetBackBufferName("SceneColor");
+        auto swapchainImage = backend.AcquireSwapchainImage(index, ImageUsage::UNKNOWN);
+        graphBuilder.ImportResource("BackBuffer", swapchainImage);
         // Add our renderpass
         AddSkyboxPass(graphBuilder);
         AddForwardBasePass(graphBuilder);
+        AddToneMappingCombinePass(graphBuilder, index);
         graphBuilder.Compile();
+        ++index;
     }
 }
 

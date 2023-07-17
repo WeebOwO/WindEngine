@@ -59,37 +59,12 @@ void VirtualFrameProvider::EndFrame() {
     auto& frame   = this->GetCurrentFrame();
     auto& backend = RenderBackend::GetInstance();
 
-    auto lastPresentImageUsage = backend.GetSwapchainImageUsage(m_presentImageIndex);
-    // reset present swapchain usage
-    auto& presentImage = backend.AcquireSwapchainImage(m_presentImageIndex, ImageUsage::UNKNOWN);
-
-    auto subresourceRange = GetDefaultImageSubresourceRange(presentImage);
-
-    // here we assume that present image is not written directly, but transfered from other image
-    vk::ImageMemoryBarrier presentImageTransferDstToPresent;
-    presentImageTransferDstToPresent
-        .setSrcAccessMask(ImageUsageToAccessFlags(lastPresentImageUsage))
-        .setDstAccessMask(vk::AccessFlagBits::eMemoryRead)
-        .setOldLayout(ImageUsageToImageLayout(lastPresentImageUsage))
-        .setNewLayout(vk::ImageLayout::ePresentSrcKHR)
-        .setSrcQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
-        .setDstQueueFamilyIndex(VK_QUEUE_FAMILY_IGNORED)
-        .setImage(presentImage.GetNativeHandle())
-        .setSubresourceRange(subresourceRange);
-
-    frame.Commands.GetNativeHandle().pipelineBarrier(
-        ImageUsageToPipelineStage(lastPresentImageUsage), vk::PipelineStageFlagBits::eBottomOfPipe,
-        {}, // dependency flags
-        {}, // memory barriers
-        {}, // buffer barriers
-        presentImageTransferDstToPresent);
-
     frame.Commands.End();
 
     frame.StagingBuffer.Flush();
     frame.StagingBuffer.Reset();
 
-    std::array waitDstStageMask = {(vk::PipelineStageFlags)vk::PipelineStageFlagBits::eTransfer};
+    std::array waitDstStageMask = {(vk::PipelineStageFlags)vk::PipelineStageFlagBits::eColorAttachmentOutput};
 
     vk::SubmitInfo submitInfo;
     submitInfo.setWaitSemaphores(backend.GetImageAvailableSemaphore())

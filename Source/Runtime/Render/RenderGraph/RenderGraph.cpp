@@ -5,26 +5,17 @@
 #include "Runtime/Scene/SceneView.h"
 
 namespace wind {
-RenderGraph::~RenderGraph() {
-    auto& device = RenderBackend::GetInstance().GetDevice();
-    device.waitIdle();
-    for (auto passNode : m_passNodes) {
-        delete passNode;
-    }
-    for (auto resourceNode : m_resourceNodes) {
-        delete resourceNode;
-    }
-}
+RenderGraph::~RenderGraph() { auto& device = RenderBackend::GetInstance().GetDevice(); }
 
-void RenderGraph::AddResourceNode(const std::string& name, ResourceNode* resource) {
+void RenderGraph::AddResourceNode(const std::string& name, std::shared_ptr<ResourceNode> resource) {
     m_resourceNodes.push_back(resource);
-    m_graphRegister.RegisterResource(name, resource);
+    m_graphRegister.RegisterResource(name, resource.get());
 }
 
 void RenderGraph::AddRenderPass(std::string_view passName, PassSetupFunc setupFunc) {
-    auto* passNode         = new PassNode();
+    auto passNode          = std::make_shared<PassNode>();
     passNode->passName     = passName;
-    passNode->passCallback = setupFunc(passNode);
+    passNode->passCallback = setupFunc(passNode.get());
     m_passNodes.push_back(passNode);
     return;
 }
@@ -32,7 +23,7 @@ void RenderGraph::AddRenderPass(std::string_view passName, PassSetupFunc setupFu
 void RenderGraph::SetBackBufferName(std::string_view name) { m_backBufferName = name; }
 
 void RenderGraph::Setup(SceneView* sceneView) {
-    for (auto* passNode : m_passNodes) {
+    for (auto passNode : m_passNodes) {
         passNode->renderScene = sceneView;
     }
 }
@@ -43,19 +34,12 @@ void RenderGraph::Exec() {
     uint32_t presentImageIndex = backend.GetCurrentImageIndex();
 
     auto frameCommandBuffer = frame.Commands;
-    for (auto* passNode : m_passNodes) {
-        frameCommandBuffer.BeginRenderPass(passNode);
-        frameCommandBuffer.BindPipeline(passNode);
+    for (auto passNode : m_passNodes) {
+        frameCommandBuffer.BeginRenderPass(passNode.get());
+        frameCommandBuffer.BindPipeline(passNode.get());
         passNode->passCallback(frameCommandBuffer, &m_graphRegister);
         frameCommandBuffer.EndRenderPass();
     }
-    ResourceNode* output       = m_graphRegister.GetResource(m_backBufferName);
-    auto&         presentImage = RenderBackend::GetInstance().AcquireSwapchainImage(
-        presentImageIndex, ImageUsage::TRANSFER_DESTINATION);
-
-    ImageInfo sourceImageInfo{*output->imageHandle, ImageUsage::COLOR_ATTACHMENT};
-    ImageInfo dstImageInfo{presentImage, ImageUsage::UNKNOWN};
-    frameCommandBuffer.CopyImage(sourceImageInfo, dstImageInfo);
 }
 
 std::shared_ptr<Image> RenderGraph::GetImageResourceByName(const std::string& name) {

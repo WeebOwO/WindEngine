@@ -1,6 +1,7 @@
 #include "DeferredSceneRenderer.h"
 
 #include "Runtime/Render/PassRendering.h"
+#include "Runtime/Render/RHI/Backend.h"
 
 namespace wind {
 DeferedSceneRenderer::DeferedSceneRenderer() { Init(); }
@@ -8,14 +9,16 @@ DeferedSceneRenderer::DeferedSceneRenderer() { Init(); }
 void DeferedSceneRenderer::Init() {
     int  createBits    = All;
     auto sceneTextures = m_sceneView->CreateSceneTextures(createBits);
+    auto& backend = RenderBackend::GetInstance();
     // Init render graph
-    for (auto& renderGraph : m_renderGraphs) {
+    for (uint32_t index = 0; auto& renderGraph : m_renderGraphs) {
         RenderGraphBuilder graphBuilder(renderGraph.get());
         graphBuilder.ImportSceneTextures(sceneTextures);
-        graphBuilder.SetBackBufferName("SceneColor");
-        // Just a triangle right now
+        auto& swapchainImage = backend.AcquireSwapchainImage(index, ImageUsage::UNKNOWN);
+        // Add our renderpass
         AddDeferedBasePass(graphBuilder);
         graphBuilder.Compile();
+        ++index;
     }
 }
 

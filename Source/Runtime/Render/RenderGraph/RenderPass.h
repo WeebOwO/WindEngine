@@ -68,7 +68,7 @@ public:
     };
 
     [[nodiscard]] auto& GetPipeline() { return m_pipeline; }
-
+    
 private:
     Pipeline m_pipeline;
 };

@@ -88,8 +88,8 @@ public:
     [[nodiscard]] const auto GetSwapchainImageUsage(size_t index) const noexcept {
         return m_swapchainImageUsages[index];
     }
-    [[nodiscard]] const auto  GetPresentImageCnt() const { return m_presentImageCnt; }
-    [[nodiscard]] const auto& AcquireSwapchainImage(size_t index, ImageUsage::Bits usage) noexcept {
+    [[nodiscard]] const auto GetPresentImageCnt() const { return m_presentImageCnt; }
+    [[nodiscard]] auto&      AcquireSwapchainImage(size_t index, ImageUsage::Bits usage) noexcept {
         m_swapchainImageUsages[index] = usage;
         return m_swapchainImages[index];
     }
@@ -107,8 +107,8 @@ public:
     [[nodiscard]] auto&       GetStagingBuffer() {
         return m_virtualFrames.GetCurrentFrame().StagingBuffer;
     }
-    [[nodiscard]] auto  GetMaxFrameInFlight() { return m_createSetting.maxFrameInflight; }
-    
+    [[nodiscard]] auto GetMaxFrameInFlight() { return m_createSetting.maxFrameInflight; }
+
     [[nodiscard]] std::vector<CommandBuffer> RequestMultiCommandBuffer(uint32_t count);
     void SubmitCommands(std::vector<CommandBuffer>& commandVecs);
 
@@ -139,17 +139,17 @@ private:
 
     QueueIndices m_queueIndices;
 
-    vk::CommandPool m_coomandPool;
+    vk::CommandPool              m_coomandPool;
     std::vector<vk::CommandPool> m_threadCommandPool;
-    
+
     vk::SurfaceKHR       m_surface;
     vk::SwapchainKHR     m_swapchain;
     vk::Extent2D         m_surfaceExtent;
     vk::SurfaceFormatKHR m_surfaceFormat;
     vk::PresentModeKHR   m_surfacePresentMode;
 
-    std::vector<Image>            m_swapchainImages;
-    std::vector<ImageUsage::Bits> m_swapchainImageUsages;
+    std::vector<std::shared_ptr<Image>> m_swapchainImages;
+    std::vector<ImageUsage::Bits>       m_swapchainImageUsages;
 
     uint32_t m_imageCount;
 
@@ -157,7 +157,7 @@ private:
     vk::Semaphore m_renderingFinishedSemaphore;
 
     vk::CommandBuffer m_immediateCmdBuffer;
-    vk::Fence     m_immediateFence;
+    vk::Fence         m_immediateFence;
 
     VmaAllocator         m_allocator;
     VirtualFrameProvider m_virtualFrames;

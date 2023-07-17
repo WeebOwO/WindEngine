@@ -247,8 +247,8 @@ void RenderBackend::RecreateSwapchain(uint32_t surfaceWidth, uint32_t surfaceHei
     m_swapchainImageUsages.assign(m_presentImageCnt, ImageUsage::UNKNOWN);
 
     for (uint32_t i = 0; i < m_presentImageCnt; ++i) {
-        m_swapchainImages.push_back(
-            Image(swapChainImage[i], surfaceWidth, surfaceHeight, m_surfaceFormat.format));
+        std::shared_ptr<Image> image = std::make_shared<Image>(swapChainImage[i], surfaceWidth, surfaceHeight, m_surfaceFormat.format);
+        m_swapchainImages.push_back(image);
     }
     WIND_CORE_INFO("Create swapchain successful");
 }

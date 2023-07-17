@@ -29,7 +29,7 @@ namespace wind {
     
     std::shared_ptr<Buffer> RenderGraphBuilder::TryCreateRDGBuffer(const std::string& resourceName, const BufferDesc& bufferDesc) {
         std::shared_ptr<Buffer> buffer = std::make_shared<Buffer>(bufferDesc.byteSize, bufferDesc.usage, bufferDesc.memoryUsage);
-        auto* node = new ResourceNode();
+        auto node = std::make_shared<ResourceNode>();
 
         node->resourceName = resourceName;
         node->bufferHandle = buffer;
@@ -48,7 +48,7 @@ namespace wind {
             return m_renderGraph->GetImageResourceByName(resourceName);
         }
         std::shared_ptr<Image> texture = std::make_shared<Image>(textureDesc.width, textureDesc.height, textureDesc.format, textureDesc.usage, textureDesc.memoryUsage, textureDesc.options);
-        auto* node = new ResourceNode();
+        auto node = std::make_shared<ResourceNode>();
         
         node->resourceName = resourceName;
         node->imageHandle = texture;
@@ -59,7 +59,7 @@ namespace wind {
     }
 
     void RenderGraphBuilder::ImportResource(const std::string& resourceName, std::shared_ptr<Image> image) {
-        auto* node = new ResourceNode();
+        auto node = std::make_shared<ResourceNode>();
         node->resourceName = resourceName;
         node->external = true;
         node->imageHandle = image;

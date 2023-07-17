@@ -22,6 +22,7 @@ void PassNode::Init(const std::string& passName, const std::vector<std::string>&
 
 PassNode::~PassNode() {
     auto& device = RenderBackend::GetInstance().GetDevice();
+    device.waitIdle();
     device.destroyRenderPass(renderPass);
     device.destroyFramebuffer(frameBuffer);
 }
@@ -87,8 +88,10 @@ void PassNode::ConstructResource(RenderGraphBuilder& graphBuilder) {
         colorAttachments.push_back(graphBuilder.TryCreateRDGTexture(name, desc));
     }
 
-    const auto [depthTextureName, desc] = *depthTextureDesc.begin();
-    depthAttachment                     = graphBuilder.TryCreateRDGTexture(depthTextureName, desc);
+    if (isWriteToDepth) {
+        const auto [depthTextureName, desc] = *depthTextureDesc.begin();
+        depthAttachment = graphBuilder.TryCreateRDGTexture(depthTextureName, desc);
+    }
 
     CreateFrameBuffer(renderRect.width, renderRect.height);
 }
@@ -102,7 +105,7 @@ void PassNode::CreateFrameBuffer(uint32_t width, uint32_t height) {
         views.push_back(colorAttachment->GetNativeView(ImageView::NATIVE));
     }
 
-    views.push_back(depthAttachment->GetNativeView(ImageView::NATIVE));
+    if (isWriteToDepth) { views.push_back(depthAttachment->GetNativeView(ImageView::NATIVE)); }
 
     frameBufferCreateInfo.setRenderPass(renderPass)
         .setAttachmentCount(views.size())
@@ -117,8 +120,10 @@ void PassNode::CreateFrameBuffer(uint32_t width, uint32_t height) {
 void PassNode::CreateRenderPass() {
     auto& device = RenderBackend::GetInstance().GetDevice();
 
-    std::vector<vk::AttachmentReference> colorAttachmentReferences;
-    vk::AttachmentReference              depthAttachmentRenference;
+    std::vector<vk::AttachmentReference>        colorAttachmentReferences;
+    vk::AttachmentReference                     depthAttachmentRenference;
+    vk::SubpassDescription                      subpassDescription;
+    std::pmr::vector<vk::AttachmentDescription> attachments = colorAttachmentDescriptions;
 
     for (size_t i = 0; i < colorAttachmentDescriptions.size(); ++i) {
         vk::AttachmentReference tempColorAttachmentReference;
@@ -127,18 +132,19 @@ void PassNode::CreateRenderPass() {
         colorAttachmentReferences.emplace_back(tempColorAttachmentReference);
     }
 
-    depthAttachmentRenference.setAttachment(colorAttachmentDescriptions.size())
-        .setLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
+    if (isWriteToDepth) {
+        depthAttachmentRenference.setAttachment(colorAttachmentDescriptions.size())
+            .setLayout(vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
-    vk::SubpassDescription subpassDescription;
-    subpassDescription.setColorAttachmentCount(colorAttachmentDescriptions.size())
-        .setColorAttachments(colorAttachmentReferences)
-        .setPDepthStencilAttachment(&depthAttachmentRenference)
-        .setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
-
-    std::pmr::vector<vk::AttachmentDescription> attachments = colorAttachmentDescriptions;
-    attachments.emplace_back(depthAttachmentDescription);
-
+        subpassDescription.setColorAttachmentCount(colorAttachmentDescriptions.size())
+            .setColorAttachments(colorAttachmentReferences)
+            .setPDepthStencilAttachment(&depthAttachmentRenference)
+            .setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
+        attachments.emplace_back(depthAttachmentDescription);
+    } else {
+        subpassDescription.setColorAttachments(colorAttachmentReferences)
+            .setColorAttachmentCount(colorAttachmentDescriptions.size());
+    }
     vk::RenderPassCreateInfo renderPassCreateInfo;
     renderPassCreateInfo.setSubpassCount(1)
         .setSubpasses(subpassDescription)

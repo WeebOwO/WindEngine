@@ -64,14 +64,13 @@ public:
     }
     void
     DeclareColorAttachment(const std::string& name, const TextureDesc& textureDesc,
-                           TextureOps  loadop,
+                           TextureOps      loadop,
                            vk::ImageLayout intialLayout = vk::ImageLayout::eUndefined,
                            vk::ImageLayout finalLayout  = vk::ImageLayout::eColorAttachmentOptimal,
                            ClearColor      clearColor   = {0.1f, 0.1f, 0.1f, 0.1f});
-
     void
     DeclareDepthAttachment(const std::string& name, const TextureDesc& textureDesc,
-                           TextureOps    loadop,
+                           TextureOps        loadop,
                            vk::ImageLayout   intialLayout = vk::ImageLayout::eUndefined,
                            vk::ImageLayout   finalLayout = vk::ImageLayout::eDepthAttachmentOptimal,
                            ClearDepthStencil clearDepthStencil = {1.0f, 0});
@@ -111,6 +110,8 @@ public:
 
     SceneResourcePool* resourcePool{nullptr};
     SceneView*         renderScene{nullptr};
+
+    bool isWriteToDepth = true;
 };
 
 } // namespace wind
