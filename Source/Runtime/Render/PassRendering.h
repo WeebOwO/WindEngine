@@ -15,6 +15,7 @@ namespace wind {
     void AddShadowPass(RenderGraphBuilder& graphBuilder);
     // Postprocess part
     void AddBloomSetupPass(RenderGraphBuilder& graphBuilder);
+    void AddBloomBlurPass(RenderGraphBuilder& graphBuilder);
     void AddSSAOPass(RenderGraphBuilder& graphBuilder);
     void AddToneMappingCombinePass(RenderGraphBuilder& graphBuilder, uint32_t swapChainImageIndex);
 }

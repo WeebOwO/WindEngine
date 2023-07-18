@@ -23,11 +23,11 @@ xmake project -k vsxmake -m "debug,release"
 * PBR + IBL 
 * Tangent Space Normal Mapping
 * ACES ToneMapping
+* Hdr Post Process Pipeline
   
 ### TODO
 - Shadow
 - Skinned Animation
-- Post Process Pipeline
 - GPU Driven (Draw Indirect, CS Culling..) 
 - Physics Engine Integration
 

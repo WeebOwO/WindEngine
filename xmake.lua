@@ -33,7 +33,7 @@ target("Sandbox")
 target("Runtime")
     set_kind("static")
     add_files("Source/Runtime/**.cpp")
-    add_packages("glfw", "glad", "vulkansdk", "spdlog", "assimp", "stb", "vulkan-memory-allocator", "spirv-cross", 'tinygltf')
+    add_packages("glfw", "glad", "vulkansdk", "spdlog", "assimp", "stb", "vulkan-memory-allocator", "spirv-cross")
 
 
 
