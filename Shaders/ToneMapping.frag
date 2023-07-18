@@ -10,9 +10,10 @@ layout(location = 0) in vec2 uv;
 layout(location = 0) out vec4 outColor;
 
 layout(set = 0, binding = 0) uniform sampler2D sceneColor;
+layout(set = 0, binding = 1) uniform sampler2D bloomCombine;
 
 void main() {
-    vec3 color = texture(sceneColor, uv).xyz;
+    vec3 color = texture(sceneColor, uv).xyz + texture(bloomCombine, uv).xyz;
     float luminance = dot(color.xyz, vec3(0.2126, 0.7152, 0.0722));
 	float mappedLuminance = (luminance * (1.0 + luminance / (pureWhite * pureWhite))) / (1.0 + luminance);
 	

@@ -35,5 +35,3 @@ target("Runtime")
     add_files("Source/Runtime/**.cpp")
     add_packages("glfw", "glad", "vulkansdk", "spdlog", "assimp", "stb", "vulkan-memory-allocator", "spirv-cross")
 
-
-

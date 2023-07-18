@@ -23,6 +23,7 @@ void ForwardRenderer::Init() {
         AddSkyboxPass(graphBuilder);
         AddForwardBasePass(graphBuilder);
         AddBloomSetupPass(graphBuilder);
+        AddBloomBlurPass(graphBuilder);
         AddToneMappingCombinePass(graphBuilder, index);
         graphBuilder.Compile();
         ++index;

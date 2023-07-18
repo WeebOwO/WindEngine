@@ -11,8 +11,10 @@
 namespace wind {
 void AddToneMappingCombinePass(RenderGraphBuilder& graphBuilder, uint32_t swapChainImageIndex) {
     auto& backend              = RenderBackend::GetInstance();
+
     const auto [width, height] = backend.GetSurfaceExtent();
     const auto surfaceFormat   = backend.GetSwapChainSurfaceFormat();
+
 
     TextureDesc presentTextureDesc{width,
                                    height,
@@ -27,6 +29,7 @@ void AddToneMappingCombinePass(RenderGraphBuilder& graphBuilder, uint32_t swapCh
                                   Sampler::AddressMode::REPEAT, Sampler::MipFilter::LINEAR);
 
     ShaderImageDesc sceneColorDesc{nullptr, ImageUsage::SHADER_READ, sampler};
+    ShaderImageDesc bloomColorDesc {nullptr, ImageUsage::SHADER_READ, sampler};
 
     graphBuilder.AddRenderPass("ToneMapPass", [=](PassNode* passNode) {
         TextureOps loadops{vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
@@ -49,14 +52,17 @@ void AddToneMappingCombinePass(RenderGraphBuilder& graphBuilder, uint32_t swapCh
             .SetRenderPass(passNode->renderPass)
             .SetDepthSetencilTestState(false, false, false, vk::CompareOp::eLessOrEqual);
 
-        shader->SetShaderResource("sceneColor", sceneColorDesc);
+        shader->SetShaderResource("sceneColor", sceneColorDesc)     
+                .SetShaderResource("bloomCombine", bloomColorDesc);
 
         passNode->graphicsShader = shader;
         passNode->pipelineState  = renderProcessBuilder.BuildGraphicProcess();
 
         return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
             auto sceneColor = graphRegister->GetResource("SceneColor");
+            auto bloomColor = graphRegister->GetResource("BloomBlurY");
             shader->Bind("sceneColor", sceneColor->imageHandle);
+            shader->Bind("bloomCombine", bloomColor->imageHandle);
             shader->FinishShaderBinding();
             auto& pso = passNode->pipelineState->GetPipeline();
 

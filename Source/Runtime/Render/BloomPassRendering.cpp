@@ -81,23 +81,14 @@ void AddBloomBlurPass(RenderGraphBuilder& graphBuilder) {
     std::shared_ptr<Sampler> sampler =
         std::make_shared<Sampler>(Sampler::MinFilter::LINEAR, Sampler::MagFilter::LINEAR,
                                   Sampler::AddressMode::REPEAT, Sampler::MipFilter::LINEAR);
-    struct BlurDir {
-        bool isHorizontal;
-    };
-    BlurDir dir;
 
-    auto                    blurDir    = std::make_shared<BlurDir>(false);
-    std::shared_ptr<Buffer> blurBuffer = std::make_shared<Buffer>(
-        sizeof(BlurDir), BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
+    ShaderImageDesc bloomSetupDesc{nullptr, ImageUsage::SHADER_READ, sampler};
 
-    ShaderBufferDesc blurBufferDesc{blurBuffer, 0, sizeof(BlurDir)};
-    ShaderImageDesc  bloomSetupDesc{nullptr, ImageUsage::SHADER_READ, sampler};
-
-    graphBuilder.AddRenderPass("BloomBlur", [=](PassNode* passNode) {
+    graphBuilder.AddRenderPass("BloomBlurX", [=](PassNode* passNode) {
         TextureOps loadops{vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
                            vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare};
 
-        passNode->DeclareColorAttachment("BloomBlur", bloomBlurTextureDesc, loadops,
+        passNode->DeclareColorAttachment("BloomBlurX", bloomBlurTextureDesc, loadops,
                                          vk::ImageLayout::eUndefined,
                                          vk::ImageLayout::eShaderReadOnlyOptimal);
 
@@ -107,7 +98,7 @@ void AddBloomBlurPass(RenderGraphBuilder& graphBuilder) {
 
         RenderProcessBuilder            renderProcessBuilder;
         std::shared_ptr<GraphicsShader> shader =
-            ShaderFactory::CreateGraphicsShader("BloomBlur.vert.spv", "BloomBlur.frag.spv");
+            ShaderFactory::CreateGraphicsShader("BloomBlur.vert.spv", "BloomBlurX.frag.spv");
 
         renderProcessBuilder.SetBlendState(false)
             .SetShader(shader.get())
@@ -115,8 +106,7 @@ void AddBloomBlurPass(RenderGraphBuilder& graphBuilder) {
             .SetRenderPass(passNode->renderPass)
             .SetDepthSetencilTestState(false, false, false, vk::CompareOp::eLessOrEqual);
 
-        shader->SetShaderResource("bloomSetup", bloomSetupDesc)
-            .SetShaderResource("BlurDir", blurBufferDesc);
+        shader->SetShaderResource("bloomSetup", bloomSetupDesc);
 
         passNode->graphicsShader = shader;
         passNode->pipelineState  = renderProcessBuilder.BuildGraphicProcess();
@@ -124,11 +114,8 @@ void AddBloomBlurPass(RenderGraphBuilder& graphBuilder) {
         return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
             auto bloomSetup = graphRegister->GetResource("BloomSetup");
             shader->Bind("bloomSetup", bloomSetup->imageHandle);
-            shader->FinishShaderBinding();
 
-            BlurDir dir;
-            dir.isHorizontal = false;
-            blurBuffer->CopyData((uint8_t*)&dir, sizeof(dir), 0);
+            shader->FinishShaderBinding();
 
             auto& pso = passNode->pipelineState->GetPipeline();
 
@@ -136,12 +123,46 @@ void AddBloomBlurPass(RenderGraphBuilder& graphBuilder) {
                                         shader->GetDescriptorSet());
 
             cmdBuffer.Draw(3, 1);
+        };
+    });
 
-            dir.isHorizontal = true;
-            blurBuffer->CopyData((uint8_t*)&dir, sizeof(dir), 0);
+    graphBuilder.AddRenderPass("BloomBlurY", [=](PassNode* passNode) {
+        TextureOps loadops{vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
+                           vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare};
+
+        passNode->DeclareColorAttachment("BloomBlurY", bloomBlurTextureDesc, loadops,
+                                         vk::ImageLayout::eUndefined,
+                                         vk::ImageLayout::eShaderReadOnlyOptimal);
+
+        passNode->isWriteToDepth = false;
+        passNode->CreateRenderPass();
+        passNode->SetRenderRect(width, height);
+
+        RenderProcessBuilder            renderProcessBuilder;
+        std::shared_ptr<GraphicsShader> shader =
+            ShaderFactory::CreateGraphicsShader("BloomBlur.vert.spv", "BloomBlurY.frag.spv");
+
+        renderProcessBuilder.SetBlendState(false)
+            .SetShader(shader.get())
+            .SetNeedVerTex(false)
+            .SetRenderPass(passNode->renderPass)
+            .SetDepthSetencilTestState(false, false, false, vk::CompareOp::eLessOrEqual);
+
+        shader->SetShaderResource("bloomSetup", bloomSetupDesc);
+          
+        passNode->graphicsShader = shader;
+        passNode->pipelineState  = renderProcessBuilder.BuildGraphicProcess();
+
+        return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
+            auto bloomSetup = graphRegister->GetResource("BloomBlurX");
+            shader->Bind("bloomSetup", bloomSetup->imageHandle);
+            shader->FinishShaderBinding();
+
+            auto& pso = passNode->pipelineState->GetPipeline();
+
             cmdBuffer.BindDescriptorSet(pso.bindPoint, pso.pipelineLayout,
                                         shader->GetDescriptorSet());
-            cmdBuffer.BindPipeline(passNode);                    
+
             cmdBuffer.Draw(3, 1);
         };
     });
