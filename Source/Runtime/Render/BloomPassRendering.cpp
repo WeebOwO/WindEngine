@@ -98,7 +98,7 @@ void AddBloomBlurPass(RenderGraphBuilder& graphBuilder) {
 
         RenderProcessBuilder            renderProcessBuilder;
         std::shared_ptr<GraphicsShader> shader =
-            ShaderFactory::CreateGraphicsShader("BloomBlur.vert.spv", "BloomBlurX.frag.spv");
+            ShaderFactory::CreateGraphicsShader("FullScreen.vert.spv", "BloomBlurX.frag.spv");
 
         renderProcessBuilder.SetBlendState(false)
             .SetShader(shader.get())
@@ -140,7 +140,7 @@ void AddBloomBlurPass(RenderGraphBuilder& graphBuilder) {
 
         RenderProcessBuilder            renderProcessBuilder;
         std::shared_ptr<GraphicsShader> shader =
-            ShaderFactory::CreateGraphicsShader("BloomBlur.vert.spv", "BloomBlurY.frag.spv");
+            ShaderFactory::CreateGraphicsShader("FullScreen.vert.spv", "BloomBlurY.frag.spv");
 
         renderProcessBuilder.SetBlendState(false)
             .SetShader(shader.get())

@@ -44,7 +44,7 @@ void AddToneMappingCombinePass(RenderGraphBuilder& graphBuilder, uint32_t swapCh
 
         RenderProcessBuilder            renderProcessBuilder;
         std::shared_ptr<GraphicsShader> shader =
-            ShaderFactory::CreateGraphicsShader("ToneMapping.vert.spv", "ToneMapping.frag.spv");
+            ShaderFactory::CreateGraphicsShader("FullScreen.vert.spv", "ToneMapping.frag.spv");
 
         renderProcessBuilder.SetBlendState(false)
             .SetShader(shader.get())

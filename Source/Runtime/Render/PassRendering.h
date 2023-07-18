@@ -1,4 +1,5 @@
 #include "Runtime/Render/RenderGraph/RenderGraphBuilder.h"
+
 #include "Runtime/Render/RHI/Backend.h"
 #include "Runtime/Render/RHI/Shader.h"
 #include "Runtime/Scene/SceneView.h"
@@ -13,6 +14,8 @@ namespace wind {
     void LightGridComputePass(RenderGraphBuilder& graphBuilder);
     void AddDeferedBasePass(RenderGraphBuilder& graphBuilder);
     void AddShadowPass(RenderGraphBuilder& graphBuilder);
+    void AddDeferToneMappingCombinePass();
+    
     // Postprocess part
     void AddBloomSetupPass(RenderGraphBuilder& graphBuilder);
     void AddBloomBlurPass(RenderGraphBuilder& graphBuilder);

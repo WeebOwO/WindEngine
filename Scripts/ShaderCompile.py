@@ -2,6 +2,7 @@ import os
 import subprocess
 
 def CompileShader():
+    # use this black list to check no need shader
     black_list = []
 
     if not os.path.exists("Shaders/CompiledShader/"):
@@ -18,6 +19,7 @@ def CompileShader():
         shader_path = os.path.join(shader_root_path, shader)
         compile_out_path = os.path.join(shader_root_path, "CompiledShader", shader + ".spv")
         subprocess.Popen(["glslc.exe", shader_path, "-o", compile_out_path])
+
     return
 
 if __name__ == "__main__":
