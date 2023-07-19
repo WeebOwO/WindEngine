@@ -14,11 +14,11 @@ namespace wind {
     void LightGridComputePass(RenderGraphBuilder& graphBuilder);
     void AddDeferedBasePass(RenderGraphBuilder& graphBuilder);
     void AddShadowPass(RenderGraphBuilder& graphBuilder);
-    void AddDeferToneMappingCombinePass(RenderGraphBuilder& graphBuilder, uint32_t swapchainIndex);
+    void AddDeferToneMappingCombinePass(RenderGraphBuilder& graphBuilder);
     
     // Postprocess part
     void AddBloomSetupPass(RenderGraphBuilder& graphBuilder);
     void AddBloomBlurPass(RenderGraphBuilder& graphBuilder);
     void AddSSAOPass(RenderGraphBuilder& graphBuilder);
-    void AddToneMappingCombinePass(RenderGraphBuilder& graphBuilder, uint32_t swapChainImageIndex);
+    void AddToneMappingCombinePass(RenderGraphBuilder& graphBuilder);
 }

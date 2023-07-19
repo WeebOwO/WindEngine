@@ -9,7 +9,7 @@
 #include <memory>
 
 namespace wind {
-void AddToneMappingCombinePass(RenderGraphBuilder& graphBuilder, uint32_t swapChainImageIndex) {
+void AddToneMappingCombinePass(RenderGraphBuilder& graphBuilder) {
     auto& backend = RenderBackend::GetInstance();
 
     const auto [width, height] = backend.GetSurfaceExtent();
@@ -73,7 +73,7 @@ void AddToneMappingCombinePass(RenderGraphBuilder& graphBuilder, uint32_t swapCh
     });
 }
 
-void AddDeferToneMappingCombinePass(RenderGraphBuilder& graphBuilder, uint32_t swapchainIndex) {
+void AddDeferToneMappingCombinePass(RenderGraphBuilder& graphBuilder) {
     auto& backend = RenderBackend::GetInstance();
 
     const auto [width, height] = backend.GetSurfaceExtent();
@@ -92,11 +92,11 @@ void AddDeferToneMappingCombinePass(RenderGraphBuilder& graphBuilder, uint32_t s
                                   Sampler::AddressMode::REPEAT, Sampler::MipFilter::LINEAR);
 
     ShaderImageDesc sceneColorDesc{nullptr, ImageUsage::SHADER_READ, sampler};
-    ShaderImageDesc bloomColorDesc{nullptr, ImageUsage::SHADER_READ, sampler};
 
     graphBuilder.AddRenderPass("ToneMapPass", [=](PassNode* passNode) {
         TextureOps loadops{vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
                            vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare};
+                           
         passNode->DeclareColorAttachment("BackBuffer", presentTextureDesc, loadops,
                                          vk::ImageLayout::eUndefined,
                                          vk::ImageLayout::ePresentSrcKHR);

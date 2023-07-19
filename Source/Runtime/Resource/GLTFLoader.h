@@ -17,20 +17,20 @@ struct GLTFVertex {
 };
 
 struct GLTFMaterial {
-    std::string Name;
-    ImageData   AlbedoTexture;
-    ImageData   NormalTexture;
-    ImageData   MetallicRoughness;
-    float       RoughnessScale = 1.0f;
-    float       MetallicScale  = 1.0f;
+    std::string name;
+    ImageData   albedoTexture;
+    ImageData   normalTexture;
+    ImageData   metallicRoughness;
+    float       roughnessScale = 1.0f;
+    float       metallicScale  = 1.0f;
 };
 
 struct GLTFShape {
     using Index = uint32_t;
-    std::string             Name;
-    std::vector<GLTFVertex> Vertices;
-    std::vector<Index>      Indices;
-    uint32_t                MaterialIndex = -1;
+    std::string             name;
+    std::vector<GLTFVertex> vertices;
+    std::vector<Index>      indices;
+    uint32_t                materialIndex = -1;
 };
 
 struct GLTFModelData {

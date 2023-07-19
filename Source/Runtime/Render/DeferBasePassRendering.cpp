@@ -11,7 +11,7 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
 
         passNode->DeclareColorAttachment(
             "SceneColor", SceneTexture::SceneTextureDescs["SceneColor"], loadops,
-            vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal);
+            vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal);
         
         passNode->DeclareDepthAttachment("SceneDepth",
                                          SceneTexture::SceneTextureDescs["SceneDepth"], loadops,

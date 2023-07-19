@@ -16,5 +16,5 @@ void main() {
 	float mappedLuminance = (luminance * (1.0 + luminance / (pureWhite * pureWhite))) / (1.0 + luminance);
 	
 	vec3 mappedColor = (mappedLuminance / luminance) * color;
-    outColor = vec4(pow(mappedColor, vec3(1.0 / gamma)), 1.0);
+    outColor = vec4(color, 1.0);
 }

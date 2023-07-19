@@ -24,7 +24,7 @@ void ForwardRenderer::Init() {
         AddForwardBasePass(graphBuilder);
         AddBloomSetupPass(graphBuilder);
         AddBloomBlurPass(graphBuilder);
-        AddToneMappingCombinePass(graphBuilder, index);
+        AddToneMappingCombinePass(graphBuilder);
         graphBuilder.Compile();
         ++index;
     }

@@ -15,8 +15,10 @@ void DeferedSceneRenderer::Init() {
         RenderGraphBuilder graphBuilder(renderGraph.get());
         graphBuilder.ImportSceneTextures(sceneTextures);
         auto& swapchainImage = backend.AcquireSwapchainImage(index, ImageUsage::UNKNOWN);
+        graphBuilder.ImportResource("BackBuffer", swapchainImage);
         // Add our renderpass
         AddDeferedBasePass(graphBuilder);
+        AddDeferToneMappingCombinePass(graphBuilder);
         graphBuilder.Compile();
         ++index;
     }
