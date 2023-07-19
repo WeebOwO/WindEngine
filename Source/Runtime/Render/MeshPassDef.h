@@ -5,7 +5,7 @@
 #include "Runtime/Base/Macro.h"
 
 namespace wind {
-    // define our mesh pass 
+    // define our mesh pass
     enum MeshPassType : int {
         BasePass = BIT(0),
         TranslucentPass = BIT(1),

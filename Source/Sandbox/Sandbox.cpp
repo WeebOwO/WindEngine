@@ -2,7 +2,7 @@
 
 auto main() -> int {
     wind::Engine engine;
-    engine.SetShowCase(ShowCase::Pbr);
+    engine.SetShowCase(ShowCase::Sponza);
     engine.Run();
     return 0;
 }

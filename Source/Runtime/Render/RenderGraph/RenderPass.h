@@ -22,6 +22,7 @@ class RenderProcessBuilder {
 public:
     RenderProcessBuilder& SetShader(GraphicsShader* graphicsShader);
     RenderProcessBuilder& SetBlendState(bool blendEnable);
+    RenderProcessBuilder& SetBlendState(std::span<vk::PipelineColorBlendAttachmentState> blendStates);
     RenderProcessBuilder& SetDepthSetencilTestState(bool depthTestEnable, bool depthWriteEnable,
                                                     bool          stencilTestEnable,
                                                     vk::CompareOp depthCompareMode);

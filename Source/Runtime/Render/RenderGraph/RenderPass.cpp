@@ -35,7 +35,7 @@ RenderProcessBuilder& RenderProcessBuilder::SetBlendState(bool blendEnable) {
     m_colorBlendAttachment.setBlendEnable(VkBool32(blendEnable))
         .setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
                            vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
-
+    
     m_PipelineColorBlendStateCreateInfo.setLogicOpEnable(false).
                                         setAttachments(m_colorBlendAttachment);
     return *this;
