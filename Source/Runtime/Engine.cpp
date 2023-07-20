@@ -150,7 +150,8 @@ void EngineImpl::LoadGameObject() {
     } 
     case ShowCase::Sponza : {
         // just draw triangle right now
-        gltf::GLTFLoader::LoadFromGLTF(R"(..\..\..\..\Assets\Scene\Sponza\glTF\Sponza.gltf)");
+        
+        
         break;
     }
     default:
