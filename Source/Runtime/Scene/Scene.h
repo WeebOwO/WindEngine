@@ -5,6 +5,7 @@
 
 #include "Runtime/Base/Macro.h"
 #include "Runtime/Render/RHI/Buffer.h"
+#include "Runtime/Resource/GLTFLoader.h"
 #include "Runtime/Resource/ImageData.h"
 #include "Runtime/Resource/Mesh.h"
 #include "Runtime/Scene/Camera.h"
@@ -42,6 +43,7 @@ public:
 
     void SetupCamera(std::shared_ptr<BaseCamera> camera) { m_activeCamera = camera; }
     void LoadSkyBox(const std::string& skyBoxModelPath, const std::string& skyboxImagePath, const std::string& irradianceImagePath);
+    void LoadGLTFScene(std::string_view filePath);
 
     auto& GetSkybox() { return m_skybox; }
     void  BuildMeshBatch();
@@ -51,6 +53,8 @@ private:
     std::vector<GameObject>       m_worldObjects;
     std::shared_ptr<BaseCamera>   m_activeCamera;
     std::vector<DirectionalLight> m_directionalLights;
-    std::shared_ptr<SkyBox>       m_skybox;
+    std::shared_ptr<SkyBox>       m_skybox; 
+    // gltf part
+    std::unordered_map<std::string, gltf::GLTFMesh> m_gltfModel;
 };
 } // namespace wind

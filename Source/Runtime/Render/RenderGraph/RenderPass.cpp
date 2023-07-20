@@ -53,7 +53,7 @@ RenderProcessBuilder::SetDepthSetencilTestState(bool depthTestEnable, bool depth
         .setMinDepthBounds(0.0f)
         .setMaxDepthBounds(1.0f)
         .setDepthCompareOp(depthCompareMode);
-
+    
     return *this;
 }
 
