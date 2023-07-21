@@ -247,7 +247,8 @@ void RenderBackend::RecreateSwapchain(uint32_t surfaceWidth, uint32_t surfaceHei
     m_swapchainImageUsages.assign(m_presentImageCnt, ImageUsage::UNKNOWN);
 
     for (uint32_t i = 0; i < m_presentImageCnt; ++i) {
-        std::shared_ptr<Image> image = std::make_shared<Image>(swapChainImage[i], surfaceWidth, surfaceHeight, m_surfaceFormat.format);
+        std::shared_ptr<Image> image = std::make_shared<Image>(
+            swapChainImage[i], surfaceWidth, surfaceHeight, m_surfaceFormat.format);
         m_swapchainImages.push_back(image);
     }
     WIND_CORE_INFO("Create swapchain successful");
@@ -281,7 +282,7 @@ void RenderBackend::CreateDescriptorCacheAndAllocator() {
 }
 
 CommandBuffer RenderBackend::BeginSingleTimeCommand() {
-
+    m_immediateCmdBuffer.reset();
     vk::CommandBufferBeginInfo beginInfo;
     beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eOneTimeSubmit);
     m_immediateCmdBuffer.begin(beginInfo);
@@ -320,5 +321,14 @@ void RenderBackend::SubmitCommands(std::vector<CommandBuffer>& commandVecs) {
         submitInfo.setCommandBuffers(commands.GetNativeHandle());
         m_graphicsQueue.submit(submitInfo, m_immediateFence);
     }
+}
+
+void RenderBackend::SubmitCommandBuffer(const CommandBuffer& cmdBuffer) {
+    vk::SubmitInfo submitInfo;
+    submitInfo.setCommandBuffers(cmdBuffer.GetNativeHandle());
+    m_graphicsQueue.submit(submitInfo, m_immediateFence);
+    auto waitResult = m_device.waitForFences(m_immediateFence, false, UINT64_MAX);
+    assert(waitResult == vk::Result::eSuccess);
+    m_device.resetFences(m_immediateFence);
 }
 } // namespace wind

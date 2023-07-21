@@ -56,7 +56,7 @@ public:
 
     CommandBuffer BeginSingleTimeCommand();
     void          SubmitSingleTimeCommand(vk::CommandBuffer cmdBuffer);
-
+    void          SubmitCommandBuffer(const CommandBuffer& cmdBuffer);
     void InitVirtualFrame() {
         m_virtualFrames.Init(m_createSetting.maxFrameInflight, m_createSetting.maxStageBufferSize);
     }
@@ -107,6 +107,8 @@ public:
     [[nodiscard]] auto&       GetStagingBuffer() {
         return m_virtualFrames.GetCurrentFrame().StagingBuffer;
     }
+    [[nodiscard]] auto& GetCurrentCommands() {return m_virtualFrames.GetCurrentFrame().Commands;}
+    
     [[nodiscard]] auto GetMaxFrameInFlight() { return m_createSetting.maxFrameInflight; }
 
     [[nodiscard]] std::vector<CommandBuffer> RequestMultiCommandBuffer(uint32_t count);
