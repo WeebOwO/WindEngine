@@ -141,7 +141,7 @@ GLTFModelData GLTFLoader::LoadFromGLTF(const std::string& filepath) {
             resultMaterial.albedoTexture = CreateStubTexture(255, 255, 255, 255);
         }
 
-        if (material.normalTexture.index == -1) {
+        if (material.normalTexture.index != -1) {
             const auto& normalTexture =
                 model.images[model.textures[material.normalTexture.index].source];
             resultMaterial.normalTexture = ImageData{

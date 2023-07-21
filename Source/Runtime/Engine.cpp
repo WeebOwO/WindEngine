@@ -138,7 +138,7 @@ void EngineImpl::LoadGameObject() {
         for (auto& t : m_threadPool) {
             t.join();
         }
-
+        
         ImageLoader::FillImage(*material.albedoTexture, albeoData, ImageOptions::MIPMAPS);
         ImageLoader::FillImage(*material.normalTexture, normalData, ImageOptions::MIPMAPS);
         ImageLoader::FillImage(*material.metallicTexture, metallicdata, ImageOptions::MIPMAPS);

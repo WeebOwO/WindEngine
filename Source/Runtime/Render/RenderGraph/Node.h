@@ -34,6 +34,7 @@ using PassSetupFunc = std::function<PassExecFunc(PassNode*)>;
 
 enum class RenderResoueceType : uint8_t { Buffer = 0, Image };
 enum class PassType : uint8_t { Graphic = 0, Compute };
+
 class Node {
 protected:
     uint32_t inRefCnt  = 0;
