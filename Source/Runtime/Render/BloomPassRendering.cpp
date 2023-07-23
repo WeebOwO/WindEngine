@@ -1,10 +1,10 @@
 #include "PassRendering.h"
 
-#include "Runtime/Render/RHI/Image.h"
-#include "Runtime/Render/RHI/Vma.h"
-#include "Runtime/Render/RenderGraph/RenderResource.h"
 #include <memory>
 #include <stdint.h>
+
+#include "Runtime/Render/RHI/Image.h"
+#include "Runtime/Render/RenderGraph/RenderResource.h"
 
 namespace wind {
 void AddBloomSetupPass(RenderGraphBuilder& graphBuilder) {
@@ -24,7 +24,7 @@ void AddBloomSetupPass(RenderGraphBuilder& graphBuilder) {
                                   Sampler::AddressMode::REPEAT, Sampler::MipFilter::LINEAR);
 
     ShaderImageDesc sceneColorDesc{nullptr, ImageUsage::SHADER_READ, sampler};
-
+    
     graphBuilder.AddRenderPass("BloomSetupPass", [=](PassNode* passNode) {
         TextureOps loadops{vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
                            vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare};
@@ -39,7 +39,7 @@ void AddBloomSetupPass(RenderGraphBuilder& graphBuilder) {
 
         RenderProcessBuilder            renderProcessBuilder;
         std::shared_ptr<GraphicsShader> shader =
-            ShaderFactory::CreateGraphicsShader("BloomSetup.vert.spv", "BloomSetup.frag.spv");
+            ShaderFactory::CreateGraphicsShader("FullScreen.vert.spv", "BloomSetup.frag.spv");
 
         renderProcessBuilder.SetBlendState(false)
             .SetShader(shader.get())
