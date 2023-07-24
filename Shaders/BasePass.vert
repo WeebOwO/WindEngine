@@ -33,5 +33,5 @@ void main() {
     vout.position = (models[modelIndex] * vec4(position, 1.0)).xyz;
     gl_Position = cameraData.viewproj * vec4(vout.position, 1.0);
     vout.texcoord = texCoord;
-    vout.tangentBasis = mat3(models[modelIndex]) * mat3(tangent, bitangent, normal);
+    vout.tangentBasis = mat3(tangent, bitangent, normal);
 }

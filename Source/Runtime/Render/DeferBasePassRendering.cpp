@@ -5,6 +5,12 @@
 namespace wind {
 void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
     const auto [width, height] = RenderBackend::GetInstance().GetSurfaceExtent();
+    // Allocate shader resource
+    std::shared_ptr<Buffer> cameraBuffer = std::make_shared<Buffer>(
+        sizeof(CameraUnifoirmBuffer), BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
+    // Buffer Desc
+    ShaderBufferDesc camearaShaderBufferDesc{cameraBuffer, 0, sizeof(CameraUnifoirmBuffer)};
+    
     graphBuilder.AddRenderPass("BasePass", [=](PassNode* passNode) {
         TextureOps loadops{vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
                            vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare};
@@ -25,6 +31,7 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
 
         std::shared_ptr<GraphicsShader> BasePassShader =
             ShaderFactory::CreateGraphicsShader("BasePass.vert.spv", "BasePass.frag.spv");
+        BasePassShader->SetShaderResource("CameraBuffer", camearaShaderBufferDesc);
 
         renderProcessBuilder.SetBlendState(false)
             .SetShader(BasePassShader.get())
@@ -36,7 +43,20 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
         passNode->pipelineState  = renderProcessBuilder.BuildGraphicProcess();
 
         return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
-            cmdBuffer.Draw(3, 1);
+            auto*      scene     = passNode->renderScene->GetOwnScene();
+            SceneView* sceneView = passNode->renderScene;
+            
+            struct ConstantData {
+                uint32_t materialIndex;
+                uint32_t modelIndex;
+            };
+            
+            ConstantData constantData {0, 0};
+
+            cameraBuffer->CopyData((uint8_t*)sceneView->cameraBuffer.get(),
+                                   camearaShaderBufferDesc.range, camearaShaderBufferDesc.offset);
+        
+            cmdBuffer.PushConstant(passNode, &constantData);
             
         };
     });

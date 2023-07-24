@@ -61,7 +61,6 @@ void SceneView::Init() {
                                                             ImageUsage::DEPTH_SPENCIL_ATTACHMENT | ImageUsage::SHADER_READ,
                                                             MemoryUsage::GPU_ONLY,
                                                             ImageOptions::DEFAULT};
-    
 }
 
 SceneTexture SceneView::CreateSceneTextures(int createBit) {
@@ -83,4 +82,5 @@ SceneTexture SceneView::CreateSceneTextures(int createBit) {
     }
     return sceneTexture;
 }
+
 } // namespace wind

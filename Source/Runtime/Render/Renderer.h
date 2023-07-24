@@ -11,8 +11,6 @@
 #include "Runtime/Scene/SceneView.h"
 
 namespace wind {
-enum class MeshPassType { BasePass = 0 };
-
 enum class ShadingPath { Forward, Deferred };
 
 class Scene;

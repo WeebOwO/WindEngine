@@ -5,9 +5,10 @@
 
 #include "Runtime/Render/RenderGraph/RenderResource.h"
 
+#include "Runtime/Scene/GPUScene.h"
 #include "Runtime/Scene/GameObject.h"
 #include "Runtime/Scene/Scene.h"
-#include "Runtime/Scene/GPUScene.h"
+
 
 namespace wind {
 struct CameraUnifoirmBuffer {
@@ -39,7 +40,7 @@ enum SceneTextureCreateBit : uint32_t {
     GBufferB   = BIT(3),
     GBufferC   = BIT(4),
     GBufferD   = BIT(5),
-    All = SceneColor | SceneDepth | GBufferA | GBufferB | GBufferC | GBufferD
+    All        = SceneColor | SceneDepth | GBufferA | GBufferB | GBufferC | GBufferD
 };
 
 class SceneTexture {
@@ -71,10 +72,10 @@ public:
     SceneView();
     void Init();
     void SetScene(Scene* scene);
-
+    
     auto*        GetOwnScene() { return m_scene; }
     SceneTexture CreateSceneTextures(int createBit);
-    
+
 private:
     Scene* m_scene;
 };

@@ -103,7 +103,7 @@ void AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
             for (auto& gameObject : scene->GetWorld().GetWorldGameObjects()) {
                 auto& model    = gameObject.model;
                 auto& material = model->GetMaterial();
-
+                
                 shader->Bind("albedoTexture", material.albedoTexture);
                 shader->Bind("normalTexture", material.normalTexture);
                 shader->Bind("metallicTexture", material.metallicTexture);
