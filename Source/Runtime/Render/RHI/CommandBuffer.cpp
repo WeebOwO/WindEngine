@@ -467,4 +467,19 @@ void CommandBuffer::TransferLayout(std::span<Image> images, ImageUsage::Bits old
 void CommandBuffer::BindDescriptorSet(vk::PipelineBindPoint bindPoint, vk::PipelineLayout layout, std::vector<vk::DescriptorSet>& descriptorSets) {
     m_handle.bindDescriptorSets(bindPoint, layout, 0, descriptorSets, {});
 }
+
+void CommandBuffer::PushConstants(const PassNode* passNode, const uint8_t* data, size_t size) {
+    constexpr size_t MaxPushConstantByteSize = 128;
+    std::array<uint8_t, MaxPushConstantByteSize> pushConstants = { };
+    std::memcpy(pushConstants.data(), data, size);
+    vk::ShaderStageFlags shaderStageFlag;
+    if(passNode->passType == PassType::Graphic) {
+        shaderStageFlag = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
+    } else {
+        shaderStageFlag = vk::ShaderStageFlagBits::eCompute;
+    }
+    m_handle.pushConstants(passNode->pipelineState->GetPipeline().pipelineLayout, shaderStageFlag, 0, pushConstants.size(), pushConstants
+    .data());
+}
+
 } // namespace wind

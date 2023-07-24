@@ -2,6 +2,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 #include <spirv_cross/spirv_glsl.hpp>
 #include <unordered_map>
 
@@ -49,11 +50,13 @@ void GraphicsShader::GenerateVulkanDescriptorSetLayout() {
 }
 
 void GraphicsShader::GeneratePushConstantData() {
-    if(m_pushConstantMeta.has_value()) {
-        m_pushConstantRange->setSize(m_pushConstantMeta->size);
-        m_pushConstantRange->setOffset(0);
-        m_pushConstantRange->setStageFlags(m_pushConstantMeta->shadeshaderStageFlag);
-    }   
+    if (m_pushConstantMeta.has_value()) {
+        vk::PushConstantRange range;
+        range.setOffset(m_pushConstantMeta->offset)
+             .setSize(m_pushConstantMeta->size)
+             .setStageFlags(m_pushConstantMeta->shadeshaderStageFlag);
+        m_pushConstantRange = std::optional<vk::PushConstantRange>(range);
+    }
 }
 
 void GraphicsShader::FinishShaderBinding() {
@@ -158,9 +161,8 @@ void GraphicsShader::CollectSpirvMetaData(std::vector<uint32_t> spivrBinary,
         const spirv_cross::SPIRType& type         = compiler.get_type(resource.type_id);
         uint32_t                     size         = compiler.get_declared_struct_size(type);
         if (!m_pushConstantMeta.has_value()) {
-            m_pushConstantMeta->size = size;
-            m_pushConstantMeta->offset = 0;
-            m_pushConstantMeta->shadeshaderStageFlag = shaderFlags;
+            PushConstantMetaData meta{size, 0, shaderFlags};
+            m_pushConstantMeta = std::optional<PushConstantMetaData>(meta);
         } else {
             m_pushConstantMeta->shadeshaderStageFlag |= shaderFlags;
         }

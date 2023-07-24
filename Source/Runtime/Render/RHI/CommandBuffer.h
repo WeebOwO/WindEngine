@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vulkan/vulkan.hpp>
-
 #include "Runtime/Render/RHI/Shader.h"
 
 namespace wind {
@@ -69,8 +67,9 @@ public:
                      uint32_t vertexOffset, uint32_t firstInstance);
 
     void DrawIndirect(BufferInfo bufferInfo, uint32_t offset, uint32_t drawcount, uint32_t stride);
-    void DrawIndexIndirect(BufferInfo BufferInfo, uint32_t offset, uint32_t drawcount, uint32_t stride);
- 
+    void DrawIndexIndirect(BufferInfo BufferInfo, uint32_t offset, uint32_t drawcount,
+                           uint32_t stride);
+
     void BindIndexBufferUInt32(const Buffer& indexBuffer);
     void BindIndexBufferUInt16(const Buffer& indexBuffer);
 
@@ -83,7 +82,8 @@ public:
     void BeginRenderPass(PassNode* passNode);
     void EndRenderPass();
 
-    void BindDescriptorSet(vk::PipelineBindPoint bindPoint, vk::PipelineLayout layout, std::vector<vk::DescriptorSet>& descriptorSets);
+    void BindDescriptorSet(vk::PipelineBindPoint bindPoint, vk::PipelineLayout layout,
+                           std::vector<vk::DescriptorSet>& descriptorSets);
 
     void CopyImage(const ImageInfo& source, const ImageInfo& distance);
     void CopyBufferToImage(const BufferInfo& source, const ImageInfo& distance);
@@ -102,6 +102,8 @@ public:
 
     void BindPipeline(PassNode* passNode);
 
+    void PushConstants(const PassNode* passNode, const uint8_t* data, size_t size);
+
     template <typename... Buffers> void BindVertexBuffers(const Buffers&... vertexBuffers) {
         constexpr size_t BufferCount          = sizeof...(Buffers);
         std::array       buffers              = {vertexBuffers.GetNativeHandle()...};
@@ -109,7 +111,15 @@ public:
         GetNativeHandle().bindVertexBuffers(0, BufferCount, buffers.data(), offsets);
     }
 
+    template <typename T> void PushConstant(const PassNode* node, std::span<T> constants) {
+        PushConstants(node, (const uint8_t*)constants.data(), constants.size() * sizeof(T));
+    }
+
+    template <typename T> void PushConstant(const PassNode* node, const T* constants) {
+        PushConstants(node, (const uint8_t*)constants, sizeof(T));
+    }
+
 private:
     vk::CommandBuffer m_handle;
 };
-} // namespace wind 
+} // namespace wind

@@ -24,7 +24,7 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
         RenderProcessBuilder renderProcessBuilder;
 
         std::shared_ptr<GraphicsShader> BasePassShader =
-            ShaderFactory::CreateGraphicsShader("Triangle.vert.spv", "Triangle.frag.spv");
+            ShaderFactory::CreateGraphicsShader("BasePass.vert.spv", "BasePass.frag.spv");
 
         renderProcessBuilder.SetBlendState(false)
             .SetShader(BasePassShader.get())
