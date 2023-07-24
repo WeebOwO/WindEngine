@@ -24,7 +24,11 @@ RenderProcessBuilder& RenderProcessBuilder::SetShader(GraphicsShader* graphicsSh
         .setPName("main");
 
     auto& shaderLayouts = graphicsShader->GetDescriptorSetLayouts();
-
+    auto& pushConstantRange = graphicsShader->GetPushConstantRange();
+    if(pushConstantRange.has_value()) {
+        m_pipelineLayoutCreateInfo.setPushConstantRangeCount(1)
+                                  .setPushConstantRanges(pushConstantRange.value());
+    }
     m_pipelineLayoutCreateInfo.setSetLayoutCount(shaderLayouts.size()).setSetLayouts(shaderLayouts);
 
     return *this;

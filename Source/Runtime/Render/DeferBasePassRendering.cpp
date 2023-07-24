@@ -37,6 +37,7 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
 
         return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
             cmdBuffer.Draw(3, 1);
+            
         };
     });
 }

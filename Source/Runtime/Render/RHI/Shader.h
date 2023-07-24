@@ -52,7 +52,8 @@ public:
     [[nodiscard]] auto  GetShaderReflesctionData() const { return m_reflectionDatas; }
     [[nodiscard]] auto& GetDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
     [[nodiscard]] auto& GetDescriptorSet() { return m_descriptorSets; }
-
+    [[nodiscard]] auto& GetPushConstantRange() {return m_pushConstantRange;}
+    
     void Bind(const std::string resourceName, uint8_t* cpudata);
     void Bind(const std::string resoueceName, std::shared_ptr<Image> image);
 
