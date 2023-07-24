@@ -1,9 +1,9 @@
 #include "Shader.h"
 
+#include <map>
 #include <memory>
 #include <spirv_cross/spirv_glsl.hpp>
 #include <unordered_map>
-#include <map>
 
 #include "Runtime/Base/Io.h"
 #include "Runtime/Base/Macro.h"
@@ -39,14 +39,21 @@ void GraphicsShader::GenerateVulkanDescriptorSetLayout() {
 
     for (const auto& [setIndex, bindingVecs] : m_setGroups) {
         vk::DescriptorSetLayoutCreateInfo descriptorSetLayoutCreateInfo;
-        descriptorSetLayoutCreateInfo.setBindingCount(bindingVecs.size())
-                                     .setBindings(bindingVecs);
+        descriptorSetLayoutCreateInfo.setBindingCount(bindingVecs.size()).setBindings(bindingVecs);
         vk::DescriptorSetLayout setLayout =
             device.createDescriptorSetLayout(descriptorSetLayoutCreateInfo);
 
         m_descriptorSetLayouts.push_back(setLayout);
         m_descriptorSets.push_back(allocater->Allocate(setLayout));
     }
+}
+
+void GraphicsShader::GeneratePushConstantData() {
+    if(m_pushConstantMeta.has_value()) {
+        m_pushConstantRange->setSize(m_pushConstantMeta->size);
+        m_pushConstantRange->setOffset(0);
+        m_pushConstantRange->setStageFlags(m_pushConstantMeta->shadeshaderStageFlag);
+    }   
 }
 
 void GraphicsShader::FinishShaderBinding() {
@@ -145,6 +152,19 @@ void GraphicsShader::CollectSpirvMetaData(std::vector<uint32_t> spivrBinary,
             m_reflectionDatas[resource.name].shaderStageFlag |= shaderFlags;
         }
     }
+
+    for (const auto& resource : resources.push_constant_buffers) {
+        std::string_view             resourceName = resource.name;
+        const spirv_cross::SPIRType& type         = compiler.get_type(resource.type_id);
+        uint32_t                     size         = compiler.get_declared_struct_size(type);
+        if (!m_pushConstantMeta.has_value()) {
+            m_pushConstantMeta->size = size;
+            m_pushConstantMeta->offset = 0;
+            m_pushConstantMeta->shadeshaderStageFlag = shaderFlags;
+        } else {
+            m_pushConstantMeta->shadeshaderStageFlag |= shaderFlags;
+        }
+    }
 }
 
 GraphicsShader& GraphicsShader::SetShaderResource(std::string_view        resourceName,
@@ -193,6 +213,7 @@ GraphicsShader::GraphicsShader(std::string_view vertexShaderfilePath,
     m_fragShader = device.createShaderModule(createInfo);
 
     GenerateVulkanDescriptorSetLayout();
+    GeneratePushConstantData();
 }
 
 void GraphicsShader::Bind(const std::string resoueceName, std::shared_ptr<Image> image) {

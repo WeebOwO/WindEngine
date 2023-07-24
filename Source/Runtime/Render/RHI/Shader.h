@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -36,6 +37,12 @@ public:
         vk::ShaderStageFlags shaderStageFlag;
     };
 
+    struct PushConstantMetaData {
+        uint32_t offset;
+        uint32_t size;
+        vk::ShaderStageFlags shadeshaderStageFlag;
+    };
+
     GraphicsShader(std::string_view vertexShaderfilePath, std::string_view fragmentShaderFilePath);
 
     ~GraphicsShader();
@@ -58,17 +65,21 @@ public:
 
 private:
     void GenerateVulkanDescriptorSetLayout();
+    void GeneratePushConstantData();
     void CollectSpirvMetaData(std::vector<uint32_t> spivrBinary, vk::ShaderStageFlags shaderFlags);
     vk::ShaderModule m_vertexShader;
     vk::ShaderModule m_fragShader;
 
     std::unordered_map<std::string, BindMetaData> m_reflectionDatas;
-
+    
     std::unordered_map<std::string, ShaderImageDesc>  m_imageShaderResource;
     std::unordered_map<std::string, ShaderBufferDesc> m_bufferShaderResource;
 
     std::vector<vk::DescriptorSetLayout> m_descriptorSetLayouts;
     std::vector<vk::DescriptorSet>       m_descriptorSets;
+
+    std::optional<PushConstantMetaData>  m_pushConstantMeta {std::nullopt};
+    std::optional<vk::PushConstantRange> m_pushConstantRange {std::nullopt};
 };
 
 class ShaderFactory {
