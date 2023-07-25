@@ -63,6 +63,7 @@ struct GLTFMesh {
     struct MeshData {
         glm::mat4 Transform = glm::mat4(1.0f);
     } Data;
+
 };
 
 class GLTFLoader {

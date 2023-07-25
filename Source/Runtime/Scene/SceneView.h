@@ -9,7 +9,6 @@
 #include "Runtime/Scene/GameObject.h"
 #include "Runtime/Scene/Scene.h"
 
-
 namespace wind {
 struct CameraUnifoirmBuffer {
     alignas(16) glm::mat4 view;
@@ -69,6 +68,8 @@ public:
     std::shared_ptr<Image> iblBrdfLut;
     std::shared_ptr<Image> skyBoxIrradianceTexture;
 
+    std::shared_ptr<Buffer> gltfModelBuffer;
+    
     SceneView();
     void Init();
     void SetScene(Scene* scene);

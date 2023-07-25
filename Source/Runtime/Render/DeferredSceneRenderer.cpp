@@ -24,7 +24,9 @@ void DeferedSceneRenderer::Init() {
     }
 }
 
-void DeferedSceneRenderer::InitView(Scene& scene) { m_sceneView->SetScene(&scene); }
+void DeferedSceneRenderer::InitView(Scene& scene) { 
+    m_sceneView->SetScene(&scene); 
+}
 
 void DeferedSceneRenderer::Render(Scene& scene) {
     m_backend.StartFrame();

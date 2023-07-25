@@ -29,7 +29,7 @@ void SceneView::SetScene(Scene* scene) {
     lightBuffer->lightDirection = sun.direction;
     lightBuffer->lightIntensity = sun.radiance;
     lightBuffer->lightColor     = sun.ligthColor;
-
+    
     skyBoxIrradianceTexture = scene->GetSkybox()->skyBoxIrradianceImage;
 }
 

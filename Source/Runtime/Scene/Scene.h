@@ -46,7 +46,7 @@ public:
     void LoadGLTFScene(const std::string& resourceName, std::string_view filePath);
 
     auto& GetSkybox() { return m_skybox; }
-    void  BuildMeshBatch();
+    auto& GetRequiredGLTFModel(const std::string& resourname) {return m_gltfModel[resourname];}    
 
 private:
     Scene() = default;

@@ -25,12 +25,8 @@ layout(set = 0, binding = 0) uniform CameraBuffer {
 	vec3 viewPos;
 } cameraData;
 
-layout(set = 0, binding = 1) uniform ModelBuffer {
-    mat4 models[256];
-};
-
 void main() {
-    vout.position = (models[modelIndex] * vec4(position, 1.0)).xyz;
+    vout.position = position;
     gl_Position = cameraData.viewproj * vec4(vout.position, 1.0);
     vout.texcoord = texCoord;
     vout.tangentBasis = mat3(tangent, bitangent, normal);

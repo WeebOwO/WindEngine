@@ -1,6 +1,8 @@
 #include "PassRendering.h"
 
 #include "Runtime/Render/RHI/Shader.h"
+#include "Runtime/Resource/Mesh.h"
+#include <stdint.h>
 
 namespace wind {
 void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
@@ -31,6 +33,7 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
 
         std::shared_ptr<GraphicsShader> BasePassShader =
             ShaderFactory::CreateGraphicsShader("BasePass.vert.spv", "BasePass.frag.spv");
+
         BasePassShader->SetShaderResource("CameraBuffer", camearaShaderBufferDesc);
 
         renderProcessBuilder.SetBlendState(false)
@@ -45,7 +48,10 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
         return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
             auto*      scene     = passNode->renderScene->GetOwnScene();
             SceneView* sceneView = passNode->renderScene;
-            
+            auto& sponzaMesh = scene->GetRequiredGLTFModel("Sponza");
+
+            BasePassShader->FinishShaderBinding();
+
             struct ConstantData {
                 uint32_t materialIndex;
                 uint32_t modelIndex;
@@ -55,9 +61,15 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
 
             cameraBuffer->CopyData((uint8_t*)sceneView->cameraBuffer.get(),
                                    camearaShaderBufferDesc.range, camearaShaderBufferDesc.offset);
-        
+
             cmdBuffer.PushConstant(passNode, &constantData);
-            
+
+            for(auto& subMesh : sponzaMesh.submeshes) {
+                size_t indexCount = subMesh.indexBuffer.GetByteSize() / sizeof(uint32_t);
+                cmdBuffer.BindVertexBuffers(subMesh.vertexBuffer);
+                cmdBuffer.BindIndexBufferUInt32(subMesh.indexBuffer);
+                cmdBuffer.DrawIndexed(indexCount, 1);
+            }
         };
     });
 }

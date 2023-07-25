@@ -109,6 +109,7 @@ static Format ImageFormatFromGLTFImage(const tinygltf::Image& image) {
 static ImageData CreateStubTexture(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
     return ImageData{std::vector{r, g, b, a}, Format::R8G8B8A8_UNORM, 1, 1};
 }
+
 GLTFModelData GLTFLoader::LoadFromGLTF(const std::string& filepath) {
     GLTFModelData      result;
     tinygltf::TinyGLTF loader;
