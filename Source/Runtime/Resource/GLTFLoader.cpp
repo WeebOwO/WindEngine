@@ -232,7 +232,7 @@ GLTFModelData GLTFLoader::LoadFromGLTF(const std::string& filepath) {
                 auto& vertex     = resultShape.vertices[i];
                 vertex.position  = positions[i];
                 vertex.texcoord  = texCoords[i];
-                vertex.Normal    = normals[i];
+                vertex.normal    = normals[i];
                 vertex.tangent   = tangentsBitangents[i].first;
                 vertex.bitangent = tangentsBitangents[i].second;
             }

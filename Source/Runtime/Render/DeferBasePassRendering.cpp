@@ -1,6 +1,7 @@
 #include "PassRendering.h"
 
 #include "Runtime/Render/RHI/Shader.h"
+#include "Runtime/Resource/GLTFLoader.h"
 #include "Runtime/Resource/Mesh.h"
 #include <stdint.h>
 
@@ -38,7 +39,7 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
 
         renderProcessBuilder.SetBlendState(false)
             .SetShader(BasePassShader.get())
-            .SetNeedVerTex(false)
+            .SetVertexFactory<gltf::GLTFVertex>()
             .SetRenderPass(passNode->renderPass)
             .SetDepthSetencilTestState(true, true, false, vk::CompareOp::eLessOrEqual);
 
@@ -56,14 +57,16 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
                 uint32_t materialIndex;
                 uint32_t modelIndex;
             };
-            
+            auto& pso    = passNode->pipelineState->GetPipeline();
             ConstantData constantData {0, 0};
 
             cameraBuffer->CopyData((uint8_t*)sceneView->cameraBuffer.get(),
                                    camearaShaderBufferDesc.range, camearaShaderBufferDesc.offset);
 
-            cmdBuffer.PushConstant(passNode, &constantData);
-
+            // cmdBuffer.PushConstant(passNode, &constantData);
+            cmdBuffer.BindDescriptorSet(pso.bindPoint, pso.pipelineLayout,
+                                        BasePassShader->GetDescriptorSet());
+            
             for(auto& subMesh : sponzaMesh.submeshes) {
                 size_t indexCount = subMesh.indexBuffer.GetByteSize() / sizeof(uint32_t);
                 cmdBuffer.BindVertexBuffers(subMesh.vertexBuffer);
@@ -73,4 +76,4 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
         };
     });
 }
-} // namespace wind
+} // namespace wind 

@@ -10,12 +10,56 @@
 
 namespace wind::gltf {
 // this part is mainly come from https://github.com/asc-community/VulkanAbstractionLayer
+
 struct GLTFVertex {
     glm::vec3 position;
     glm::vec2 texcoord;
-    glm::vec3 Normal;
+    glm::vec3 normal;
     glm::vec3 tangent;
     glm::vec3 bitangent;
+
+    static vk::VertexInputBindingDescription GetInputBindingDescription() {
+        vk::VertexInputBindingDescription vertexInputBindingDescription{};
+        vertexInputBindingDescription.setBinding(0)
+            .setStride(sizeof(GLTFVertex))
+            .setInputRate(vk::VertexInputRate::eVertex);
+        return vertexInputBindingDescription;
+    };
+
+    static std::vector<vk::VertexInputAttributeDescription> GetVertexInputAttributeDescriptions() {
+        std::vector<vk::VertexInputAttributeDescription> vertexInputAttributeDescription(5);
+
+        vertexInputAttributeDescription[0]
+            .setBinding(0)
+            .setLocation(0)
+            .setFormat(vk::Format::eR32G32B32Sfloat)
+            .setOffset(offsetof(GLTFVertex, position));
+
+         vertexInputAttributeDescription[1]
+            .setBinding(0)
+            .setLocation(1)
+            .setFormat(vk::Format::eR32G32Sfloat)
+            .setOffset(offsetof(GLTFVertex, texcoord));
+
+        vertexInputAttributeDescription[2]
+            .setBinding(0)
+            .setLocation(2)
+            .setFormat(vk::Format::eR32G32B32Sfloat)
+            .setOffset(offsetof(GLTFVertex, normal));
+
+        vertexInputAttributeDescription[3]
+            .setBinding(0)
+            .setLocation(3)
+            .setFormat(vk::Format::eR32G32B32Sfloat)
+            .setOffset(offsetof(GLTFVertex, tangent));
+
+        vertexInputAttributeDescription[4]
+            .setBinding(0)
+            .setLocation(4)
+            .setFormat(vk::Format::eR32G32B32Sfloat)
+            .setOffset(offsetof(GLTFVertex, bitangent));
+        return vertexInputAttributeDescription;
+    }
 };
 
 struct GLTFMaterial {

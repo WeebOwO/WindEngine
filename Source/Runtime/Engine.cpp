@@ -5,6 +5,7 @@
 
 #include "Runtime/Base/Io.h"
 #include "Runtime/Base/Log.h"
+#include "Runtime/Base/Macro.h"
 #include "Runtime/Input/Input.h"
 #include "RUntime/Render/ForwardSceneRenderer.h"
 #include "Runtime/Render/DeferredSceneRenderer.h"
@@ -28,11 +29,11 @@ public:
         RenderBackend::Init(setting);
         Scene::Init();
         InputManger::Init(m_window.GetWindow());
-        InitScene();
     }
 
     ~EngineImpl() = default;
     void Run() {
+        InitScene();
         LoadGameObject();
         while (!glfwWindowShouldClose(m_window.GetWindow())) {
             float fs = CalculateDeltaTime();
@@ -56,7 +57,6 @@ private:
     void  LogicTick(float ts);
     void  LoadGameObject();
     void  InitScene();
-    void  AddCamera();
     float CalculateDeltaTime();
 
 private:
@@ -67,18 +67,16 @@ private:
     ShowCase                              m_showCase{ShowCase::Pbr};
 };
 
-void EngineImpl::AddCamera() {
-    auto& world = Scene::GetWorld();
-    if (m_showCase == ShowCase::Pbr) {
-        world.SetupCamera(std::make_shared<OrbitCamera>(m_window.GetWindow()));
-    } else {
-        world.SetupCamera(std::make_shared<FirstPersonCamera>(45.0f, 0.1f, 100.0f));
-    }
-}
-
 void EngineImpl::InitScene() {
     auto& world = Scene::GetWorld();
-    world.SetupCamera(std::make_shared<OrbitCamera>(m_window.GetWindow()));
+
+    if (m_showCase == ShowCase::Pbr) {
+        world.SetupCamera(std::make_shared<OrbitCamera>(m_window.GetWindow()));
+        WIND_INFO("Using orbit camera");
+    } else {
+        world.SetupCamera(std::make_shared<FirstPersonCamera>(45.0f, 0.1f, 100.0f));
+        WIND_INFO("Using first person camera");
+    }
 
     DirectionalLight sun;
     sun.direction = glm::normalize(glm::vec3{-1.0f, 0.0f, 0.0f});
@@ -180,5 +178,7 @@ Engine::Engine() : m_impl(std::make_unique<EngineImpl>()) {}
 
 Engine::~Engine() { WIND_CORE_INFO("Engine shutdown"); }
 
-void Engine::SetShowCase(ShowCase showcase) { m_impl->SetShowCase(showcase); }
+void Engine::SetShowCase(ShowCase showcase) { 
+    m_impl->SetShowCase(showcase); 
+}
 } // namespace wind

@@ -13,10 +13,10 @@ layout(location=0) out Vertex
 	mat3 tangentBasis;
 } vout;
 
-layout(push_constant) uniform PushConstant {
-    uint materialIndex;
-    uint modelIndex;
-};
+// layout(push_constant) uniform PushConstant {
+//     uint materialIndex;
+//     uint modelIndex;
+// };
 
 layout(set = 0, binding = 0) uniform CameraBuffer {   
     mat4 view;
