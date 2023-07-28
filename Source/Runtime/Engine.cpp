@@ -74,7 +74,9 @@ void EngineImpl::InitScene() {
         world.SetupCamera(std::make_shared<OrbitCamera>(m_window.GetWindow()));
         WIND_INFO("Using orbit camera");
     } else {
-        world.SetupCamera(std::make_shared<FirstPersonCamera>(45.0f, 0.1f, 100.0f));
+        auto camera = std::make_shared<FirstPersonCamera>(65.0f, 0.5f, 100000.0f);
+        
+        world.SetupCamera(camera);
         WIND_INFO("Using first person camera");
     }
 

@@ -470,15 +470,16 @@ void CommandBuffer::BindDescriptorSet(vk::PipelineBindPoint bindPoint, vk::Pipel
 
 void CommandBuffer::PushConstants(const PassNode* passNode, const uint8_t* data, size_t size) {
     constexpr size_t MaxPushConstantByteSize = 128;
-    std::array<uint8_t, MaxPushConstantByteSize> pushConstants = { };
+    std::array<uint8_t, MaxPushConstantByteSize> pushConstants = {};
     std::memcpy(pushConstants.data(), data, size);
     vk::ShaderStageFlags shaderStageFlag;
+    
     if(passNode->passType == PassType::Graphic) {
-        shaderStageFlag = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
+        shaderStageFlag = passNode->graphicsShader->GetPushConstantShaderStage();
     } else {
         shaderStageFlag = vk::ShaderStageFlagBits::eCompute;
     }
-    m_handle.pushConstants(passNode->pipelineState->GetPipeline().pipelineLayout, shaderStageFlag, 0, pushConstants.size(), pushConstants
+    m_handle.pushConstants(passNode->pipelineState->GetPipeline().pipelineLayout, shaderStageFlag, 0, size, pushConstants
     .data());
 }
 

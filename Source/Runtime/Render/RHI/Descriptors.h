@@ -37,8 +37,9 @@ public:
         std::vector<std::pair<vk::DescriptorType, float>> sizes = {
             {vk::DescriptorType::eSampler, 0.5f},
             {vk::DescriptorType::eCombinedImageSampler, 4.f},
-            {vk::DescriptorType::eUniformBuffer, 2.f},
+            {vk::DescriptorType::eUniformBuffer, 2.f}, 
             {vk::DescriptorType::eStorageBuffer, 2.f},
+            {vk::DescriptorType::eSampledImage, 2.f},
             {vk::DescriptorType::eInputAttachment, 0.5f},
             {vk::DescriptorType::eUniformBufferDynamic, 0.5f},
             {vk::DescriptorType::eStorageBufferDynamic, 0.5f}};

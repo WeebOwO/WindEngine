@@ -49,40 +49,42 @@ private:
 
 private:
     glm::vec3 m_forwardDirection{0.0f, 0.0f, 0.0f};
+    float     m_speed = 10.0f;
 };
 
 class OrbitCamera : public BaseCamera {
 public:
-    OrbitCamera(GLFWwindow* window); 
-    
+    OrbitCamera(GLFWwindow* window);
+
     bool OnUpdate(float ts) override;
     void OnResize(uint32_t width, uint32_t height) override;
-    
-    auto& GetViewSetting() const  {return m_viewSetting;}
+
+    auto& GetViewSetting() const { return m_viewSetting; }
+
 private:
     void RecalculateProjection();
     void RecalculateView();
 
 private:
     float m_orbitSpeed = 1.0f;
-    float m_zoomSpeed = 4.0f;
+    float m_zoomSpeed  = 4.0f;
 
     enum class InputMode : uint8_t { None, RotatingView, RotatingScene };
 
     struct ViewSettings {
-        float pitch = 0.0f;
-        float yaw   = 0.0f;
+        float pitch    = 0.0f;
+        float yaw      = 0.0f;
         float distance = 150.0f;
-        float fov = 45.0f;
+        float fov      = 45.0f;
     };
 
     struct SceneSettings {
         float pitch = 0.0f;
         float yaw   = 0.0f;
     };
-    
+
     double m_prevCursorX;
-	double m_prevCursorY;
+    double m_prevCursorY;
 
     ViewSettings  m_viewSetting;
     SceneSettings m_sceneSetting;

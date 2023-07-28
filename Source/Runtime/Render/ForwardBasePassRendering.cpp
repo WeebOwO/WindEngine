@@ -15,7 +15,7 @@ void AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
     std::shared_ptr<Buffer> lightBuffer = std::make_shared<Buffer>(
         sizeof(LightUniformBuffer), BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
 
-    static std::shared_ptr<Sampler> BasicSampler =
+    std::shared_ptr<Sampler> BasicSampler =
         std::make_shared<Sampler>(Sampler::MinFilter::LINEAR, Sampler::MagFilter::LINEAR,
                                   Sampler::AddressMode::REPEAT, Sampler::MipFilter::LINEAR);
 

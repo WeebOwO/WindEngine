@@ -51,7 +51,7 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
             SceneView* sceneView = passNode->renderScene;
             auto& sponzaMesh = scene->GetRequiredGLTFModel("Sponza");
 
-            BasePassShader->FinishShaderBinding();
+            BasePassShader->Bind("CameraBuffer", camearaShaderBufferDesc);
 
             struct ConstantData {
                 uint32_t materialIndex;
@@ -62,7 +62,7 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
 
             cameraBuffer->CopyData((uint8_t*)sceneView->cameraBuffer.get(),
                                    camearaShaderBufferDesc.range, camearaShaderBufferDesc.offset);
-
+            
             // cmdBuffer.PushConstant(passNode, &constantData);
             cmdBuffer.BindDescriptorSet(pso.bindPoint, pso.pipelineLayout,
                                         BasePassShader->GetDescriptorSet());

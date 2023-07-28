@@ -53,8 +53,8 @@ void GraphicsShader::GeneratePushConstantData() {
     if (m_pushConstantMeta.has_value()) {
         vk::PushConstantRange range;
         range.setOffset(m_pushConstantMeta->offset)
-             .setSize(m_pushConstantMeta->size)
-             .setStageFlags(m_pushConstantMeta->shadeshaderStageFlag);
+            .setSize(m_pushConstantMeta->size)
+            .setStageFlags(m_pushConstantMeta->shadeshaderStageFlag);
         m_pushConstantRange = std::optional<vk::PushConstantRange>(range);
     }
 }
@@ -68,30 +68,9 @@ void GraphicsShader::FinishShaderBinding() {
     size_t                                bufferIdx = 0, imageIdx = 0;
 
     for (const auto& [name, metaData] : m_reflectionDatas) {
-        vk::WriteDescriptorSet writer;
-
-        if (metaData.descriptorType == vk::DescriptorType::eUniformBuffer) {
-            auto& shaderBufferDesc = m_bufferShaderResource[name];
-
-            if (shaderBufferDesc.buffer == nullptr) {
-                WIND_CORE_ERROR("Fail to find shader buffer resource which is {}", name);
-            }
-
-            bufferInfos[bufferIdx]
-                .setBuffer(shaderBufferDesc.buffer->GetNativeHandle())
-                .setOffset(shaderBufferDesc.offset)
-                .setRange(shaderBufferDesc.range);
-
-            writer.setDescriptorType(vk::DescriptorType::eUniformBuffer)
-                .setDstBinding(metaData.binding)
-                .setDescriptorCount(metaData.count)
-                .setBufferInfo(bufferInfos[bufferIdx])
-                .setDstSet(m_descriptorSets[metaData.set]);
-            ++bufferIdx;
-        }
-
         if (metaData.descriptorType == vk::DescriptorType::eCombinedImageSampler) {
-            auto& shaderImageDesc = m_imageShaderResource[name];
+            vk::WriteDescriptorSet writer;
+            auto&                  shaderImageDesc = m_imageShaderResource[name];
 
             if (shaderImageDesc.image == nullptr) {
                 WIND_CORE_ERROR("Fail to find shader image resource which is {}", name);
@@ -108,10 +87,10 @@ void GraphicsShader::FinishShaderBinding() {
                 .setDstBinding(metaData.binding)
                 .setDstSet(m_descriptorSets[metaData.set]);
             ++imageIdx;
+            writeDescriptorVec.push_back(writer);
         }
-
-        writeDescriptorVec.push_back(writer);
     }
+
     device.updateDescriptorSets(writeDescriptorVec.size(), writeDescriptorVec.data(), 0, nullptr);
 }
 
@@ -218,9 +197,46 @@ GraphicsShader::GraphicsShader(std::string_view vertexShaderfilePath,
     GeneratePushConstantData();
 }
 
-void GraphicsShader::Bind(const std::string resoueceName, std::shared_ptr<Image> image) {
+void GraphicsShader::Bind(const std::string& resoueceName, std::shared_ptr<Image> image) {
     auto& shaderImageDesc = m_imageShaderResource[resoueceName];
     shaderImageDesc.image = image;
+}
+
+void GraphicsShader::Bind(const std::string& resourceName, const ShaderImageDesc& imageDesc) {
+    
+    auto& device = RenderBackend::GetInstance().GetDevice();
+    vk::DescriptorImageInfo imageInfo;
+    imageInfo.setImageLayout(ImageUsageToImageLayout(imageDesc.usage))
+             .setImageView(imageDesc.image->GetNativeView(ImageView::NATIVE))
+             .setSampler(imageDesc.sampler->GetNativeHandle());
+
+    auto                   bindData = m_reflectionDatas[resourceName];
+    vk::WriteDescriptorSet writer;
+    writer.setDescriptorType(bindData.descriptorType)
+        .setDescriptorCount(bindData.count)
+        .setDstBinding(bindData.binding)
+        .setImageInfo(imageInfo)
+        .setDstSet(m_descriptorSets[bindData.set]);
+    
+     device.updateDescriptorSets(1, &writer, 0, nullptr);
+}
+
+
+void GraphicsShader::Bind(const std::string& resourceName, const ShaderBufferDesc& bufferDesc) {
+    auto&                    device = RenderBackend::GetInstance().GetDevice();
+    vk::DescriptorBufferInfo bufferInfo;
+    bufferInfo.setBuffer(bufferDesc.buffer->GetNativeHandle())
+        .setOffset(bufferDesc.offset)
+        .setRange(bufferDesc.range);
+    auto                   bindData = m_reflectionDatas[resourceName];
+    vk::WriteDescriptorSet writer;
+    writer.setDescriptorType(bindData.descriptorType)
+        .setDescriptorCount(bindData.count)
+        .setDstBinding(bindData.binding)
+        .setBufferInfo(bufferInfo)
+        .setDstSet(m_descriptorSets[bindData.set]);
+
+    device.updateDescriptorSets(1, &writer, 0, nullptr);
 }
 
 std::shared_ptr<GraphicsShader>

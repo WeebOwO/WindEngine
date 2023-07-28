@@ -38,28 +38,26 @@ bool FirstPersonCamera::OnUpdate(float ts) {
     constexpr glm::vec3 upDirection(0.0f, 1.0f, 0.0f);
     glm::vec3           rightDirection = glm::cross(m_forwardDirection, upDirection);
 
-    float speed = 5.0f;
-
     // Movement
     if (inputManger->IsKeyDown(KeyCode::W)) {
-        position += m_forwardDirection * speed * ts;
+        position += m_forwardDirection * m_speed * ts;
         moved = true;
     } else if (inputManger->IsKeyDown(KeyCode::S)) {
-        position -= m_forwardDirection * speed * ts;
+        position -= m_forwardDirection * m_speed * ts;
         moved = true;
     }
     if (inputManger->IsKeyDown(KeyCode::A)) {
-        position -= rightDirection * speed * ts;
+        position -= rightDirection * m_speed * ts;
         moved = true;
     } else if (inputManger->IsKeyDown(KeyCode::D)) {
-        position += rightDirection * speed * ts;
+        position += rightDirection * m_speed * ts;
         moved = true;
     }
     if (inputManger->IsKeyDown(KeyCode::Q)) {
-        position -= upDirection * speed * ts;
+        position -= upDirection * m_speed * ts;
         moved = true;
     } else if (inputManger->IsKeyDown(KeyCode::E)) {
-        position += upDirection * speed * ts;
+        position += upDirection * m_speed * ts;
         moved = true;
     }
 

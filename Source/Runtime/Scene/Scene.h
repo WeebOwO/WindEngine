@@ -47,7 +47,7 @@ public:
 
     auto& GetSkybox() { return m_skybox; }
     auto& GetRequiredGLTFModel(const std::string& resourname) {return m_gltfModel[resourname];}    
-
+    
 private:
     Scene() = default;
     std::vector<GameObject>       m_worldObjects;

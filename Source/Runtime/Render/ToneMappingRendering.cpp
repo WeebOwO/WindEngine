@@ -96,7 +96,7 @@ void AddDeferToneMappingCombinePass(RenderGraphBuilder& graphBuilder) {
     graphBuilder.AddRenderPass("ToneMapPass", [=](PassNode* passNode) {
         TextureOps loadops{vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
                            vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare};
-                           
+
         passNode->DeclareColorAttachment("BackBuffer", presentTextureDesc, loadops,
                                          vk::ImageLayout::eUndefined,
                                          vk::ImageLayout::ePresentSrcKHR);
@@ -115,15 +115,13 @@ void AddDeferToneMappingCombinePass(RenderGraphBuilder& graphBuilder) {
             .SetRenderPass(passNode->renderPass)
             .SetDepthSetencilTestState(false, false, false, vk::CompareOp::eLessOrEqual);
 
-        shader->SetShaderResource("sceneColor", sceneColorDesc);
-
         passNode->graphicsShader = shader;
         passNode->pipelineState  = renderProcessBuilder.BuildGraphicProcess();
 
         return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
             auto sceneColor = graphRegister->GetResource("SceneColor");
-            shader->Bind("sceneColor", sceneColor->imageHandle);
-            shader->FinishShaderBinding();
+            shader->Bind("sceneColor", ShaderImageDesc{sceneColor->imageHandle,
+                                                       ImageUsage::SHADER_READ, sampler});
             auto& pso = passNode->pipelineState->GetPipeline();
 
             cmdBuffer.BindDescriptorSet(pso.bindPoint, pso.pipelineLayout,

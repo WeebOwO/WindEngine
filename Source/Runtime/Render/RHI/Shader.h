@@ -53,9 +53,11 @@ public:
     [[nodiscard]] auto& GetDescriptorSetLayouts() const { return m_descriptorSetLayouts; }
     [[nodiscard]] auto& GetDescriptorSet() { return m_descriptorSets; }
     [[nodiscard]] auto& GetPushConstantRange() {return m_pushConstantRange;}
+    [[nodiscard]] auto& GetPushConstantShaderStage() {return m_pushConstantMeta->shadeshaderStageFlag;}
     
-    void Bind(const std::string resourceName, uint8_t* cpudata);
-    void Bind(const std::string resoueceName, std::shared_ptr<Image> image);
+    void Bind(const std::string& resoueceName, std::shared_ptr<Image> image);
+    void Bind(const std::string& resourceName, const ShaderBufferDesc& bufferDesc);
+    void Bind(const std::string& resourceName, const ShaderImageDesc& imageDesc);
 
     void FinishShaderBinding();
 

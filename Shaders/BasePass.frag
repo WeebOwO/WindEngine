@@ -9,6 +9,13 @@ layout(location = 0) in Vertex
 
 layout(location = 0) out vec4 fragColor;
 
+layout(push_constant) uniform PushConstant {
+    uint materialIndex;
+} pushConstant;
+
+// layout(set = 0, binding = 1) uniform sampler textureSampler;
+// layout(set = 1, binding = 0) uniform texture2D textureArray[128];
+
 struct Material
 {
     uint AlbedoTextureIndex;
@@ -19,5 +26,5 @@ struct Material
 };
 
 void main() {
-    fragColor = vec4(1.0);  
+    fragColor = vec4(vin.position, 1.0);  
 }
