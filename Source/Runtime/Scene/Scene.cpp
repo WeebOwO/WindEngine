@@ -83,7 +83,19 @@ void Scene::LoadGLTFScene(const std::string& resourceName, std::string_view file
         backend.SubmitCommandBuffer(commandBuffer);
         stageBuffer.Reset();
     }
-
+    // generate material rhi buffer
+    commandBuffer.Begin();
+    auto allocatioin    = stageBuffer.Submit(utils::MakeView(mesh.materials));
+    mesh.materialBuffer = std::make_shared<Buffer>(
+        sizeof(gltf::GLTFMesh::Material) * gltf::GLTFMesh::MaxMaterialCount,
+        BufferUsage::UNIFORM_BUFFER | BufferUsage::TRANSFER_DESTINATION, MemoryUsage::GPU_ONLY);
+    commandBuffer.CopyBuffer(BufferInfo{stageBuffer.GetBuffer(), allocatioin.Offset},
+                             BufferInfo{*mesh.materialBuffer, 0}, allocatioin.Size);
+    stageBuffer.Flush();
+    commandBuffer.End();
+    backend.SubmitCommandBuffer(commandBuffer);
+    stageBuffer.Reset();
+    
     m_gltfModel[std::string(resourceName)] = std::move(mesh);
 }
 } // namespace wind

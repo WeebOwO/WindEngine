@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <string>
 
 #include "glm/glm.hpp"
@@ -108,6 +109,8 @@ struct GLTFMesh {
         glm::mat4 Transform = glm::mat4(1.0f);
     } Data;
 
+    std::shared_ptr<Buffer> materialBuffer;
+    static constexpr int MaxMaterialCount = 256;
 };
 
 class GLTFLoader {

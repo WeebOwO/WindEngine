@@ -47,15 +47,14 @@ void AddBloomSetupPass(RenderGraphBuilder& graphBuilder) {
             .SetRenderPass(passNode->renderPass)
             .SetDepthSetencilTestState(false, false, false, vk::CompareOp::eLessOrEqual);
 
-        shader->SetShaderResource("sceneColor", sceneColorDesc);
-
         passNode->graphicsShader = shader;
         passNode->pipelineState  = renderProcessBuilder.BuildGraphicProcess();
 
         return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
             auto sceneColor = graphRegister->GetResource("SceneColor");
-            shader->Bind("sceneColor", sceneColor->imageHandle);
-            shader->FinishShaderBinding();
+            shader->Bind("sceneColor", ShaderImageDesc{sceneColor->imageHandle,
+                                                       ImageUsage::SHADER_READ, sampler});
+            
             auto& pso = passNode->pipelineState->GetPipeline();
 
             cmdBuffer.BindDescriptorSet(pso.bindPoint, pso.pipelineLayout,
@@ -82,8 +81,6 @@ void AddBloomBlurPass(RenderGraphBuilder& graphBuilder) {
         std::make_shared<Sampler>(Sampler::MinFilter::LINEAR, Sampler::MagFilter::LINEAR,
                                   Sampler::AddressMode::REPEAT, Sampler::MipFilter::LINEAR);
 
-    ShaderImageDesc bloomSetupDesc{nullptr, ImageUsage::SHADER_READ, sampler};
-
     graphBuilder.AddRenderPass("BloomBlurX", [=](PassNode* passNode) {
         TextureOps loadops{vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
                            vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare};
@@ -106,16 +103,13 @@ void AddBloomBlurPass(RenderGraphBuilder& graphBuilder) {
             .SetRenderPass(passNode->renderPass)
             .SetDepthSetencilTestState(false, false, false, vk::CompareOp::eLessOrEqual);
 
-        shader->SetShaderResource("bloomSetup", bloomSetupDesc);
-
         passNode->graphicsShader = shader;
         passNode->pipelineState  = renderProcessBuilder.BuildGraphicProcess();
 
         return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
             auto bloomSetup = graphRegister->GetResource("BloomSetup");
-            shader->Bind("bloomSetup", bloomSetup->imageHandle);
-
-            shader->FinishShaderBinding();
+            shader->Bind("bloomSetup", ShaderImageDesc{bloomSetup->imageHandle,
+                                                       ImageUsage::SHADER_READ, sampler});
 
             auto& pso = passNode->pipelineState->GetPipeline();
 
@@ -147,17 +141,14 @@ void AddBloomBlurPass(RenderGraphBuilder& graphBuilder) {
             .SetNeedVerTex(false)
             .SetRenderPass(passNode->renderPass)
             .SetDepthSetencilTestState(false, false, false, vk::CompareOp::eLessOrEqual);
-
-        shader->SetShaderResource("bloomSetup", bloomSetupDesc);
-          
+      
         passNode->graphicsShader = shader;
         passNode->pipelineState  = renderProcessBuilder.BuildGraphicProcess();
 
         return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
             auto bloomSetup = graphRegister->GetResource("BloomBlurX");
-            shader->Bind("bloomSetup", bloomSetup->imageHandle);
-            shader->FinishShaderBinding();
-
+            shader->Bind("bloomSetup", ShaderImageDesc{bloomSetup->imageHandle,
+                                                       ImageUsage::SHADER_READ, sampler}); 
             auto& pso = passNode->pipelineState->GetPipeline();
 
             cmdBuffer.BindDescriptorSet(pso.bindPoint, pso.pipelineLayout,

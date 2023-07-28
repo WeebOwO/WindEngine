@@ -54,7 +54,7 @@ void SceneView::Init() {
                                                                 MemoryUsage::GPU_ONLY,
                                                                 ImageOptions::DEFAULT};
     
-    SceneTexture::SceneTextureDescs["SceneDepth"] =TextureDesc{width,
+    SceneTexture::SceneTextureDescs["SceneDepth"] = TextureDesc{width,
                                                             height,
                                                             vk::SampleCountFlagBits::e1,
                                                             vk::Format::eD32SfloatS8Uint,
@@ -76,10 +76,12 @@ SceneTexture SceneView::CreateSceneTextures(int createBit) {
         sceneTexture.sceneColor = CreateImage(sceneTextureDesc["SceneColor"]);
         sceneTexturesDict["SceneColor"] = sceneTexture.sceneColor;
     } 
+    
     if(createBit & SceneDepth) {
         sceneTexture.sceneDepth = CreateImage(sceneTextureDesc["SceneDepth"]);
         sceneTexturesDict["SceneDepth"] = sceneTexture.sceneDepth;
     }
+
     return sceneTexture;
 }
 

@@ -284,6 +284,8 @@ uint32_t CalculateImageLayerCount(ImageOptions::Value options) {
 }
 
 void Image::Destroy() {
+    auto& device = RenderBackend::GetInstance().GetDevice();
+    device.waitIdle();
     if ((bool)m_handle) {
         if ((bool)m_allocation) DeallocateImage(m_handle, m_allocation);
 

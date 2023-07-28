@@ -1,4 +1,5 @@
 #include "PassRendering.h"
+#include "Runtime/Render/RHI/Shader.h"
 #include "Runtime/Render/RenderGraph/RenderPass.h"
 #include "Runtime/Resource/Mesh.h"
 
@@ -23,15 +24,6 @@ void AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
     ShaderBufferDesc objectShaderBufferDesc{objectBuffer, 0, sizeof(ObjectUniformBuffer)};
     ShaderBufferDesc lightBufferDesc{lightBuffer, 0, sizeof(LightUniformBuffer)};
 
-    ShaderImageDesc albedoTextureDesc{nullptr, ImageUsage::SHADER_READ, BasicSampler};
-    ShaderImageDesc normalTextureDesc{nullptr, ImageUsage::SHADER_READ, BasicSampler};
-    ShaderImageDesc matalTextureDesc{nullptr, ImageUsage::SHADER_READ, BasicSampler};
-    ShaderImageDesc roughTextureDesc{nullptr, ImageUsage::SHADER_READ, BasicSampler};
-
-    ShaderImageDesc iblIrradianceTexture{nullptr, ImageUsage::SHADER_READ, BasicSampler};
-    ShaderImageDesc BrdfLutTextureDesc{nullptr, ImageUsage::SHADER_READ, BasicSampler};
-    ShaderImageDesc skyBoxImageDesc{nullptr, ImageUsage::SHADER_READ, BasicSampler};
-
     graphBuilder.AddRenderPass("OpaquePass", [=](PassNode* passNode) {
         // Setup part
         TextureOps loadops{vk::AttachmentLoadOp::eLoad, vk::AttachmentStoreOp::eStore,
@@ -52,17 +44,6 @@ void AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
 
         std::shared_ptr<GraphicsShader> BasePassShader = ShaderFactory::CreateGraphicsShader(
             "ForwardBasePass.vert.spv", "ForwardBasePass.frag.spv");
-
-        BasePassShader->SetShaderResource("CameraBuffer", camearaShaderBufferDesc)
-            .SetShaderResource("LightBuffer", lightBufferDesc)
-            .SetShaderResource("ObjectBuffer", objectShaderBufferDesc)
-            .SetShaderResource("albedoTexture", albedoTextureDesc)
-            .SetShaderResource("normalTexture", normalTextureDesc)
-            .SetShaderResource("metallicTexture", matalTextureDesc)
-            .SetShaderResource("roughnessTexture", roughTextureDesc)
-            .SetShaderResource("iblIrradianceTexture", iblIrradianceTexture)
-            .SetShaderResource("iblSpecBrdfLut", BrdfLutTextureDesc)
-            .SetShaderResource("iblSepcTexture", skyBoxImageDesc);
 
         renderProcessBuilder.SetBlendState(false)
             .SetShader(BasePassShader.get())
@@ -96,21 +77,24 @@ void AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
             
             cmdBuffer.BindDescriptorSet(pso.bindPoint, pso.pipelineLayout,
                                         shader->GetDescriptorSet());
-                                        
-            shader->Bind("iblSepcTexture", skyBox->skyBoxImage);
-            shader->Bind("iblSpecBrdfLut", sceneView->iblBrdfLut);
+            
+            shader->Bind("iblSepcTexture", ShaderImageDesc{skyBox->skyBoxImage, ImageUsage::SHADER_READ, BasicSampler});
+            shader->Bind("iblSpecBrdfLut", ShaderImageDesc{sceneView->iblBrdfLut, ImageUsage::SHADER_READ, BasicSampler});
 
             for (auto& gameObject : scene->GetWorld().GetWorldGameObjects()) {
                 auto& model    = gameObject.model;
                 auto& material = model->GetMaterial();
                 
-                shader->Bind("albedoTexture", material.albedoTexture);
-                shader->Bind("normalTexture", material.normalTexture);
-                shader->Bind("metallicTexture", material.metallicTexture);
-                shader->Bind("roughnessTexture", material.roughnessTexture);
-                shader->Bind("iblIrradianceTexture", sceneView->skyBoxIrradianceTexture);
+                // Get shader binding
+                shader->Bind("CameraBuffer", camearaShaderBufferDesc);
+                shader->Bind("LightBuffer", lightBufferDesc);
+                shader->Bind("ObjectBuffer", objectShaderBufferDesc);
+                shader->Bind("albedoTexture", {material.albedoTexture, ImageUsage::SHADER_READ, BasicSampler});
+                shader->Bind("normalTexture", {material.normalTexture, ImageUsage::SHADER_READ, BasicSampler});
+                shader->Bind("metallicTexture", {material.metallicTexture, ImageUsage::SHADER_READ, BasicSampler});
+                shader->Bind("roughnessTexture", {material.roughnessTexture, ImageUsage::SHADER_READ, BasicSampler});
+                shader->Bind("iblIrradianceTexture", {sceneView->skyBoxIrradianceTexture, ImageUsage::SHADER_READ, BasicSampler});
 
-                shader->FinishShaderBinding();
                 model->Bind(cmdBuffer);
                 model->Draw(cmdBuffer);
             }

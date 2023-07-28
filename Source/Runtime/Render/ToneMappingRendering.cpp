@@ -27,9 +27,6 @@ void AddToneMappingCombinePass(RenderGraphBuilder& graphBuilder) {
         std::make_shared<Sampler>(Sampler::MinFilter::LINEAR, Sampler::MagFilter::LINEAR,
                                   Sampler::AddressMode::REPEAT, Sampler::MipFilter::LINEAR);
 
-    ShaderImageDesc sceneColorDesc{nullptr, ImageUsage::SHADER_READ, sampler};
-    ShaderImageDesc bloomColorDesc{nullptr, ImageUsage::SHADER_READ, sampler};
-
     graphBuilder.AddRenderPass("ToneMapPass", [=](PassNode* passNode) {
         TextureOps loadops{vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
                            vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare};
@@ -51,18 +48,17 @@ void AddToneMappingCombinePass(RenderGraphBuilder& graphBuilder) {
             .SetRenderPass(passNode->renderPass)
             .SetDepthSetencilTestState(false, false, false, vk::CompareOp::eLessOrEqual);
 
-        shader->SetShaderResource("sceneColor", sceneColorDesc)
-            .SetShaderResource("bloomCombine", bloomColorDesc);
-
         passNode->graphicsShader = shader;
         passNode->pipelineState  = renderProcessBuilder.BuildGraphicProcess();
 
         return [=](CommandBuffer& cmdBuffer, RenderGraphRegister* graphRegister) {
             auto sceneColor = graphRegister->GetResource("SceneColor");
             auto bloomColor = graphRegister->GetResource("BloomBlurY");
-            shader->Bind("sceneColor", sceneColor->imageHandle);
-            shader->Bind("bloomCombine", bloomColor->imageHandle);
-            shader->FinishShaderBinding();
+            shader->Bind("sceneColor", ShaderImageDesc{sceneColor->imageHandle,
+                                                       ImageUsage::SHADER_READ, sampler});
+            shader->Bind("bloomCombine", ShaderImageDesc{bloomColor->imageHandle,
+                                                       ImageUsage::SHADER_READ, sampler});
+        
             auto& pso = passNode->pipelineState->GetPipeline();
 
             cmdBuffer.BindDescriptorSet(pso.bindPoint, pso.pipelineLayout,

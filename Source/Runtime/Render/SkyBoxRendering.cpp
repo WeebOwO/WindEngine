@@ -1,6 +1,7 @@
 #include "PassRendering.h"
 
 namespace wind {
+
 void AddSkyboxPass(RenderGraphBuilder& graphBuilder) {
     const auto [width, height] = RenderBackend::GetInstance().GetSurfaceExtent();
 
@@ -40,9 +41,6 @@ void AddSkyboxPass(RenderGraphBuilder& graphBuilder) {
             .SetRenderPass(passNode->renderPass)
             .SetDepthSetencilTestState(true, false, false, vk::CompareOp::eLessOrEqual);
 
-        skyPassShader->SetShaderResource("SkyBoxBuffer", skyboxBufferDesc)
-            .SetShaderResource("SkyboxCubemap", skyBoxImageDesc);
-
         passNode->graphicsShader = skyPassShader;
         passNode->pipelineState  = renderProcessBuilder.BuildGraphicProcess();
 
@@ -58,9 +56,8 @@ void AddSkyboxPass(RenderGraphBuilder& graphBuilder) {
             auto& camera = scene->GetActiveCamera();
 
             // Finish Binding shader
-            shader->Bind("SkyboxCubemap", skyBox->skyBoxImage);
-
-            shader->FinishShaderBinding();
+            shader->Bind("SkyBoxBuffer", skyboxBufferDesc);
+            shader->Bind("SkyboxCubemap", {skyBox->skyBoxImage, ImageUsage::SHADER_READ, BasicSampler});
 
             glm::mat4 model = glm::mat4(1.0);
 
@@ -70,7 +67,7 @@ void AddSkyboxPass(RenderGraphBuilder& graphBuilder) {
             cmdBuffer.BindDescriptorSet(pso.bindPoint, pso.pipelineLayout,
                                         shader->GetDescriptorSet());
 
-            // draw the skybox
+            // draw the skyboxs
             cmdBuffer.Draw(36, 1);
             // Not end here
         };

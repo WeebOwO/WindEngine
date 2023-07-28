@@ -59,41 +59,6 @@ void GraphicsShader::GeneratePushConstantData() {
     }
 }
 
-void GraphicsShader::FinishShaderBinding() {
-    auto&                               device = RenderBackend::GetInstance().GetDevice();
-    std::vector<vk::WriteDescriptorSet> writeDescriptorVec;
-
-    std::vector<vk::DescriptorBufferInfo> bufferInfos(m_reflectionDatas.size());
-    std::vector<vk::DescriptorImageInfo>  imagesInfos(m_reflectionDatas.size());
-    size_t                                bufferIdx = 0, imageIdx = 0;
-
-    for (const auto& [name, metaData] : m_reflectionDatas) {
-        if (metaData.descriptorType == vk::DescriptorType::eCombinedImageSampler) {
-            vk::WriteDescriptorSet writer;
-            auto&                  shaderImageDesc = m_imageShaderResource[name];
-
-            if (shaderImageDesc.image == nullptr) {
-                WIND_CORE_ERROR("Fail to find shader image resource which is {}", name);
-            }
-
-            imagesInfos[imageIdx]
-                .setImageLayout(ImageUsageToImageLayout(shaderImageDesc.usage))
-                .setImageView(shaderImageDesc.image->GetNativeView(ImageView::NATIVE))
-                .setSampler(shaderImageDesc.sampler->GetNativeHandle());
-
-            writer.setDescriptorType(vk::DescriptorType::eCombinedImageSampler)
-                .setImageInfo(imagesInfos[imageIdx])
-                .setDescriptorCount(metaData.count)
-                .setDstBinding(metaData.binding)
-                .setDstSet(m_descriptorSets[metaData.set]);
-            ++imageIdx;
-            writeDescriptorVec.push_back(writer);
-        }
-    }
-
-    device.updateDescriptorSets(writeDescriptorVec.size(), writeDescriptorVec.data(), 0, nullptr);
-}
-
 void GraphicsShader::CollectSpirvMetaData(std::vector<uint32_t> spivrBinary,
                                           vk::ShaderStageFlags  shaderFlags) {
     const auto& device = RenderBackend::GetInstance().GetDevice();
@@ -101,40 +66,37 @@ void GraphicsShader::CollectSpirvMetaData(std::vector<uint32_t> spivrBinary,
     spirv_cross::CompilerGLSL    compiler(std::move(spivrBinary));
     spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 
-    for (auto& resource : resources.uniform_buffers) {
-        // check our uniform buffer
+    auto collectResource = [&](auto resource, vk::DescriptorType descriptorType) {
         if (m_reflectionDatas.find(resource.name) == m_reflectionDatas.end()) {
             std::string_view resourceName = resource.name;
             uint32_t set     = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
             uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
             const spirv_cross::SPIRType& type          = compiler.get_type(resource.type_id);
-            uint32_t                     size          = compiler.get_declared_struct_size(type);
             uint32_t                     typeArraySize = type.array.size();
             uint32_t                     count         = typeArraySize == 0 ? 1 : type.array[0];
-            BindMetaData metaData{set, binding, count, vk::DescriptorType::eUniformBuffer,
-                                  shaderFlags};
+            BindMetaData                 metaData{set, binding, count, descriptorType, shaderFlags};
             m_reflectionDatas[resource.name] = metaData;
         } else {
             m_reflectionDatas[resource.name].shaderStageFlag |= shaderFlags;
         }
+    };
+
+    for (auto& resource : resources.uniform_buffers) {
+        collectResource(resource, vk::DescriptorType::eUniformBuffer);
     }
 
     for (auto& resource : resources.sampled_images) {
-        if (m_reflectionDatas.find(resource.name) == m_reflectionDatas.end()) {
-            std::string_view resourceName = resource.name;
-            uint32_t set     = compiler.get_decoration(resource.id, spv::DecorationDescriptorSet);
-            uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
-            const spirv_cross::SPIRType& type          = compiler.get_type(resource.type_id);
-            uint32_t                     typeArraySize = type.array.size();
-            uint32_t                     count         = typeArraySize == 0 ? 1 : type.array[0];
-            BindMetaData metaData{set, binding, count, vk::DescriptorType::eCombinedImageSampler,
-                                  shaderFlags};
-            m_reflectionDatas[resource.name] = metaData;
-        } else {
-            m_reflectionDatas[resource.name].shaderStageFlag |= shaderFlags;
-        }
+        collectResource(resource, vk::DescriptorType::eCombinedImageSampler);
     }
 
+    for (auto& resource : resources.separate_samplers) {
+        collectResource(resource, vk::DescriptorType::eSampler);
+    }
+
+    for (auto& resource : resources.separate_images) {
+        collectResource(resource, vk::DescriptorType::eSampledImage);
+    }
+    
     for (const auto& resource : resources.push_constant_buffers) {
         std::string_view             resourceName = resource.name;
         const spirv_cross::SPIRType& type         = compiler.get_type(resource.type_id);
@@ -146,18 +108,6 @@ void GraphicsShader::CollectSpirvMetaData(std::vector<uint32_t> spivrBinary,
             m_pushConstantMeta->shadeshaderStageFlag |= shaderFlags;
         }
     }
-}
-
-GraphicsShader& GraphicsShader::SetShaderResource(std::string_view        resourceName,
-                                                  const ShaderBufferDesc& bufferDesc) {
-    m_bufferShaderResource[std::string(resourceName)] = bufferDesc;
-    return *this;
-}
-
-GraphicsShader& GraphicsShader::SetShaderResource(std::string_view       resourceName,
-                                                  const ShaderImageDesc& imageDesc) {
-    m_imageShaderResource[std::string(resourceName)] = imageDesc;
-    return *this;
 }
 
 GraphicsShader::~GraphicsShader() {
@@ -197,18 +147,15 @@ GraphicsShader::GraphicsShader(std::string_view vertexShaderfilePath,
     GeneratePushConstantData();
 }
 
-void GraphicsShader::Bind(const std::string& resoueceName, std::shared_ptr<Image> image) {
-    auto& shaderImageDesc = m_imageShaderResource[resoueceName];
-    shaderImageDesc.image = image;
-}
-
 void GraphicsShader::Bind(const std::string& resourceName, const ShaderImageDesc& imageDesc) {
-    
     auto& device = RenderBackend::GetInstance().GetDevice();
+    if (!m_reflectionDatas.contains(resourceName)) {
+        WIND_CORE_ERROR("Fail to find shader resource {}", resourceName);
+    }
     vk::DescriptorImageInfo imageInfo;
     imageInfo.setImageLayout(ImageUsageToImageLayout(imageDesc.usage))
-             .setImageView(imageDesc.image->GetNativeView(ImageView::NATIVE))
-             .setSampler(imageDesc.sampler->GetNativeHandle());
+        .setImageView(imageDesc.image->GetNativeView(ImageView::NATIVE))
+        .setSampler(imageDesc.sampler->GetNativeHandle());
 
     auto                   bindData = m_reflectionDatas[resourceName];
     vk::WriteDescriptorSet writer;
@@ -217,13 +164,37 @@ void GraphicsShader::Bind(const std::string& resourceName, const ShaderImageDesc
         .setDstBinding(bindData.binding)
         .setImageInfo(imageInfo)
         .setDstSet(m_descriptorSets[bindData.set]);
-    
-     device.updateDescriptorSets(1, &writer, 0, nullptr);
+
+    device.updateDescriptorSets(1, &writer, 0, nullptr);
 }
 
+void GraphicsShader::Bind(const std::string& resourceName, const std::vector<Image>& textureArray) {
+    auto& device = RenderBackend::GetInstance().GetDevice();
+    if (!m_reflectionDatas.contains(resourceName)) {
+        WIND_CORE_ERROR("Fail to find shader resource {}", resourceName);
+    }
+    auto                                 bindData = m_reflectionDatas[resourceName];
+    vk::WriteDescriptorSet               writer;
+    std::vector<vk::DescriptorImageInfo> imageInfos;
+    for (const auto& image : textureArray) {
+        auto& info = imageInfos.emplace_back();
+        info.setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal)
+            .setImageView(image.GetNativeView(ImageView::NATIVE))
+            .setSampler(nullptr);
+    }
+    writer.setDescriptorType(vk::DescriptorType::eSampledImage)
+        .setDescriptorCount(imageInfos.size())
+        .setImageInfo(imageInfos)
+        .setDstBinding(bindData.binding)
+        .setDstSet(m_descriptorSets[bindData.set]);
+    device.updateDescriptorSets(1, &writer, 0, nullptr);
+}
 
 void GraphicsShader::Bind(const std::string& resourceName, const ShaderBufferDesc& bufferDesc) {
-    auto&                    device = RenderBackend::GetInstance().GetDevice();
+    auto& device = RenderBackend::GetInstance().GetDevice();
+    if (!m_reflectionDatas.contains(resourceName)) {
+        WIND_CORE_ERROR("Fail to find shader resource {}", resourceName);
+    }
     vk::DescriptorBufferInfo bufferInfo;
     bufferInfo.setBuffer(bufferDesc.buffer->GetNativeHandle())
         .setOffset(bufferDesc.offset)
@@ -236,6 +207,24 @@ void GraphicsShader::Bind(const std::string& resourceName, const ShaderBufferDes
         .setBufferInfo(bufferInfo)
         .setDstSet(m_descriptorSets[bindData.set]);
 
+    device.updateDescriptorSets(1, &writer, 0, nullptr);
+}
+
+void GraphicsShader::Bind(const std::string& resourceName, std::shared_ptr<Sampler> sampler) {
+    auto& device = RenderBackend::GetInstance().GetDevice();
+    if (!m_reflectionDatas.contains(resourceName)) {
+        WIND_CORE_ERROR("Fail to find shader resource {}", resourceName);
+    }
+    vk::DescriptorImageInfo imageInfo;
+    imageInfo.setSampler(sampler->GetNativeHandle());
+
+    auto                   bindData = m_reflectionDatas[resourceName];
+    vk::WriteDescriptorSet writer;
+    writer.setDescriptorType(vk::DescriptorType::eSampler)
+        .setImageInfo(imageInfo)
+        .setDescriptorCount(bindData.count)
+        .setDstBinding(bindData.binding)
+        .setDstSet(m_descriptorSets[bindData.set]);
     device.updateDescriptorSets(1, &writer, 0, nullptr);
 }
 

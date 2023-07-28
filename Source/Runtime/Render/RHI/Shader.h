@@ -55,17 +55,11 @@ public:
     [[nodiscard]] auto& GetPushConstantRange() {return m_pushConstantRange;}
     [[nodiscard]] auto& GetPushConstantShaderStage() {return m_pushConstantMeta->shadeshaderStageFlag;}
     
-    void Bind(const std::string& resoueceName, std::shared_ptr<Image> image);
     void Bind(const std::string& resourceName, const ShaderBufferDesc& bufferDesc);
     void Bind(const std::string& resourceName, const ShaderImageDesc& imageDesc);
-
-    void FinishShaderBinding();
-
-    GraphicsShader& SetShaderResource(std::string_view        resourceName,
-                                      const ShaderBufferDesc& bufferDesc);
-    GraphicsShader& SetShaderResource(std::string_view       resourceName,
-                                      const ShaderImageDesc& imageDesc);
-
+    void Bind(const std::string& resourceName, const std::vector<Image>& textureArray);
+    void Bind(const std::string& resourceName, std::shared_ptr<Sampler> sampler);
+    
 private:
     void GenerateVulkanDescriptorSetLayout();
     void GeneratePushConstantData();

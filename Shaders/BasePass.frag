@@ -13,18 +13,27 @@ layout(push_constant) uniform PushConstant {
     uint materialIndex;
 } pushConstant;
 
-// layout(set = 0, binding = 1) uniform sampler textureSampler;
-// layout(set = 1, binding = 0) uniform texture2D textureArray[128];
-
 struct Material
-{
-    uint AlbedoTextureIndex;
-    uint NormalTextureIndex;
-    uint MetallicRoughnessTextureIndex;
-    float RoughnessScale;
-    float MetallicScale;
+{   
+    uint albedoTextureIndex;
+    uint normalTextureIndex;
+    uint metallicRoughnessTextureIndex;
+    float roughnessScale;
+    float metallicScale;
 };
 
+layout(set = 0, binding = 1) uniform sampler textureSampler;
+layout(set = 0, binding = 2) uniform MaterialBuffer {
+    Material materials[256];
+}; 
+
+layout(set = 1, binding = 0) uniform texture2D textureArray[512];
+
 void main() {
-    fragColor = vec4(vin.position, 1.0);  
+    Material material = materials[pushConstant.materialIndex];
+    vec4 albedoColor   = texture(sampler2D(textureArray[material.albedoTextureIndex], textureSampler), vin.texcoord);
+    vec4 normalColor   = texture(sampler2D(textureArray[material.normalTextureIndex], textureSampler), vin.texcoord);
+    vec4 metallicRoughnessColor = texture(sampler2D(textureArray[material.metallicRoughnessTextureIndex], textureSampler), vin.texcoord);
+
+    fragColor = albedoColor; 
 }

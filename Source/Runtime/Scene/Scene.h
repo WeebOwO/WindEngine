@@ -44,7 +44,7 @@ public:
     void SetupCamera(std::shared_ptr<BaseCamera> camera) { m_activeCamera = camera; }
     void LoadSkyBox(const std::string& skyBoxModelPath, const std::string& skyboxImagePath, const std::string& irradianceImagePath);
     void LoadGLTFScene(const std::string& resourceName, std::string_view filePath);
-
+    
     auto& GetSkybox() { return m_skybox; }
     auto& GetRequiredGLTFModel(const std::string& resourname) {return m_gltfModel[resourname];}    
     
