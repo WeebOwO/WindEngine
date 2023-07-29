@@ -176,17 +176,20 @@ void GraphicsShader::Bind(const std::string& resourceName, const std::vector<Ima
     auto                                 bindData = m_reflectionDatas[resourceName];
     vk::WriteDescriptorSet               writer;
     std::vector<vk::DescriptorImageInfo> imageInfos;
+    
     for (const auto& image : textureArray) {
         auto& info = imageInfos.emplace_back();
         info.setImageLayout(vk::ImageLayout::eShaderReadOnlyOptimal)
             .setImageView(image.GetNativeView(ImageView::NATIVE))
             .setSampler(nullptr);
     }
+
     writer.setDescriptorType(vk::DescriptorType::eSampledImage)
         .setDescriptorCount(imageInfos.size())
         .setImageInfo(imageInfos)
         .setDstBinding(bindData.binding)
         .setDstSet(m_descriptorSets[bindData.set]);
+
     device.updateDescriptorSets(1, &writer, 0, nullptr);
 }
 

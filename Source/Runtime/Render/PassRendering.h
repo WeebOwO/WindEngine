@@ -15,7 +15,7 @@ namespace wind {
     void AddDeferedBasePass(RenderGraphBuilder& graphBuilder);
     void AddShadowPass(RenderGraphBuilder& graphBuilder);
     void AddDeferToneMappingCombinePass(RenderGraphBuilder& graphBuilder);
-    
+    void AddLightPass(RenderGraphBuilder& graphBuilder);
     // Postprocess part
     void AddBloomSetupPass(RenderGraphBuilder& graphBuilder);
     void AddBloomBlurPass(RenderGraphBuilder& graphBuilder);

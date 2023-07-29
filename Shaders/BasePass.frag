@@ -7,7 +7,10 @@ layout(location = 0) in Vertex
 	mat3 tangentBasis;
 } vin;
 
-layout(location = 0) out vec4 fragColor;
+layout(location = 0) out vec4 gbufferA;
+layout(location = 1) out vec4 gbufferB;
+layout(location = 2) out vec4 gbufferC;
+layout(location = 3) out vec4 gbufferD;
 
 layout(push_constant) uniform PushConstant {
     uint materialIndex;
@@ -27,13 +30,16 @@ layout(set = 0, binding = 2) uniform MaterialBuffer {
     Material materials[256];
 }; 
 
-layout(set = 1, binding = 0) uniform texture2D textureArray[512];
+layout(set = 1, binding = 0) uniform texture2D textureArray[75];
 
 void main() {
     Material material = materials[pushConstant.materialIndex];
-    vec4 albedoColor   = texture(sampler2D(textureArray[material.albedoTextureIndex], textureSampler), vin.texcoord);
-    vec4 normalColor   = texture(sampler2D(textureArray[material.normalTextureIndex], textureSampler), vin.texcoord);
-    vec4 metallicRoughnessColor = texture(sampler2D(textureArray[material.metallicRoughnessTextureIndex], textureSampler), vin.texcoord);
+    vec4 albedoColor = texture(sampler2D(textureArray[material.albedoTextureIndex], textureSampler), vin.texcoord);  
+    vec4 normal = texture(sampler2D(textureArray[material.normalTextureIndex], textureSampler), vin.texcoord);  
+    vec4 metallicRoughness = texture(sampler2D(textureArray[material.metallicRoughnessTextureIndex], textureSampler), vin.texcoord);     
 
-    fragColor = albedoColor; 
+    gbufferA = vec4(vin.position, 1);
+    gbufferB = normal;
+    gbufferC = albedoColor;
+    gbufferD = metallicRoughness;
 }

@@ -23,11 +23,11 @@ RenderProcessBuilder& RenderProcessBuilder::SetShader(GraphicsShader* graphicsSh
         .setStage(vk::ShaderStageFlagBits::eFragment)
         .setPName("main");
 
-    auto& shaderLayouts = graphicsShader->GetDescriptorSetLayouts();
+    auto& shaderLayouts     = graphicsShader->GetDescriptorSetLayouts();
     auto& pushConstantRange = graphicsShader->GetPushConstantRange();
-    if(pushConstantRange.has_value()) {
-        m_pipelineLayoutCreateInfo.setPushConstantRangeCount(1)
-                                  .setPushConstantRanges(pushConstantRange.value());
+    if (pushConstantRange.has_value()) {
+        m_pipelineLayoutCreateInfo.setPushConstantRangeCount(1).setPushConstantRanges(
+            pushConstantRange.value());
     }
     m_pipelineLayoutCreateInfo.setSetLayoutCount(shaderLayouts.size()).setSetLayouts(shaderLayouts);
 
@@ -39,9 +39,15 @@ RenderProcessBuilder& RenderProcessBuilder::SetBlendState(bool blendEnable) {
     m_colorBlendAttachment.setBlendEnable(VkBool32(blendEnable))
         .setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
                            vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
-    
-    m_PipelineColorBlendStateCreateInfo.setLogicOpEnable(false).
-                                        setAttachments(m_colorBlendAttachment);
+
+    m_PipelineColorBlendStateCreateInfo.setLogicOpEnable(false).setAttachments(
+        m_colorBlendAttachment);
+    return *this;
+}
+
+RenderProcessBuilder& RenderProcessBuilder::SetBlendState(std::span<vk::PipelineColorBlendAttachmentState> blendstates) {
+    m_PipelineColorBlendStateCreateInfo.setAttachmentCount(blendstates.size())
+                                       .setAttachments(blendstates);
     return *this;
 }
 
@@ -57,7 +63,7 @@ RenderProcessBuilder::SetDepthSetencilTestState(bool depthTestEnable, bool depth
         .setMinDepthBounds(0.0f)
         .setMaxDepthBounds(1.0f)
         .setDepthCompareOp(depthCompareMode);
-    
+
     return *this;
 }
 

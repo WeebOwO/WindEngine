@@ -2,6 +2,7 @@
 
 #include "Runtime/Render/RHI/Sampler.h"
 #include "Runtime/Render/RHI/Shader.h"
+#include "Runtime/Render/RenderGraph/RenderPass.h"
 #include "Runtime/Resource/GLTFLoader.h"
 #include "Runtime/Resource/Mesh.h"
 #include <stdint.h>
@@ -17,14 +18,26 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
     std::shared_ptr<Sampler> BasicSampler =
         std::make_shared<Sampler>(Sampler::MinFilter::LINEAR, Sampler::MagFilter::LINEAR,
                                   Sampler::AddressMode::REPEAT, Sampler::MipFilter::LINEAR);
-
+    uint32_t colorBufferCount = 4;
     graphBuilder.AddRenderPass("BasePass", [=](PassNode* passNode) {
         TextureOps loadops{vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
                            vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare};
 
-        passNode->DeclareColorAttachment(
-            "SceneColor", SceneTexture::SceneTextureDescs["SceneColor"], loadops,
-            vk::ImageLayout::eUndefined, vk::ImageLayout::eShaderReadOnlyOptimal);
+        passNode->DeclareColorAttachment("GBufferA", SceneTexture::SceneTextureDescs["GBufferA"],
+                                         loadops, vk::ImageLayout::eUndefined,
+                                         vk::ImageLayout::eShaderReadOnlyOptimal);
+
+        passNode->DeclareColorAttachment("GBufferB", SceneTexture::SceneTextureDescs["GBufferB"],
+                                         loadops, vk::ImageLayout::eUndefined,
+                                         vk::ImageLayout::eShaderReadOnlyOptimal);
+
+        passNode->DeclareColorAttachment("GBufferC", SceneTexture::SceneTextureDescs["GBufferC"],
+                                         loadops, vk::ImageLayout::eUndefined,
+                                         vk::ImageLayout::eShaderReadOnlyOptimal);
+
+        passNode->DeclareColorAttachment("GBufferD", SceneTexture::SceneTextureDescs["GBufferD"],
+                                         loadops, vk::ImageLayout::eUndefined,
+                                         vk::ImageLayout::eShaderReadOnlyOptimal);
 
         passNode->DeclareDepthAttachment(
             "SceneDepth", SceneTexture::SceneTextureDescs["SceneDepth"], loadops,
@@ -38,7 +51,14 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
         std::shared_ptr<GraphicsShader> BasePassShader =
             ShaderFactory::CreateGraphicsShader("BasePass.vert.spv", "BasePass.frag.spv");
 
-        renderProcessBuilder.SetBlendState(false)
+        std::vector<vk::PipelineColorBlendAttachmentState> colorBlendStates(colorBufferCount);
+
+        for (auto& blendState : colorBlendStates) {
+            blendState.setBlendEnable(false)
+                      .setColorWriteMask(ColorWriteMask<true, true, true, true>::GetRHI());
+        }
+
+        renderProcessBuilder.SetBlendState(colorBlendStates)
             .SetShader(BasePassShader.get())
             .SetVertexFactory<gltf::GLTFVertex>()
             .SetRenderPass(passNode->renderPass)

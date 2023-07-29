@@ -18,6 +18,7 @@ void DeferedSceneRenderer::Init() {
         graphBuilder.ImportResource("BackBuffer", swapchainImage);
         // Add our renderpass
         AddDeferedBasePass(graphBuilder);
+        AddLightPass(graphBuilder);
         AddDeferToneMappingCombinePass(graphBuilder);
         graphBuilder.Compile();
         ++index;

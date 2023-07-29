@@ -49,7 +49,7 @@ private:
 
 private:
     glm::vec3 m_forwardDirection{0.0f, 0.0f, 0.0f};
-    float     m_speed = 10.0f;
+    float     m_speed = 1000.0f;
 };
 
 class OrbitCamera : public BaseCamera {

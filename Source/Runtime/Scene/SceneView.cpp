@@ -4,6 +4,7 @@
 #include "Runtime/Render/RHI/Image.h"
 #include "Runtime/Render/RenderGraph/RenderResource.h"
 #include "Runtime/Resource/ImageLoader.h"
+#include "Runtime/Scene/SceneView.h"
 
 namespace wind {
 
@@ -61,6 +62,39 @@ void SceneView::Init() {
                                                             ImageUsage::DEPTH_SPENCIL_ATTACHMENT | ImageUsage::SHADER_READ,
                                                             MemoryUsage::GPU_ONLY,
                                                             ImageOptions::DEFAULT};
+    // world position 
+    SceneTexture::SceneTextureDescs["GBufferA"] = TextureDesc{width,
+                                                            height,
+                                                            vk::SampleCountFlagBits::e1,
+                                                            vk::Format::eR16G16B16A16Sfloat,
+                                                        ImageUsage::COLOR_ATTACHMENT | ImageUsage::SHADER_READ,
+                                                            MemoryUsage::GPU_ONLY,
+                                                            ImageOptions::DEFAULT};
+    // world normal                                             
+    SceneTexture::SceneTextureDescs["GBufferB"] = TextureDesc{width,
+                                                            height,
+                                                            vk::SampleCountFlagBits::e1,
+                                                            vk::Format::eR8G8B8A8Unorm,
+                                                            ImageUsage::COLOR_ATTACHMENT | ImageUsage::SHADER_READ,
+                                                            MemoryUsage::GPU_ONLY,
+                                                            ImageOptions::DEFAULT};
+    // albedo
+    SceneTexture::SceneTextureDescs["GBufferC"] = TextureDesc{width,
+                                                            height,
+                                                            vk::SampleCountFlagBits::e1,
+                                                            vk::Format::eR8G8B8A8Unorm,
+                                                            ImageUsage::COLOR_ATTACHMENT | ImageUsage::SHADER_READ,
+                                                            MemoryUsage::GPU_ONLY,
+                                                            ImageOptions::DEFAULT};
+    // m & r
+    SceneTexture::SceneTextureDescs["GBufferD"] = TextureDesc{width,
+                                                            height,
+                                                            vk::SampleCountFlagBits::e1,
+                                                            vk::Format::eR8G8B8A8Unorm,
+                                                            ImageUsage::COLOR_ATTACHMENT | ImageUsage::SHADER_READ,
+                                                            MemoryUsage::GPU_ONLY,
+                                                            ImageOptions::DEFAULT};
+    
 }
 
 SceneTexture SceneView::CreateSceneTextures(int createBit) {
@@ -80,6 +114,26 @@ SceneTexture SceneView::CreateSceneTextures(int createBit) {
     if(createBit & SceneDepth) {
         sceneTexture.sceneDepth = CreateImage(sceneTextureDesc["SceneDepth"]);
         sceneTexturesDict["SceneDepth"] = sceneTexture.sceneDepth;
+    }
+
+    if(createBit & GBufferA) {
+        sceneTexture.gbufferA = CreateImage(sceneTextureDesc["GBufferA"]);
+        sceneTexturesDict["GBufferA"] = sceneTexture.gbufferA;
+    }
+
+    if(createBit & GBufferB) {
+        sceneTexture.gbufferB = CreateImage(sceneTextureDesc["GBufferB"]);
+        sceneTexturesDict["GBufferB"] = sceneTexture.gbufferB;
+    }
+
+    if(createBit & GBufferC) {
+        sceneTexture.gbufferC = CreateImage(sceneTextureDesc["GBufferC"]);
+        sceneTexturesDict["GBufferC"] = sceneTexture.gbufferC;
+    }
+
+    if(createBit & GBufferD) {
+        sceneTexture.gbufferD = CreateImage(sceneTextureDesc["GBufferD"]);
+        sceneTexturesDict["GBufferD"] = sceneTexture.gbufferD;
     }
 
     return sceneTexture;
