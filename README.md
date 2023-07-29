@@ -18,7 +18,7 @@ xmake project -k vsxmake -m "debug,release"
 ## Feature
 * RenderGraph 
 * Shader Reflection For Auto Create Render Pipeline
-* Forward Shading Pipeline
+* Forward / Defer Shading Pipeline
 * Orbit / FirstPerson Camera 
 * PBR + IBL 
 * Tangent Space Normal Mapping
