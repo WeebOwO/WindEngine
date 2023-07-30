@@ -79,7 +79,7 @@ void EngineImpl::InitScene() {
 
     DirectionalLight sun;
     sun.direction  = glm::normalize(glm::vec3{-1.0f, 0.0f, -1.0f});
-    sun.lightPos   = 0.1f * glm::vec3(-1795.0f, -2865.0f, 681.0f);
+    sun.lightPos   = glm::vec3(-1795.0f, -2865.0f, 681.0f);
     sun.radiance   = glm::vec3{1.0f, 1.0f, 1.0f};
     sun.ligthColor = glm::vec3{1.0f, 1.0f, 1.0f};
 
@@ -166,7 +166,7 @@ void EngineImpl::LogicTick(float fs) {
     // update camera related things
     camera->OnResize(m_window.width(), m_window.height());
     camera->OnUpdate(fs);
-    // world.UpdateSunInfo(fs);
+    world.UpdateSunInfo(fs);
 }
 
 void EngineImpl::RenderTick(float fs) {

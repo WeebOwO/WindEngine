@@ -13,8 +13,12 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
     // Allocate shader resource
     std::shared_ptr<Buffer> cameraBuffer = std::make_shared<Buffer>(
         sizeof(CameraUnifoirmBuffer), BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
+    std::shared_ptr<Buffer> lightProjectionBuffer = std::make_shared<Buffer>(
+        sizeof(LightProjectionBuffer), BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
     // Buffer Desc
     ShaderBufferDesc         camearaShaderBufferDesc{cameraBuffer, 0, sizeof(CameraUnifoirmBuffer)};
+    ShaderBufferDesc         lightProjectionBufferDesc{lightProjectionBuffer, 0,
+                                               sizeof(LightProjectionBuffer)};
     std::shared_ptr<Sampler> BasicSampler =
         std::make_shared<Sampler>(Sampler::MinFilter::LINEAR, Sampler::MagFilter::LINEAR,
                                   Sampler::AddressMode::REPEAT, Sampler::MipFilter::LINEAR);
@@ -22,9 +26,9 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
     graphBuilder.AddRenderPass("BasePass", [=](PassNode* passNode) {
         TextureOps loadops{vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
                            vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare};
-        
+
         TextureOps depthloadops{vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
-                           vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare};
+                                vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare};
 
         passNode->DeclareColorAttachment("GBufferA", SceneTexture::SceneTextureDescs["GBufferA"],
                                          loadops, vk::ImageLayout::eUndefined,
@@ -57,8 +61,8 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
         std::vector<vk::PipelineColorBlendAttachmentState> colorBlendStates(colorBufferCount);
 
         for (auto& blendState : colorBlendStates) {
-            blendState.setBlendEnable(false)
-                      .setColorWriteMask(ColorWriteMask<true, true, true, true>::GetRHI());
+            blendState.setBlendEnable(false).setColorWriteMask(
+                ColorWriteMask<true, true, true, true>::GetRHI());
         }
 
         renderProcessBuilder.SetBlendState(colorBlendStates)
@@ -81,6 +85,7 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
                                                         gltf::GLTFMesh::MaxMaterialCount});
             BasePassShader->Bind("textureSampler", BasicSampler);
             BasePassShader->Bind("textureArray", sponzaMesh.textures);
+            BasePassShader->Bind("LightProjection", lightProjectionBufferDesc);
 
             struct ConstantData {
                 uint32_t materialIndex;
@@ -90,6 +95,9 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
 
             cameraBuffer->CopyData((uint8_t*)sceneView->cameraBuffer.get(),
                                    camearaShaderBufferDesc.range, camearaShaderBufferDesc.offset);
+
+            lightProjectionBuffer->CopyData((uint8_t*)sceneView->lightProjectionBuffer.get(), lightProjectionBufferDesc.range,
+                                lightProjectionBufferDesc.offset);
 
             // cmdBuffer.PushConstant(passNode, &constantData);
             cmdBuffer.BindDescriptorSet(pso.bindPoint, pso.pipelineLayout,

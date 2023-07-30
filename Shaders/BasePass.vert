@@ -20,9 +20,13 @@ layout(set = 0, binding = 0) uniform CameraBuffer {
 	vec3 viewPos;
 } cameraData;
 
+layout(set = 0, binding = 1) uniform LightProjection {   
+    mat4 viewproj;
+} lightProjection;
+
 void main() {
     vout.position = position;
-    gl_Position = cameraData.viewproj * vec4(vout.position, 1.0);
+    gl_Position = lightProjection.viewproj * vec4(vout.position, 1.0);
     vout.texcoord = texCoord;
     vout.tangentBasis = mat3(tangent, bitangent, normal);
 }

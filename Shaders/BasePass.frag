@@ -25,8 +25,8 @@ struct Material
     float metallicScale;
 };
 
-layout(set = 0, binding = 1) uniform sampler textureSampler;
-layout(set = 0, binding = 2) uniform MaterialBuffer {
+layout(set = 0, binding = 2) uniform sampler textureSampler;
+layout(set = 0, binding = 3) uniform MaterialBuffer {
     Material materials[256];
 }; 
 
