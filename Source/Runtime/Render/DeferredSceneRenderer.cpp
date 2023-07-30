@@ -16,7 +16,9 @@ void DeferedSceneRenderer::Init() {
         graphBuilder.ImportSceneTextures(sceneTextures);
         auto& swapchainImage = backend.AcquireSwapchainImage(index, ImageUsage::UNKNOWN);
         graphBuilder.ImportResource("BackBuffer", swapchainImage);
+        graphBuilder.ImportResource("SunShadow", m_sceneView->sunShadowMap);
         // Add our renderpass
+        AddShadowPass(graphBuilder);
         AddDeferedBasePass(graphBuilder);
         AddLightPass(graphBuilder);
         AddDeferToneMappingCombinePass(graphBuilder);
@@ -38,5 +40,4 @@ void DeferedSceneRenderer::Render(Scene& scene) {
     graphBuilder.Exec();
     m_backend.EndFrame();
 }
-
 } // namespace wind

@@ -5,9 +5,10 @@
 namespace wind {
 
 struct DirectionalLight {
-    alignas(16) glm::vec3 direction{};
-    alignas(16) glm::vec3 ligthColor{1.0f, 1.0f, 1.0f};
-    alignas(16) glm::vec3 radiance{1.0f};
+    glm::vec3 lightPos{};
+    glm::vec3 direction{};
+    glm::vec3 radiance{1.0f};
+    glm::vec3 ligthColor{1.0f};
 };
 
 struct PointLight {

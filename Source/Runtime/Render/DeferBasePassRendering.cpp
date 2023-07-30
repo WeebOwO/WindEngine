@@ -22,6 +22,9 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
     graphBuilder.AddRenderPass("BasePass", [=](PassNode* passNode) {
         TextureOps loadops{vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
                            vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare};
+        
+        TextureOps depthloadops{vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
+                           vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare};
 
         passNode->DeclareColorAttachment("GBufferA", SceneTexture::SceneTextureDescs["GBufferA"],
                                          loadops, vk::ImageLayout::eUndefined,
@@ -40,7 +43,7 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
                                          vk::ImageLayout::eShaderReadOnlyOptimal);
 
         passNode->DeclareDepthAttachment(
-            "SceneDepth", SceneTexture::SceneTextureDescs["SceneDepth"], loadops,
+            "SceneDepth", SceneTexture::SceneTextureDescs["SceneDepth"], depthloadops,
             vk::ImageLayout::eUndefined, vk::ImageLayout::eDepthStencilAttachmentOptimal);
 
         passNode->CreateRenderPass();

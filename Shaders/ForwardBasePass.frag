@@ -21,6 +21,7 @@ layout(location=0) in Vertex
 layout(location = 0) out vec4 outColor;
 
 layout(set = 0, binding = 2) uniform LightBuffer {
+	vec3 lightPos;
     vec3 lightDirection;
 	vec3 lightRadiance;
 	vec3 lightColor;
@@ -115,6 +116,7 @@ vec3 iblCalc(Material material, vec3 f0, vec3 lo, vec3 li, vec3 lh) {
 
 	return diffuseIBL + specularIBL;
 }
+
 void main() {
 	Material material;
 	// Setup Material

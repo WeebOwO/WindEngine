@@ -3,18 +3,19 @@
 #include <memory>
 #include <thread>
 
+#include "RUntime/Render/ForwardSceneRenderer.h"
 #include "Runtime/Base/Io.h"
 #include "Runtime/Base/Log.h"
 #include "Runtime/Base/Macro.h"
 #include "Runtime/Input/Input.h"
-#include "RUntime/Render/ForwardSceneRenderer.h"
 #include "Runtime/Render/DeferredSceneRenderer.h"
 #include "Runtime/Render/RHI/Backend.h"
+#include "Runtime/Resource/GLTFLoader.h"
 #include "Runtime/Resource/ImageLoader.h"
 #include "Runtime/Resource/Material.h"
-#include "Runtime/Resource/GLTFLoader.h"
 #include "Runtime/Scene/Camera.h"
 #include "Runtime/Scene/Scene.h"
+
 
 static constexpr uint32_t WIDTH  = 1080;
 static constexpr uint32_t HEIGHT = 720;
@@ -44,12 +45,8 @@ public:
 
     void SetShowCase(ShowCase showcase) {
         m_showCase = showcase;
-        if (showcase == ShowCase::Pbr) { 
-            m_renderer = std::make_unique<ForwardRenderer>(); 
-        }
-        if(showcase == ShowCase::Sponza) {
-            m_renderer = std::make_unique<DeferedSceneRenderer>();
-        }
+        if (showcase == ShowCase::Pbr) { m_renderer = std::make_unique<ForwardRenderer>(); }
+        if (showcase == ShowCase::Sponza) { m_renderer = std::make_unique<DeferedSceneRenderer>(); }
     }
 
 private:
@@ -75,14 +72,16 @@ void EngineImpl::InitScene() {
         WIND_INFO("Using orbit camera");
     } else {
         auto camera = std::make_shared<FirstPersonCamera>(65.0f, 0.5f, 100000.0f);
-        
+
         world.SetupCamera(camera);
         WIND_INFO("Using first person camera");
     }
 
     DirectionalLight sun;
-    sun.direction = glm::normalize(glm::vec3{-1.0f, 0.0f, 0.0f});
-    sun.radiance = glm::vec3{1.0f, 1.0f, 1.0f};
+    sun.direction  = glm::normalize(glm::vec3{-1.0f, 0.0f, -1.0f});
+    sun.lightPos   = 0.1f * glm::vec3(-1795.0f, -2865.0f, 681.0f);
+    sun.radiance   = glm::vec3{1.0f, 1.0f, 1.0f};
+    sun.ligthColor = glm::vec3{1.0f, 1.0f, 1.0f};
 
     world.AddLightData(sun);
 
@@ -138,7 +137,7 @@ void EngineImpl::LoadGameObject() {
         for (auto& t : m_threadPool) {
             t.join();
         }
-        
+
         ImageLoader::FillImage(*material.albedoTexture, albeoData, ImageOptions::MIPMAPS);
         ImageLoader::FillImage(*material.normalTexture, normalData, ImageOptions::MIPMAPS);
         ImageLoader::FillImage(*material.metallicTexture, metallicdata, ImageOptions::MIPMAPS);
@@ -147,8 +146,8 @@ void EngineImpl::LoadGameObject() {
         builder.material = material;
         world.AddModel(builder);
         break;
-    } 
-    case ShowCase::Sponza : {
+    }
+    case ShowCase::Sponza: {
         // just draw triangle right now
         world.LoadGLTFScene("Sponza", R"(..\..\..\..\Assets\Scene\Sponza\glTF\Sponza.gltf)");
         break;
@@ -160,12 +159,14 @@ void EngineImpl::LoadGameObject() {
 
 void EngineImpl::LogicTick(float fs) {
     // window handle the glfw event
-    auto& world  = Scene::GetWorld();
-    auto  camera = world.GetActiveCamera();
+    auto& world = Scene::GetWorld();
+
+    auto camera = world.GetActiveCamera();
     m_window.OnUpdate(fs);
     // update camera related things
     camera->OnResize(m_window.width(), m_window.height());
     camera->OnUpdate(fs);
+    // world.UpdateSunInfo(fs);
 }
 
 void EngineImpl::RenderTick(float fs) {
@@ -180,7 +181,5 @@ Engine::Engine() : m_impl(std::make_unique<EngineImpl>()) {}
 
 Engine::~Engine() { WIND_CORE_INFO("Engine shutdown"); }
 
-void Engine::SetShowCase(ShowCase showcase) { 
-    m_impl->SetShowCase(showcase); 
-}
+void Engine::SetShowCase(ShowCase showcase) { m_impl->SetShowCase(showcase); }
 } // namespace wind

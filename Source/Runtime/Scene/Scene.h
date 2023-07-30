@@ -22,6 +22,7 @@ struct SkyBox {
 
 class Scene {
 public:
+    static constexpr int SunIndex = 0;
     friend class SceneView;
     static void Init();
 
@@ -48,6 +49,7 @@ public:
     auto& GetSkybox() { return m_skybox; }
     auto& GetRequiredGLTFModel(const std::string& resourname) {return m_gltfModel[resourname];}    
     
+    void UpdateSunInfo(float delta);
 private:
     Scene() = default;
     std::vector<GameObject>       m_worldObjects;

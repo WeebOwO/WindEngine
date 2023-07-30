@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "GLFW/glfw3.h"
 #include "Runtime/Base/Io.h"
 #include "Runtime/Base/Utils.h"
 #include "Runtime/Render/RHI/Backend.h"
@@ -97,5 +98,12 @@ void Scene::LoadGLTFScene(const std::string& resourceName, std::string_view file
     stageBuffer.Reset();
     
     m_gltfModel[std::string(resourceName)] = std::move(mesh);
+}
+
+void Scene::UpdateSunInfo(float delta) {
+    auto& sun = m_directionalLights[SunIndex];
+    sun.direction.x = sin(glfwGetTime()) * 3.0f;
+    sun.direction.y = cos(glfwGetTime()) * 2.0f;
+    sun.direction.z = 5.0 + cos(glfwGetTime()) * 1.0f;
 }
 } // namespace wind

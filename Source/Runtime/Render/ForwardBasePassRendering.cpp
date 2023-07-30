@@ -14,7 +14,7 @@ void AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
     std::shared_ptr<Buffer> objectBuffer = std::make_shared<Buffer>(
         sizeof(ObjectUniformBuffer), BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
     std::shared_ptr<Buffer> lightBuffer = std::make_shared<Buffer>(
-        sizeof(LightUniformBuffer), BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
+        sizeof(SunUniformBuffer), BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
 
     std::shared_ptr<Sampler> BasicSampler =
         std::make_shared<Sampler>(Sampler::MinFilter::LINEAR, Sampler::MagFilter::LINEAR,
@@ -22,7 +22,7 @@ void AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
 
     ShaderBufferDesc camearaShaderBufferDesc{cameraBuffer, 0, sizeof(CameraUnifoirmBuffer)};
     ShaderBufferDesc objectShaderBufferDesc{objectBuffer, 0, sizeof(ObjectUniformBuffer)};
-    ShaderBufferDesc lightBufferDesc{lightBuffer, 0, sizeof(LightUniformBuffer)};
+    ShaderBufferDesc lightBufferDesc{lightBuffer, 0, sizeof(SunUniformBuffer)};
 
     graphBuilder.AddRenderPass("OpaquePass", [=](PassNode* passNode) {
         // Setup part
@@ -72,28 +72,35 @@ void AddForwardBasePass(RenderGraphBuilder& graphBuilder) {
                                    camearaShaderBufferDesc.range, camearaShaderBufferDesc.offset);
             objectBuffer->CopyData((uint8_t*)&model, objectShaderBufferDesc.range,
                                    objectShaderBufferDesc.offset);
-            lightBuffer->CopyData((uint8_t*)sceneView->lightBuffer.get(), lightBufferDesc.range,
+            lightBuffer->CopyData((uint8_t*)sceneView->sunBuffer.get(), lightBufferDesc.range,
                                   lightBufferDesc.offset);
-            
+
             cmdBuffer.BindDescriptorSet(pso.bindPoint, pso.pipelineLayout,
                                         shader->GetDescriptorSet());
-            
-            shader->Bind("iblSepcTexture", ShaderImageDesc{skyBox->skyBoxImage, ImageUsage::SHADER_READ, BasicSampler});
-            shader->Bind("iblSpecBrdfLut", ShaderImageDesc{sceneView->iblBrdfLut, ImageUsage::SHADER_READ, BasicSampler});
+
+            shader->Bind("iblSepcTexture", ShaderImageDesc{skyBox->skyBoxImage,
+                                                           ImageUsage::SHADER_READ, BasicSampler});
+            shader->Bind("iblSpecBrdfLut", ShaderImageDesc{sceneView->iblBrdfLut,
+                                                           ImageUsage::SHADER_READ, BasicSampler});
+            shader->Bind("iblIrradianceTexture", {sceneView->skyBoxIrradianceTexture,
+                                                  ImageUsage::SHADER_READ, BasicSampler});
 
             for (auto& gameObject : scene->GetWorld().GetWorldGameObjects()) {
                 auto& model    = gameObject.model;
                 auto& material = model->GetMaterial();
-                
+
                 // Get shader binding
                 shader->Bind("CameraBuffer", camearaShaderBufferDesc);
                 shader->Bind("LightBuffer", lightBufferDesc);
                 shader->Bind("ObjectBuffer", objectShaderBufferDesc);
-                shader->Bind("albedoTexture", {material.albedoTexture, ImageUsage::SHADER_READ, BasicSampler});
-                shader->Bind("normalTexture", {material.normalTexture, ImageUsage::SHADER_READ, BasicSampler});
-                shader->Bind("metallicTexture", {material.metallicTexture, ImageUsage::SHADER_READ, BasicSampler});
-                shader->Bind("roughnessTexture", {material.roughnessTexture, ImageUsage::SHADER_READ, BasicSampler});
-                shader->Bind("iblIrradianceTexture", {sceneView->skyBoxIrradianceTexture, ImageUsage::SHADER_READ, BasicSampler});
+                shader->Bind("albedoTexture",
+                             {material.albedoTexture, ImageUsage::SHADER_READ, BasicSampler});
+                shader->Bind("normalTexture",
+                             {material.normalTexture, ImageUsage::SHADER_READ, BasicSampler});
+                shader->Bind("metallicTexture",
+                             {material.metallicTexture, ImageUsage::SHADER_READ, BasicSampler});
+                shader->Bind("roughnessTexture",
+                             {material.roughnessTexture, ImageUsage::SHADER_READ, BasicSampler});
 
                 model->Bind(cmdBuffer);
                 model->Draw(cmdBuffer);
