@@ -50,9 +50,7 @@ float ShadowCalculation(vec4 fragPosLightSpace, Material material) {
 	float closestDepth = texture(shadowMap, projCoords.xy).r; 
 	float currentDepth = projCoords.z;
 
-	vec3 normal = material.normal;
-	vec3 li = normalize(-sun.lightDirection);
-	float bias = max(0.05 * (1.0 - dot(normal, li)), 0.005);
+	float bias = 0.05;
 
 	// pcf
 	float shadow = 0.0;
@@ -65,6 +63,7 @@ float ShadowCalculation(vec4 fragPosLightSpace, Material material) {
             shadow += currentDepth - bias > pcfDepth ? 1.0 : 0.0;        
         }    
     }
+
     shadow /= 9.0;
 
 	if(projCoords.z > 1.0)

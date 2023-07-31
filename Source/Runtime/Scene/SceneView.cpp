@@ -5,6 +5,7 @@
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/quaternion.hpp>
 
+#include "Runtime/Base/Macro.h"
 #include "Runtime/Render/RHI/Backend.h"
 #include "Runtime/Render/RHI/Image.h"
 #include "Runtime/Render/RenderGraph/RenderResource.h"
@@ -42,6 +43,8 @@ void SceneView::SetScene(Scene* scene) {
 
     skyBoxBuffer->viewProj  = camera->GetProjection() * camera->GetView();
     skyBoxBuffer->cameraPos = camera->GetPosition();
+    WIND_CORE_INFO("Current x is {}, y is {}, z is {}", cameraBuffer->cameraPos.x,
+                   cameraBuffer->cameraPos.y, cameraBuffer->cameraPos.z);
     // Update lightBuffer
     auto sunData = scene->m_directionalLights.front();
 
@@ -53,9 +56,11 @@ void SceneView::SetScene(Scene* scene) {
     // update light projection buffer
 
     glm::mat4 lightView = glm::lookAt(sunData.lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-    glm::mat4 lightProjection = glm::perspectiveFov(
-        glm::radians(45.0f), (float)ShadowMapResolutionX, (float)ShadowMapResolutionY, 1.0f, 10000.0f);
-
+    glm::mat4 lightProjection =
+        glm::perspectiveFov(glm::radians(45.0f), (float)ShadowMapResolutionX,
+                            (float)ShadowMapResolutionY, 1.0f, 10000.0f);
+    lightProjection[1][1] *= -1;
+    
     lightProjectionBuffer->lightProjection = lightProjection * lightView;
 
     skyBoxIrradianceTexture = scene->GetSkybox()->skyBoxIrradianceImage;

@@ -106,10 +106,7 @@ void Scene::UpdateSunInfo(float delta) {
     sun.direction.x = sin(glfwGetTime()) * 3.0f;
     sun.direction.y = cos(glfwGetTime()) * 2.0f;
     sun.direction.z = 5.0 + cos(glfwGetTime()) * 1.0f;
-
-    sun.lightPos = sun.direction;
-    sun.lightPos.y *= -1;
-    sun.lightPos.z *= -1;
-    sun.lightPos.x *= -1;
+    
+    // sun.lightPos = 1000.0f * sun.direction;
 }
 } // namespace wind
