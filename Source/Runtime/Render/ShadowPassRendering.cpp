@@ -33,8 +33,8 @@ void AddShadowPass(RenderGraphBuilder& graphBuilder) {
         TextureOps depthloadops{vk::AttachmentLoadOp::eClear, vk::AttachmentStoreOp::eStore,
                                 vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eDontCare};
 
-        passNode->DeclareColorAttachment("Dummy", dummy, loadops, vk::ImageLayout::eUndefined,
-                                         vk::ImageLayout::eColorAttachmentOptimal);
+        // passNode->DeclareColorAttachment("Dummy", dummy, loadops, vk::ImageLayout::eUndefined,
+        //                                  vk::ImageLayout::eColorAttachmentOptimal);
 
         passNode->DeclareDepthAttachment("SunShadow", SceneView::sunShadowDesc, depthloadops,
                                          vk::ImageLayout::eUndefined,

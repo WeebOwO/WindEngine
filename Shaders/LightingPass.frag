@@ -45,7 +45,6 @@ layout (location = 0) out vec4 sceneColor;
 
 float ShadowCalculation(vec4 fragPosLightSpace, Material material) {
 	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-	projCoords = projCoords * 0.5 + 0.5;
 
 	float closestDepth = texture(shadowMap, projCoords.xy).r; 
 	float currentDepth = projCoords.z;
@@ -72,6 +71,12 @@ float ShadowCalculation(vec4 fragPosLightSpace, Material material) {
 	return shadow;
 }
 
+const mat4 biasMat = mat4( 
+	0.5, 0.0, 0.0, 0.0,
+	0.0, 0.5, 0.0, 0.0,
+	0.0, 0.0, 1.0, 0.0,
+	0.5, 0.5, 0.0, 1.0 );
+
 void main() {
     // init material property
     Material material;
@@ -83,7 +88,7 @@ void main() {
     material.roughness = texture(gbufferD, uv).g;
     material.position = texture(gbufferA, uv).rgb;
 
-	vec4 fragPosLightSpace = lightProjection.viewproj * vec4(material.position, 1.0);
+	vec4 fragPosLightSpace = biasMat * lightProjection.viewproj * vec4(material.position, 1.0);
 
 	vec3 eyePosition = cameraData.viewPos;	
 
@@ -106,5 +111,5 @@ void main() {
 	
 	vec3 color = ambilent + (1 - shadowMask) * (spec + diffsue);
 
-	sceneColor = vec4(color, 1.0);
+	sceneColor = vec4(color);
 }

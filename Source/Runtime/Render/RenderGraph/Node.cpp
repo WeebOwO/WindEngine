@@ -105,7 +105,13 @@ void PassNode::CreateFrameBuffer(uint32_t width, uint32_t height) {
         views.push_back(colorAttachment->GetNativeView(ImageView::NATIVE));
     }
 
-    if (isWriteToDepth) { views.push_back(depthAttachment->GetNativeView(ImageView::NATIVE)); }
+    if (isWriteToDepth) { 
+        if(colorAttachmentDescriptions.empty()) {
+            views.push_back(depthAttachment->GetNativeView(ImageView::DEPTH_ONLY)); 
+        } else {
+            views.push_back(depthAttachment->GetNativeView(ImageView::NATIVE));
+        }
+    }
 
     frameBufferCreateInfo.setRenderPass(renderPass)
         .setAttachmentCount(views.size())

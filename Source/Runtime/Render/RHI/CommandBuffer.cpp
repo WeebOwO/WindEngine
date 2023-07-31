@@ -1,5 +1,6 @@
 #include "CommandBuffer.h"
 
+#include "Runtime/Render/RHI/CommandBuffer.h"
 #include "Runtime/Render/RenderGraph/Node.h"
 
 namespace wind {
@@ -248,10 +249,9 @@ void CommandBuffer::CopyBuffer(const BufferInfo& source, const BufferInfo& dista
                                size_t byteSize) {
     assert(source.resource.get().GetByteSize() >= source.offset + byteSize);
     assert(distance.resource.get().GetByteSize() >= distance.offset + byteSize);
-
+    
     vk::BufferCopy bufferCopyInfo;
     bufferCopyInfo.setDstOffset(distance.offset).setSize(byteSize).setSrcOffset(source.offset);
-
     m_handle.copyBuffer(source.resource.get().GetNativeHandle(),
                         distance.resource.get().GetNativeHandle(), bufferCopyInfo);
 }

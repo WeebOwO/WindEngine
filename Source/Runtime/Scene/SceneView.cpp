@@ -21,7 +21,7 @@ std::unordered_map<std::string, TextureDesc> SceneTexture::SceneTextureDescs = {
 TextureDesc SceneView::sunShadowDesc{ShadowMapResolutionX,
                                      ShadowMapResolutionY,
                                      vk::SampleCountFlagBits::e1,
-                                     vk::Format::eD16Unorm,
+                                     vk::Format::eD32Sfloat,
                                      ImageUsage::DEPTH_SPENCIL_ATTACHMENT | ImageUsage::SHADER_READ,
                                      MemoryUsage::GPU_ONLY,
                                      ImageOptions::DEFAULT};

@@ -452,7 +452,7 @@ void Image::Init(uint32_t width, uint32_t height, vk::Format format, ImageUsage:
                  MemoryUsage memoryUsage, ImageOptions::Value options) {
     m_mipLevelCount = CalculateImageMipLevelCount(options, width, height);
     m_layerCount    = CalculateImageLayerCount(options);
-
+    
     vk::ImageCreateInfo imageCreateInfo;
     imageCreateInfo.setImageType(vk::ImageType::e2D)
         .setFormat(format)

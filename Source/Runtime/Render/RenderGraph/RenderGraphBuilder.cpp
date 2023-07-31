@@ -53,7 +53,7 @@ namespace wind {
         node->resourceName = resourceName;
         node->imageHandle = texture;
         node->resoueceType = RenderResoueceType::Image;
-
+        
         m_renderGraph->AddResourceNode(resourceName, node);
         return texture;
     }
