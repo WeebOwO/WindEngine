@@ -21,12 +21,12 @@ xmake project -k vsxmake -m "debug,release"
 * Forward / Defer Shading Pipeline
 * Orbit / FirstPerson Camera 
 * PBR + IBL 
+* Shadow Map with PCF Filter
 * Tangent Space Normal Mapping
 * ACES ToneMapping
 * HDR Pipeline
   
 ### TODO
-- Shadow
 - Skinned Animation
 - GPU Driven (Draw Indirect, CS Culling..) 
 - Physics Engine Integration

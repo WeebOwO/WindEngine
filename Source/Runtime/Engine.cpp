@@ -16,7 +16,7 @@
 #include "Runtime/Scene/Camera.h"
 #include "Runtime/Scene/Scene.h"
 
-
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 static constexpr uint32_t WIDTH  = 1080;
 static constexpr uint32_t HEIGHT = 720;
 

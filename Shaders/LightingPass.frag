@@ -103,7 +103,7 @@ void main() {
 	vec3 spec = ks * sun.lightColor * material.albedo;
 
 	float shadowMask = ShadowCalculation(fragPosLightSpace, material);
-
+	
 	vec3 color = ambilent + (1 - shadowMask) * (spec + diffsue);
 
 	sceneColor = vec4(color, 1.0);
