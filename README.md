@@ -34,9 +34,10 @@ xmake project -k vsxmake -m "debug,release"
 - Big World Terrain
   
 ## Screenshot
-
 <div align = "center">
-    <img src = "Assets/Picture/PBR.png" width=50% height=50% alt = "PBR + IBL">
+    <figure class = "half">
+        <img src = "Assets/Picture/PBR.png" width=50% height=50% alt = "PBR + IBL">
+    </figure>
 </div>
 
 ## Reference

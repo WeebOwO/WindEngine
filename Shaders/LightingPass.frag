@@ -71,12 +71,6 @@ float ShadowCalculation(vec4 fragPosLightSpace, Material material) {
 	return shadow;
 }
 
-const mat4 biasMat = mat4( 
-	0.5, 0.0, 0.0, 0.0,
-	0.0, 0.5, 0.0, 0.0,
-	0.0, 0.0, 1.0, 0.0,
-	0.5, 0.5, 0.0, 1.0 );
-
 void main() {
     // init material property
     Material material;
@@ -88,7 +82,7 @@ void main() {
     material.roughness = texture(gbufferD, uv).g;
     material.position = texture(gbufferA, uv).rgb;
 
-	vec4 fragPosLightSpace = biasMat * lightProjection.viewproj * vec4(material.position, 1.0);
+	vec4 fragPosLightSpace = lightProjection.viewproj * vec4(material.position, 1.0);
 
 	vec3 eyePosition = cameraData.viewPos;	
 
@@ -111,5 +105,5 @@ void main() {
 	
 	vec3 color = ambilent + (1 - shadowMask) * (spec + diffsue);
 
-	sceneColor = vec4(color);
+	sceneColor = vec4(color, 1.0);
 }
