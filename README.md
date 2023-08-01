@@ -27,11 +27,11 @@ xmake project -k vsxmake -m "debug,release"
 * HDR Pipeline
   
 ## Screenshot
-<div align = "center">
-    <figure class = "half">
-        <img src = "Assets/Picture/PBR.png" width=50% height=50% alt = "PBR + IBL">
-    </figure>
-</div>
+
+<table>
+    <td><center><img src = "Assets/Picture/PBR.png" alt = "PBR + IBL"></center></td>
+    <td><center><img src = "Assets/Picture/DeferShading.png" alt = "DeferShading"></center></td>
+</table>
 
 ## Reference
 *  [Hazel](https://github.com/TheCherno/Hazel)

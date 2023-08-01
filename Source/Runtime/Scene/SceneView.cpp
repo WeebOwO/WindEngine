@@ -59,9 +59,11 @@ void SceneView::SetScene(Scene* scene) {
     glm::mat4 lightProjection =
         glm::perspectiveFov(glm::radians(45.0f), (float)ShadowMapResolutionX,
                             (float)ShadowMapResolutionY, 1.0f, 10000.0f);
-    lightProjection[1][1] *= -1;
+    constexpr float depthBound = 2000;
+    glm::mat4 orlightProjection = glm::ortho(-depthBound, depthBound, -depthBound, depthBound, 1.0f, 10000.0f);
+    orlightProjection[1][1] *= -1;
     
-    lightProjectionBuffer->lightProjection = lightProjection * lightView;
+    lightProjectionBuffer->lightProjection = orlightProjection * lightView;
 
     skyBoxIrradianceTexture = scene->GetSkybox()->skyBoxIrradianceImage;
 }
