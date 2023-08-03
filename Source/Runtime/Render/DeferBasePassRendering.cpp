@@ -5,6 +5,8 @@
 #include "Runtime/Render/RenderGraph/RenderPass.h"
 #include "Runtime/Resource/GLTFLoader.h"
 #include "Runtime/Resource/Mesh.h"
+#include "Runtime/Scene/SceneView.h"
+#include <memory>
 #include <stdint.h>
 
 namespace wind {
@@ -15,10 +17,14 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
         sizeof(CameraUnifoirmBuffer), BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
     std::shared_ptr<Buffer> lightProjectionBuffer = std::make_shared<Buffer>(
         sizeof(LightProjectionBuffer), BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
+    std::shared_ptr<Buffer> projectPlaneBuffer = std::make_shared<Buffer>(
+        sizeof(ProjectPlane), BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
     // Buffer Desc
-    ShaderBufferDesc         camearaShaderBufferDesc{cameraBuffer, 0, sizeof(CameraUnifoirmBuffer)};
-    ShaderBufferDesc         lightProjectionBufferDesc{lightProjectionBuffer, 0,
+    ShaderBufferDesc camearaShaderBufferDesc{cameraBuffer, 0, sizeof(CameraUnifoirmBuffer)};
+    ShaderBufferDesc lightProjectionBufferDesc{lightProjectionBuffer, 0,
                                                sizeof(LightProjectionBuffer)};
+    ShaderBufferDesc planeBufferDesc = {projectPlaneBuffer, 0, sizeof(ProjectPlane)};
+
     std::shared_ptr<Sampler> BasicSampler =
         std::make_shared<Sampler>(Sampler::MinFilter::LINEAR, Sampler::MagFilter::LINEAR,
                                   Sampler::AddressMode::REPEAT, Sampler::MipFilter::LINEAR);
@@ -86,6 +92,7 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
             BasePassShader->Bind("textureSampler", BasicSampler);
             BasePassShader->Bind("textureArray", sponzaMesh.textures);
             BasePassShader->Bind("LightProjection", lightProjectionBufferDesc);
+            BasePassShader->Bind("PlaneDistance", planeBufferDesc);
 
             struct ConstantData {
                 uint32_t materialIndex;
@@ -95,9 +102,12 @@ void AddDeferedBasePass(RenderGraphBuilder& graphBuilder) {
 
             cameraBuffer->CopyData((uint8_t*)sceneView->cameraBuffer.get(),
                                    camearaShaderBufferDesc.range, camearaShaderBufferDesc.offset);
+            projectPlaneBuffer->CopyData((uint8_t*)sceneView->projectPlaneBuffer.get(),
+                                   planeBufferDesc.range, planeBufferDesc.offset);
 
-            lightProjectionBuffer->CopyData((uint8_t*)sceneView->lightProjectionBuffer.get(), lightProjectionBufferDesc.range,
-                                lightProjectionBufferDesc.offset);
+            lightProjectionBuffer->CopyData((uint8_t*)sceneView->lightProjectionBuffer.get(),
+                                            lightProjectionBufferDesc.range,
+                                            lightProjectionBufferDesc.offset);
 
             // cmdBuffer.PushConstant(passNode, &constantData);
             cmdBuffer.BindDescriptorSet(pso.bindPoint, pso.pipelineLayout,

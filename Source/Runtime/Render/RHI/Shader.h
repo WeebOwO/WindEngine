@@ -79,11 +79,20 @@ private:
     std::optional<vk::PushConstantRange> m_pushConstantRange {std::nullopt};
 };
 
+class ComputeShader {
+public:
+    
+private:
+    vk::ShaderModule m_shaderModule;
+};
+
 class ShaderFactory {
 public:
     static std::shared_ptr<GraphicsShader>
     CreateGraphicsShader(const std::string& vertexFilePath = "",
                          const std::string& fragFilePath   = "");
+
+    
 };
 
 } // namespace wind

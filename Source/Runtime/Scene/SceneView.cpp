@@ -35,16 +35,19 @@ void SceneView::SetScene(Scene* scene) {
     m_scene      = scene;
     auto& camera = m_scene->GetActiveCamera();
     // Update Camera Buffer and SkyBox buffer
-    cameraBuffer->view     = camera->GetView();
-    cameraBuffer->proj     = camera->GetProjection();
-    cameraBuffer->viewproj = camera->GetProjection() * camera->GetView();
-    cameraBuffer->proj[1][1] *= -1;
+    cameraBuffer->view      = camera->GetView();
+    cameraBuffer->proj      = camera->GetProjection();
+    cameraBuffer->viewproj  = camera->GetProjection() * camera->GetView();
     cameraBuffer->cameraPos = camera->GetPosition();
 
     skyBoxBuffer->viewProj  = camera->GetProjection() * camera->GetView();
     skyBoxBuffer->cameraPos = camera->GetPosition();
-    WIND_CORE_INFO("Current x is {}, y is {}, z is {}", cameraBuffer->cameraPos.x,
-                   cameraBuffer->cameraPos.y, cameraBuffer->cameraPos.z);
+
+    projectPlaneBuffer->zNear = camera->nearClip;
+    projectPlaneBuffer->zFar  = camera->farClip;
+
+    // WIND_CORE_INFO("Current x is {}, y is {}, z is {}", cameraBuffer->cameraPos.x,
+    //                cameraBuffer->cameraPos.y, cameraBuffer->cameraPos.z);
     // Update lightBuffer
     auto sunData = scene->m_directionalLights.front();
 
@@ -60,9 +63,10 @@ void SceneView::SetScene(Scene* scene) {
         glm::perspectiveFov(glm::radians(45.0f), (float)ShadowMapResolutionX,
                             (float)ShadowMapResolutionY, 1.0f, 10000.0f);
     constexpr float depthBound = 2000;
-    glm::mat4 orlightProjection = glm::ortho(-depthBound, depthBound, -depthBound, depthBound, 1.0f, 10000.0f);
+    glm::mat4       orlightProjection =
+        glm::ortho(-depthBound, depthBound, -depthBound, depthBound, 1.0f, 10000.0f);
     orlightProjection[1][1] *= -1;
-    
+
     lightProjectionBuffer->lightProjection = orlightProjection * lightView;
 
     skyBoxIrradianceTexture = scene->GetSkybox()->skyBoxIrradianceImage;
@@ -76,7 +80,7 @@ void SceneView::Init() {
     sunBuffer             = std::make_shared<SunUniformBuffer>();
     skyBoxBuffer          = std::make_shared<SkyBoxUniformBuffer>();
     lightProjectionBuffer = std::make_shared<LightProjectionBuffer>();
-
+    projectPlaneBuffer    = std::make_shared<ProjectPlane>();
     // Load brdf lut
     iblBrdfLut = std::make_shared<Image>();
     ImageLoader::FillImage(*iblBrdfLut, Format::R8G8B8A8_SRGB,
@@ -177,7 +181,7 @@ SceneTexture SceneView::CreateSceneTextures(int createBit) {
         sceneTexture.gbufferD         = CreateImage(sceneTextureDesc["GBufferD"]);
         sceneTexturesDict["GBufferD"] = sceneTexture.gbufferD;
     }
-
+    
     return sceneTexture;
 }
 

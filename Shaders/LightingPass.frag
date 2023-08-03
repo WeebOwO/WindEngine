@@ -45,7 +45,7 @@ layout (location = 0) out vec4 sceneColor;
 
 float ShadowCalculation(vec4 fragPosLightSpace, Material material) {
 	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-
+	projCoords.xy = projCoords.xy * 0.5 + 0.5;
 	float closestDepth = texture(shadowMap, projCoords.xy).r; 
 	float currentDepth = projCoords.z;
 
@@ -63,11 +63,7 @@ float ShadowCalculation(vec4 fragPosLightSpace, Material material) {
         }    
     }
 
-    shadow /= 9.0;
-
-	if(projCoords.z > 1.0)
-        shadow = 0.0;
-	
+    shadow /= 9.0;	
 	return shadow;
 }
 
@@ -83,27 +79,31 @@ void main() {
     material.position = texture(gbufferA, uv).rgb;
 
 	vec4 fragPosLightSpace = lightProjection.viewproj * vec4(material.position, 1.0);
+	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+	projCoords.xy = projCoords.xy * 0.5 + 0.5;
+	float closestDepth = texture(shadowMap, projCoords.xy).r; 
+	float currentDepth = projCoords.z;
 
 	vec3 eyePosition = cameraData.viewPos;	
 
 	vec3 f0 = mix(Fdielectric, material.albedo, material.metallic);
 
 	vec3 lo = normalize(eyePosition - material.position);
-	vec3 li = normalize(-sun.lightDirection);
+	vec3 li = normalize(sun.lightDirection);
 	vec3 lh = normalize(li + lo);
 
 	float cosLN = dot(li, material.normal);
 
 	vec3 kd = f0 / PI;
 
-	vec3 diffsue = kd * max(cosLN, 0) * sun.lightColor;
+	vec3 diffuse = kd * max(cosLN, 0) * sun.lightColor;
 	vec3 ambilent = material.albedo * 0.1 * sun.lightColor;
 	float ks = pow(max(dot(lh, material.normal), 0), 32);
 	vec3 spec = ks * sun.lightColor * material.albedo;
 
 	float shadowMask = ShadowCalculation(fragPosLightSpace, material);
 	
-	vec3 color = ambilent + (1 - shadowMask) * (spec + diffsue);
+	vec3 color = ambilent + (1 - shadowMask) * (spec + diffuse);
 
-	sceneColor = vec4(color, 1.0);
+	sceneColor = vec4(diffuse, 1.0);
 }

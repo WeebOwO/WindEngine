@@ -104,7 +104,7 @@ struct GLTFMesh {
     std::vector<Submesh>  submeshes;
     std::vector<Material> materials;
     std::vector<Image>    textures;
-
+    
     struct MeshData {
         glm::mat4 Transform = glm::mat4(1.0f);
     } Data;

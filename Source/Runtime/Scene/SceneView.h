@@ -5,7 +5,6 @@
 
 #include "Runtime/Render/RenderGraph/RenderResource.h"
 
-#include "Runtime/Scene/GPUScene.h"
 #include "Runtime/Scene/GameObject.h"
 #include "Runtime/Scene/Light.h"
 #include "Runtime/Scene/Scene.h"
@@ -45,6 +44,16 @@ struct SunUniformBuffer {
     alignas(16) glm::vec3 ligthColor{1.0f};
 };
 
+struct ProjectPlane {
+    float zNear;
+    float zFar;
+};
+
+struct IndirectBatch {
+    std::vector<vk::DrawIndexedIndirectCommand> commandsArgs;
+    std::shared_ptr<Buffer> indirectBuffer;
+};
+
 class SceneTexture {
 public:
     static std::unordered_map<std::string, TextureDesc>     SceneTextureDescs;
@@ -74,13 +83,14 @@ public:
     std::shared_ptr<SunUniformBuffer>      sunBuffer;
     std::shared_ptr<SkyBoxUniformBuffer>   skyBoxBuffer;
     std::shared_ptr<LightProjectionBuffer> lightProjectionBuffer;
+    std::shared_ptr<ProjectPlane>          projectPlaneBuffer;
 
     // For ibl calc
     std::shared_ptr<Image> iblBrdfLut;
     std::shared_ptr<Image> skyBoxIrradianceTexture;
 
     // shadow map and light projection
-    static TextureDesc sunShadowDesc;
+    static TextureDesc     sunShadowDesc;
     std::shared_ptr<Image> sunShadowMap;
 
     SceneView();
@@ -91,6 +101,7 @@ public:
     SceneTexture CreateSceneTextures(int createBit);
 
 private:
+    void   InitGPUScene();
     Scene* m_scene;
 };
 } // namespace wind

@@ -188,13 +188,13 @@ void RenderBackend::QuerySurfaceProperty() {
     auto surfaceFormats      = m_physicalDevice.getSurfaceFormatsKHR(m_surface);
 
     m_surfacePresentMode = vk::PresentModeKHR::eFifo;
-    if (std::find(presentModes.begin(), presentModes.end(), vk::PresentModeKHR::eMailbox) !=
-        presentModes.end()) {
-        m_surfacePresentMode = vk::PresentModeKHR::eMailbox;
-        WIND_CORE_INFO("Using mailbox present mode");
-    } else {
-        WIND_CORE_INFO("Using fifo present mode");
-    }
+    // if (std::find(presentModes.begin(), presentModes.end(), vk::PresentModeKHR::eMailbox) !=
+    //     presentModes.end()) {
+    //     m_surfacePresentMode = vk::PresentModeKHR::eMailbox;
+    //     WIND_CORE_INFO("Using mailbox present mode");
+    // } else {
+    //     WIND_CORE_INFO("Using fifo present mode");
+    // }
 
     m_surfaceFormat = surfaceFormats.front();
     for (const auto& availableFormat : surfaceFormats) {
