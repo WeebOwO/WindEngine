@@ -25,6 +25,8 @@ xmake project -k vsxmake -m "debug,release"
 * Tangent Space Normal Mapping
 * ACES ToneMapping
 * HDR Pipeline
+* GLTF Support with TinyGLTF
+* DrawIndirect and ComputeShader 
   
 ## Screenshot
 
@@ -34,6 +36,7 @@ xmake project -k vsxmake -m "debug,release"
 </table>
 
 ## Reference
+*  []
 *  [Hazel](https://github.com/TheCherno/Hazel)
 *  [Piccolo](https://github.com/BoomingTech/Piccolo)
 *  [SakuraEngine](https://github.com/SakuraEngine/SakuraEngine)
