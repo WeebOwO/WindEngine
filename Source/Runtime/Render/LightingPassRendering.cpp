@@ -1,5 +1,6 @@
 #include "PassRendering.h"
 #include "Runtime/Render/RHI/Image.h"
+#include "Runtime/Scene/Light.h"
 
 namespace wind {
 void AddLightPass(RenderGraphBuilder& graphBuilder) {
@@ -89,6 +90,9 @@ void AddLightPass(RenderGraphBuilder& graphBuilder) {
 
             lightShader->Bind("shadowMap",
                               {shadowMap->imageHandle, ImageUsage::SHADER_READ, BasicSampler});
+
+            lightShader->Bind("PointLights", {sceneView->pointLightBuffers, 0,
+                                              sceneView->pointLightBuffers->GetByteSize()});
             // update uniform data
             cameraBuffer->CopyData((uint8_t*)sceneView->cameraBuffer.get(),
                                    camearaShaderBufferDesc.range, camearaShaderBufferDesc.offset);
@@ -99,6 +103,11 @@ void AddLightPass(RenderGraphBuilder& graphBuilder) {
             lightProjectionBuffer->CopyData((uint8_t*)sceneView->lightProjectionBuffer.get(),
                                             lightProjectionBufferDesc.range,
                                             lightProjectionBufferDesc.offset);
+            auto& pointLightArray = scene->GetPointLightArray();
+            sceneView->pointLightBuffers->CopyData((uint8_t*)pointLightArray.data(),
+                                                   sizeof(PointLight) * pointLightArray.size(), 0);
+            int pointLightCnt = scene->GetPointLightCnt();
+            cmdBuffer.PushConstant(passNode, &pointLightCnt);
 
             cmdBuffer.BindDescriptorSet(pso.bindPoint, pso.pipelineLayout,
                                         lightShader->GetDescriptorSet());

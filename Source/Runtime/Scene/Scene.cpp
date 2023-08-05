@@ -1,6 +1,7 @@
 #include "Scene.h"
 
 #include <memory>
+#include <random>
 
 #include "GLFW/glfw3.h"
 #include "Runtime/Base/Io.h"
@@ -96,17 +97,29 @@ void Scene::LoadGLTFScene(const std::string& resourceName, std::string_view file
     commandBuffer.End();
     backend.SubmitCommandBuffer(commandBuffer);
     stageBuffer.Reset();
-    
+
     m_gltfModel[std::string(resourceName)] = std::move(mesh);
+}
+
+void Scene::AddPointLight(const PointLight& pointLight) { m_pointLights.push_back(pointLight); }
+
+void Scene::UpdatePointLights() {
+    std::mt19937             rng(std::random_device{}());
+    std::uniform_real<float> dis(0, 1);
+    
+    for (auto& pointLight : m_pointLights) {
+        float r = dis(rng), g = dis(rng), b = dis(rng);
+        pointLight.lightColor = {r, g, b}; 
+    }
 }
 
 void Scene::UpdateSunInfo(float delta) {
     auto& sun = m_directionalLights[SunIndex];
- 
+
     sun.direction.x = sin(glfwGetTime()) * 3.0f;
     sun.direction.y = cos(glfwGetTime()) * 2.0f;
     sun.direction.z = 5.0 + cos(glfwGetTime()) * 1.0f;
-    
+
     // sun.lightPos = 1000.0f * sun.direction;
 }
 } // namespace wind

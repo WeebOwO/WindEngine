@@ -1,12 +1,14 @@
 #include "Engine.h"
 
 #include <memory>
+#include <random>
 #include <thread>
 
 #include "RUntime/Render/ForwardSceneRenderer.h"
 #include "Runtime/Base/Io.h"
 #include "Runtime/Base/Log.h"
 #include "Runtime/Base/Macro.h"
+#include "Runtime/Engine.h"
 #include "Runtime/Input/Input.h"
 #include "Runtime/Render/DeferredSceneRenderer.h"
 #include "Runtime/Render/RHI/Backend.h"
@@ -14,6 +16,7 @@
 #include "Runtime/Resource/ImageLoader.h"
 #include "Runtime/Resource/Material.h"
 #include "Runtime/Scene/Camera.h"
+#include "Runtime/Scene/Light.h"
 #include "Runtime/Scene/Scene.h"
 
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -72,9 +75,26 @@ void EngineImpl::InitScene() {
         WIND_INFO("Using orbit camera");
     } else {
         auto camera = std::make_shared<FirstPersonCamera>(65.0f, 0.5f, 100000.0f);
-
         world.SetupCamera(camera);
         WIND_INFO("Using first person camera");
+
+        // Init point light for defer shading test 
+        glm::vec3 stratPos      = glm::vec3(200, 200, 200);
+        float     offset        = 200;
+        int iter = 2;
+
+        for (int i = -iter; i < iter; ++i) {
+            for (int j = -iter; j < iter; ++j) {
+                for (int k = -iter; k < iter; ++k) {
+                    glm::vec3 lightPos = glm::vec3(stratPos.x + i * offset, stratPos.y + j * offset,
+                                                   stratPos.z + k * offset);
+                    glm::vec3 intensity{10.0f};
+                    glm::vec3 lightColor = glm::vec3(1, 1, 1);
+                    PointLight light{lightPos, intensity, lightColor};
+                    world.AddPointLight(light);
+                }
+            }
+        }
     }
 
     DirectionalLight sun;
@@ -163,6 +183,9 @@ void EngineImpl::LogicTick(float fs) {
     auto& world = Scene::GetWorld();
 
     auto camera = world.GetActiveCamera();
+    if(m_showCase == ShowCase::Sponza) {
+        world.UpdatePointLights();
+    }
     m_window.OnUpdate(fs);
     // update camera related things
     camera->OnResize(m_window.width(), m_window.height());

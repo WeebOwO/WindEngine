@@ -4,12 +4,15 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/euler_angles.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <memory>
 
 #include "Runtime/Base/Macro.h"
 #include "Runtime/Render/RHI/Backend.h"
 #include "Runtime/Render/RHI/Image.h"
+#include "Runtime/Render/RHI/Vma.h"
 #include "Runtime/Render/RenderGraph/RenderResource.h"
 #include "Runtime/Resource/ImageLoader.h"
+#include "Runtime/Scene/Light.h"
 #include "Runtime/Scene/SceneView.h"
 
 namespace wind {
@@ -46,8 +49,8 @@ void SceneView::SetScene(Scene* scene) {
     projectPlaneBuffer->zNear = camera->nearClip;
     projectPlaneBuffer->zFar  = camera->farClip;
 
-    // WIND_CORE_INFO("Current x is {}, y is {}, z is {}", cameraBuffer->cameraPos.x,
-    //                cameraBuffer->cameraPos.y, cameraBuffer->cameraPos.z);
+    WIND_CORE_INFO("Current x is {}, y is {}, z is {}", cameraBuffer->cameraPos.x,
+                   cameraBuffer->cameraPos.y, cameraBuffer->cameraPos.z);
     // Update lightBuffer
     auto sunData = scene->m_directionalLights.front();
 
@@ -81,6 +84,11 @@ void SceneView::Init() {
     skyBoxBuffer          = std::make_shared<SkyBoxUniformBuffer>();
     lightProjectionBuffer = std::make_shared<LightProjectionBuffer>();
     projectPlaneBuffer    = std::make_shared<ProjectPlane>();
+
+    // size_t byteSize, BufferUsage::Value usage, MemoryUsage memoryUsage
+
+    pointLightBuffers = std::make_shared<Buffer>(
+        sizeof(PointLight) * MaxPointLight, BufferUsage::UNIFORM_BUFFER, MemoryUsage::CPU_TO_GPU);
     // Load brdf lut
     iblBrdfLut = std::make_shared<Image>();
     ImageLoader::FillImage(*iblBrdfLut, Format::R8G8B8A8_SRGB,
@@ -181,7 +189,7 @@ SceneTexture SceneView::CreateSceneTextures(int createBit) {
         sceneTexture.gbufferD         = CreateImage(sceneTextureDesc["GBufferD"]);
         sceneTexturesDict["GBufferD"] = sceneTexture.gbufferD;
     }
-    
+
     return sceneTexture;
 }
 

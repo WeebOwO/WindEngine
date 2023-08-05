@@ -1,6 +1,6 @@
 set_project("WindEngine")
 
-add_requires("glm", "glfw", "glad", "vulkansdk", "spdlog", 'assimp', 'stb', 'vulkan-memory-allocator', 'spirv-cross', 'imgui')
+add_requires("glm", "glfw", "glad", "vulkansdk", "spdlog", 'assimp', 'stb', 'vulkan-memory-allocator', 'spirv-cross', 'imgui', 'tracy')
 
 add_rules("mode.debug", "mode.release")
 

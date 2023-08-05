@@ -51,7 +51,7 @@ struct ProjectPlane {
 
 struct IndirectBatch {
     std::vector<vk::DrawIndexedIndirectCommand> commandsArgs;
-    std::shared_ptr<Buffer> indirectBuffer;
+    std::shared_ptr<Buffer>                     indirectBuffer;
 };
 
 class SceneTexture {
@@ -74,8 +74,9 @@ struct LightProjectionBuffer {
 // A scene abstraction for renderer side data
 class SceneView {
 public:
-    constexpr static uint32_t ShadowMapResolutionX = 2048;
-    constexpr static uint32_t ShadowMapResolutionY = 2048;
+    static constexpr uint32_t ShadowMapResolutionX = 2048;
+    static constexpr uint32_t ShadowMapResolutionY = 2048;
+    static constexpr uint32_t MaxPointLight = 1024;
 
     std::shared_ptr<CameraUnifoirmBuffer>  cameraBuffer;
     std::shared_ptr<Image>                 skybox;
@@ -84,6 +85,7 @@ public:
     std::shared_ptr<SkyBoxUniformBuffer>   skyBoxBuffer;
     std::shared_ptr<LightProjectionBuffer> lightProjectionBuffer;
     std::shared_ptr<ProjectPlane>          projectPlaneBuffer;
+    std::shared_ptr<Buffer>                pointLightBuffers;
 
     // For ibl calc
     std::shared_ptr<Image> iblBrdfLut;

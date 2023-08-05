@@ -68,7 +68,7 @@ public:
                            TextureOps      loadop,
                            vk::ImageLayout intialLayout = vk::ImageLayout::eUndefined,
                            vk::ImageLayout finalLayout  = vk::ImageLayout::eColorAttachmentOptimal,
-                           ClearColor      clearColor   = {0.1f, 0.1f, 0.1f, 0.1f});
+                           ClearColor      clearColor   = {0.0f, 0.0f, 0.0f, 0.0f});
     void
     DeclareDepthAttachment(const std::string& name, const TextureDesc& textureDesc,
                            TextureOps        loadop,

@@ -7,15 +7,21 @@ namespace wind {
 struct DirectionalLight {
     glm::vec3 lightPos{};
     glm::vec3 direction{};
+    // todo: fix this def
     glm::vec3 radiance{1.0f};
     glm::vec3 ligthColor{1.0f};
 };
 
+// simple Pointlight
 struct PointLight {
-    float lightRadius;
-    float fallScale;
+   alignas(16)  glm::vec3 position;    
+   alignas(16)  glm::vec3 intensity;
+   alignas(16)  glm::vec3 lightColor;
 };
 
-struct SpotLight {};
+// todo
+struct SpotLight {
+
+};
 
 } // namespace wind

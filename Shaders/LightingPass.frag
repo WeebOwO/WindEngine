@@ -6,6 +6,12 @@ const float PI = 3.141592;
 const float Epsilon = 0.00001;
 const vec3 Fdielectric = vec3(0.04);
 
+const float pointlightConst = 1.0;
+const float pointlightLinear = 0.09;
+const float pointlightQuat = 0.032;
+
+const int MAX_LIGHT = 64;
+
 struct Material {
     vec3 position;
 	vec3 albedo;
@@ -13,6 +19,16 @@ struct Material {
 	float metallic;
 	float roughness;
 };
+
+struct PointLight {
+	vec3 position;
+	vec3 intensity;
+	vec3 lightColor;
+};
+
+layout(push_constant) uniform PushConstant {
+    uint pointLightCnts;
+} pushConstant;
 
 layout(set = 0, binding = 0) uniform CameraBuffer {   
     mat4 view;
@@ -28,7 +44,11 @@ layout (set = 0, binding = 1) uniform Sun {
 	vec3 lightColor;
 } sun;
 
-layout(set = 0, binding = 2) uniform LightProjection {   
+layout (set = 0, binding = 2) uniform PointLights {
+	PointLight lights[MAX_LIGHT];
+} pointLightArray;
+
+layout(set = 0, binding = 3) uniform LightProjection {   
     mat4 viewproj;
 } lightProjection;
 
@@ -76,7 +96,6 @@ void main() {
     material.normal = texture(gbufferB, uv).rgb;
     material.metallic = 1 - texture(gbufferD, uv).b;
     material.roughness = texture(gbufferD, uv).g;
-    material.position = texture(gbufferA, uv).rgb;
 
 	vec4 fragPosLightSpace = lightProjection.viewproj * vec4(material.position, 1.0);
 	vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
@@ -91,11 +110,11 @@ void main() {
 	vec3 lo = normalize(eyePosition - material.position);
 	vec3 li = normalize(sun.lightDirection);
 	vec3 lh = normalize(li + lo);
-
+	
 	float cosLN = dot(li, material.normal);
 
 	vec3 kd = f0 / PI;
-
+	// direct light part
 	vec3 diffuse = kd * max(cosLN, 0) * sun.lightColor;
 	vec3 ambilent = material.albedo * 0.1 * sun.lightColor;
 	float ks = pow(max(dot(lh, material.normal), 0), 32);
@@ -105,5 +124,21 @@ void main() {
 	
 	vec3 color = ambilent + (1 - shadowMask) * (spec + diffuse);
 
-	sceneColor = vec4(diffuse, 1.0);
+	// point light part
+	vec3 pointLightResult = vec3(0.0);
+
+	for(int i = 0; i < pushConstant.pointLightCnts; ++i) {
+		PointLight light = pointLightArray.lights[i];
+		float dis = length(light.position - material.position);
+	
+		float attenuation = 1.0 / (pointlightConst + pointlightLinear * dis + 
+                pointlightQuat * (dis * dis));
+		vec3 lightDirection = normalize(light.position - material.position);
+		float pointCosLN = max(dot(lightDirection, material.normal), 0);
+
+		vec3 pointDiffuse = pointCosLN * light.lightColor * kd * attenuation * light.intensity;
+		pointLightResult += pointDiffuse;
+	}
+
+	sceneColor = vec4(pointLightResult, 1.0);
 }

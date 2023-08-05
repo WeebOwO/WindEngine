@@ -38,24 +38,30 @@ public:
         m_worldObjects.push_back(std::move(gameobject));
     }
     void AddLightData(const DirectionalLight& directionalLight);
+    void AddPointLight(const PointLight& pointLight);
 
     auto& GetWorldGameObjects() { return m_worldObjects; }
     auto& GetActiveCamera() { return m_activeCamera; }
 
     void SetupCamera(std::shared_ptr<BaseCamera> camera) { m_activeCamera = camera; }
-    void LoadSkyBox(const std::string& skyBoxModelPath, const std::string& skyboxImagePath, const std::string& irradianceImagePath);
+    void LoadSkyBox(const std::string& skyBoxModelPath, const std::string& skyboxImagePath,
+                    const std::string& irradianceImagePath);
     void LoadGLTFScene(const std::string& resourceName, std::string_view filePath);
-    
+
     auto& GetSkybox() { return m_skybox; }
-    auto& GetRequiredGLTFModel(const std::string& resourname) {return m_gltfModel[resourname];}    
-    
-    void UpdateSunInfo(float delta);
+    auto& GetRequiredGLTFModel(const std::string& resourname) { return m_gltfModel[resourname]; }
+    auto  GetPointLightCnt() { return m_pointLights.size(); }
+    auto& GetPointLightArray() { return m_pointLights; }
+    void  UpdateSunInfo(float delta);
+    void  UpdatePointLights();
+
 private:
     Scene() = default;
     std::vector<GameObject>       m_worldObjects;
     std::shared_ptr<BaseCamera>   m_activeCamera;
     std::vector<DirectionalLight> m_directionalLights;
-    std::shared_ptr<SkyBox>       m_skybox; 
+    std::vector<PointLight>       m_pointLights;
+    std::shared_ptr<SkyBox>       m_skybox;
     // gltf part
     std::unordered_map<std::string, gltf::GLTFMesh> m_gltfModel;
 };
