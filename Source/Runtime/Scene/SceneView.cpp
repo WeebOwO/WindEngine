@@ -49,8 +49,8 @@ void SceneView::SetScene(Scene* scene) {
     projectPlaneBuffer->zNear = camera->nearClip;
     projectPlaneBuffer->zFar  = camera->farClip;
 
-    WIND_CORE_INFO("Current x is {}, y is {}, z is {}", cameraBuffer->cameraPos.x,
-                   cameraBuffer->cameraPos.y, cameraBuffer->cameraPos.z);
+    // WIND_CORE_INFO("Current x is {}, y is {}, z is {}", cameraBuffer->cameraPos.x,
+    //                cameraBuffer->cameraPos.y, cameraBuffer->cameraPos.z);
     // Update lightBuffer
     auto sunData = scene->m_directionalLights.front();
 
