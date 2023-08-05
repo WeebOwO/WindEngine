@@ -180,10 +180,14 @@ void EngineImpl::LoadGameObject() {
 
 void EngineImpl::LogicTick(float fs) {
     // window handle the glfw event
+    static float localCounter = 0;
+    localCounter += fs;
     auto& world = Scene::GetWorld();
 
     auto camera = world.GetActiveCamera();
-    if(m_showCase == ShowCase::Sponza) {
+    
+    if(m_showCase == ShowCase::Sponza && localCounter > 2.0f) {
+        localCounter = 0;
         world.UpdatePointLights();
     }
     m_window.OnUpdate(fs);
