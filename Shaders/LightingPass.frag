@@ -10,7 +10,7 @@ const float pointlightConst = 1.0;
 const float pointlightLinear = 0.09;
 const float pointlightQuat = 0.032;
 
-const int MAX_LIGHT = 64;
+const int MAX_LIGHT = 1024;
 
 struct Material {
     vec3 position;
@@ -127,7 +127,7 @@ void main() {
 	// point light part
 	vec3 pointLightResult = vec3(0.0);
 
-	for(int i = 0; i < pushConstant.pointLightCnts; ++i) {
+	for(int i = 0; i < min(pushConstant.pointLightCnts, MAX_LIGHT); ++i) {
 		PointLight light = pointLightArray.lights[i];
 		float dis = length(light.position - material.position);
 	

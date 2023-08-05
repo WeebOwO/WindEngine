@@ -20,8 +20,8 @@
 #include "Runtime/Scene/Scene.h"
 
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-static constexpr uint32_t WIDTH  = 1080;
-static constexpr uint32_t HEIGHT = 720;
+static constexpr uint32_t WIDTH  = 1920;
+static constexpr uint32_t HEIGHT = 1000;
 
 namespace wind {
 class EngineImpl {
@@ -81,7 +81,7 @@ void EngineImpl::InitScene() {
         // Init point light for defer shading test 
         glm::vec3 stratPos      = glm::vec3(200, 200, 200);
         float     offset        = 200;
-        int iter = 2;
+        int iter = 5;
 
         for (int i = -iter; i < iter; ++i) {
             for (int j = -iter; j < iter; ++j) {
