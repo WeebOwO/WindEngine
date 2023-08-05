@@ -30,7 +30,7 @@ xmake project -k vsxmake -m "debug,release"
 
 <table>
     <td><center><img src = "Assets/Picture/PBR.png" alt = "PBR + IBL"></center></td>
-    <td><center><img src = "Assets/Picture/DeferShading.png" width = 70% height = 70% alt = "DeferShading"></center></td>
+    <td><center><img src = "Assets/Picture/DeferShading.png"alt = "DeferShading"></center></td>
 </table>
 
 ## Reference
