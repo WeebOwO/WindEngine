@@ -7,6 +7,7 @@
 enum ShowCase : uint8_t {
     Pbr = 0, // Showcase for physical based rendering 
     Sponza, // Showcase for defer shading
+    Comptue, // Showcase for compute shader particle
     GPUDriven, // todo: Showcase for compute shader culling and indirectdraw
     SkinnedAnimation, // todo: Showcase for skin animation
     Physics,  // todo: This may not implement in short time

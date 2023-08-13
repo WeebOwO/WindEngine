@@ -1,0 +1,21 @@
+#version 450 core
+
+struct Particle {
+    vec2 position;
+    vec2 velocity;
+    vec4 color;
+};
+
+layout(std140, binding = 1) readonly buffer ParticlesSSBOIn {
+    Particle particlesIn[];
+};
+
+layout(std140, binding = 2) buffer ParticlesSSBOOut {
+    Particle particlesOut[];
+};
+
+void main() {
+    
+}
+
+

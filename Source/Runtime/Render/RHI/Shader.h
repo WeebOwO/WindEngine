@@ -81,7 +81,8 @@ private:
 
 class ComputeShader {
 public:
-    
+    ComputeShader(std::string_view filepath);
+    void Bind(const std::string& resourceName);
 private:
     vk::ShaderModule m_shaderModule;
 };

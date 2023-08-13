@@ -35,10 +35,12 @@ void RenderGraph::Exec() {
 
     auto frameCommandBuffer = frame.Commands;
     for (auto passNode : m_passNodes) {
-        frameCommandBuffer.BeginRenderPass(passNode.get());
-        frameCommandBuffer.BindPipeline(passNode.get());
-        passNode->passCallback(frameCommandBuffer, &m_graphRegister);
-        frameCommandBuffer.EndRenderPass();
+        if (passNode->IsGraphicPipeline()) {
+            frameCommandBuffer.BeginRenderPass(passNode.get());
+            frameCommandBuffer.BindPipeline(passNode.get());
+            passNode->passCallback(frameCommandBuffer, &m_graphRegister);
+            frameCommandBuffer.EndRenderPass();
+        }
     }
 }
 

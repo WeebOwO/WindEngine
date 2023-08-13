@@ -119,6 +119,7 @@ public:
         PushConstants(node, (const uint8_t*)constants, sizeof(T));
     }
 
+    
 private:    
     vk::CommandBuffer m_handle;
 };

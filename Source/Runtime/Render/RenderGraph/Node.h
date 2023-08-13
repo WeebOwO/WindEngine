@@ -80,6 +80,10 @@ public:
 
     void CreateRenderPass();
 
+    bool IsGraphicPipeline() {
+        return passType == PassType::Graphic;
+    }
+    
     PassType        passType{PassType::Graphic};
     std::string     passName;
     vk::RenderPass  renderPass;
