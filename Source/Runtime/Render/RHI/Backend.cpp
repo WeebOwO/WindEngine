@@ -9,7 +9,9 @@
 #include "Runtime/Base/Macro.h"
 #include "Runtime/Render/RHI/CommandBuffer.h"
 
-static std::vector<const char*> layers = {"VK_LAYER_KHRONOS_validation"};
+static std::vector<const char*> layers = {
+    "VK_LAYER_KHRONOS_validation"
+};
 
 namespace wind {
 std::unique_ptr<RenderBackend> RenderBackend::s_instance = nullptr;
